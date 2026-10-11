@@ -1,0 +1,56 @@
+{
+  "model": "V5.2 temporal best.pt",
+  "scope": "filtered Test records containing at least one currently active station absent from the Train vocabulary",
+  "active_station_count": 2789,
+  "train_station_vocab_count": 2739,
+  "active_unseen_station_count": 50,
+  "test_unseen_station_count": 12,
+  "test_records": 25937,
+  "origin_unseen_records": 13057,
+  "destination_unseen_records": 12887,
+  "both_unseen_records": 7,
+  "p50": {
+    "n": 25937,
+    "mae": 7.174026845007079,
+    "median_ae": 2.4992521921793616,
+    "p90_ae": 16.74531951904297,
+    "bias": -5.576110372627149
+  },
+  "p80_coverage": 0.6049658788603154,
+  "p90_coverage": 0.8139723175386514,
+  "baselines": {
+    "route_base": {
+      "n": 25937,
+      "mae": 7.646201658250466,
+      "median_ae": 2.6835697935349216,
+      "p90_ae": 18.227736770850147,
+      "bias": -6.498572886775155
+    },
+    "train_od_prior": {
+      "n": 25937,
+      "mae": 7.646201658250466,
+      "median_ae": 2.6835697935349216,
+      "p90_ae": 18.227736770850147,
+      "bias": -6.498572886775155
+    }
+  },
+  "actual_duration": {
+    "mean": 17.857847219544794,
+    "median": 10.716666666666667,
+    "p90": 40.88333333333333
+  },
+  "station_record_counts": {
+    "4149": 5258,
+    "4098": 5175,
+    "4148": 4515,
+    "3940": 2538,
+    "5898": 2148,
+    "5897": 2036,
+    "5786": 1973,
+    "4644": 1394,
+    "4944": 902,
+    "2355": 2,
+    "764": 2,
+    "212": 1
+  }
+}
