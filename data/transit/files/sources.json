@@ -1,0 +1,43 @@
+{
+  "downloaded_at": "2026-10-16T11:19:50.037435+00:00",
+  "files": [
+    {
+      "file": "subway_timetable.csv",
+      "source": "https://www.data.go.kr/data/15098251/fileData.do",
+      "download_url": "https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId=FILE_000000007671122&fileDetailSn=1&insertDataPrcus=N",
+      "bytes": 32730124,
+      "sha256": "fd7e7b6edc18a5ac4f40f53b594d460d5cbd96d90919aaeb54b957890080d606"
+    },
+    {
+      "file": "subway_coordinates.csv",
+      "source": "https://www.data.go.kr/data/15099316/fileData.do",
+      "download_url": "https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId=FILE_000000003558329&fileDetailSn=1&insertDataPrcus=N",
+      "bytes": 16838,
+      "sha256": "30e2eb633ac78904029b69fb0b9c48d3aee74b1493e93469af42837697421d08"
+    },
+    {
+      "file": "subway_line9_coordinates.csv",
+      "source": "https://www.data.go.kr/data/15041335/fileData.do",
+      "download_url": "https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId=FILE_000000003521195&fileDetailSn=1&insertDataPrcus=N",
+      "bytes": 2386,
+      "sha256": "78b7cc63659f0869558e95bf6118a65732b9d417c124a843ab7af9fa0c17162d"
+    },
+    {
+      "file": "bus_coordinates.xlsx",
+      "source": "https://data.seoul.go.kr/dataList/OA-15067/F/1/datasetView.do",
+      "source_date": "20260902",
+      "seq": "58",
+      "download_url": "https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do",
+      "bytes": 741052,
+      "sha256": "73eb0a5f4fd0f6128237b5e23fa361fd1c6d8a31a83bcee2884e6a48481852bb"
+    },
+    {
+      "file": "national_rail_stations.xlsx",
+      "source": "https://data.kric.go.kr/rips/M_01_01/detail.do?id=32",
+      "download_url": "https://data.kric.go.kr/rips/dataset/download.file?type=filedata&id=32&operation=1",
+      "source_date": "2026-06-30",
+      "bytes": 313132,
+      "sha256": "cdf1d84a7e5c898b2aacd622783ba8ba9af35c40bee0561dc97d55ce8e063f94"
+    }
+  ]
+}

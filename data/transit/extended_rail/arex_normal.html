@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+
+<head>
+	
+
+	<meta charset="UTF-8" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" >
+	<meta name="format-detection" content="telephone=no">
+	<meta property="og:title" content="AREX 공항철도">
+	<meta property="og:image" content="https://www.airportrailroad.com/common/images/common/thumb_img.png">
+	<meta property="og:url" content="https://www.airportrailroad.com/">
+	<meta name="description" content="AREX 일반열차는 여러 역에 정차하며 공항과 서울을 합리적인 요금으로 편리하게 이동할 수 있는 노선입니다.">
+	<!-- 캐싱방지 -->
+	<!-- <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+	<META HTTP-EQUIV="EXPIRES" CONTENT="Mon, 22 Jul 2002 11:12:01 GMT"> -->
+	<!-- 모바일 상단,타이틀바,주소창 색변경(안드로이드에서 크롬,파폭,오페라,삼성브라우저만 가능) -->
+	<!-- <meta name="theme-color" content="#4285f4"> -->
+
+	<link rel="icon" href="/favicon.ico">
+
+	<title>AREX 일반열차 서비스 개요를 확인하세요 | AREX</title>
+
+	<!-- font -->
+	
+	
+	
+
+	<!-- css -->
+	<link rel="preload" as="style" href="/common/css/swiper.css" />
+	<link rel="preload" as="style" href="/common/css/style.css" />
+	<!-- <link rel="stylesheet" href="../common/css/jquery-ui.min.css" /> -->
+
+	<link rel="stylesheet" href="/common/css/tui-date-picker.css" />
+	<link rel="stylesheet" href="/common/css/tui-time-picker.css" />
+
+	<link rel="stylesheet" href="/common/css/swiper.css" />
+	<link rel="stylesheet" href="/common/css/style.css" />
+
+	<!-- js -->
+	<script src="/common/js/swiper.js"></script>
+	<script src="/common/js/common.js"></script>
+	<script src="/common/js/tui-date-picker.js"></script>
+	<script src="/common/js/tui-time-picker.js"></script>
+
+	<!-- jQuery -->
+	<script src="/static/js/jquery/jquery-3.7.0.min.js"></script>
+	<script src="/static/js/jquery/jquery.i18n.properties.min.js"></script>
+	<script src="/static/js/jquery/printThis.js"></script>
+
+	<script src="/static/js/common-fn.js?v=20260210"></script>
+	<script src="/static/js/common-validation.js"></script>
+	<script src="/static/js/common-fetch.js"></script>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			// 다국어 설정
+			const lang = "ko_KR";
+			cfnI18nPluginInitialize(lang);
+		});
+	</script>
+
+	
+
+	
+		<!-- Google Tag Manager -->
+		<script>
+			(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+					new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+				j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+				'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+			})(window,document,'script','dataLayer','GTM-MRBMG4GV');
+		</script>
+		<!-- End Google Tag Manager -->
+	
+
+	<style>
+		.fade-box {
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.3s ease, visibility 0.3s ease;
+		}
+
+		.fade-box.show {
+			opacity: 1;
+			visibility: visible;
+		}
+	</style>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			// fade
+			const box = document.querySelector('.fade-box');
+			if(box) {
+				box.classList.add('show');
+			}
+
+			// remove loading bar
+			setTimeout(() => {
+				const loading = document.querySelector(".cptLoading");
+				if(loading) {
+					loading.style.display = "none";
+				}
+			}, 500);
+		});
+
+		// 뒤로가기 제어. (뒤로가기시 새로고침)
+		window.addEventListener("pageshow", function (event) {
+			if (event.persisted || isBackForward()) {
+				const loading = document.querySelector(".cptLoading");
+				if(loading) {
+					loading.style.display = "none";
+				}
+				window.scrollTo({top:0});
+
+				const pathname = location.pathname;
+				if(pathname.startsWith("/ticket/rsv/")) {
+					cfnMoveTo("ticket/rsv");
+				} else {
+					window.location.reload();
+				}
+			}
+		});
+
+		// 뒤로가기 여부
+		function isBackForward() {
+			const navi = performance.getEntriesByType?.("navigation");
+			if(navi && navi.length) {
+				return navi[0].type === "back_forward";
+			}
+			return performance.navigation && performance.navigation.type === 2;
+		}
+
+		// 언어 변경
+		async function fnLangChange(lang, path) {
+			await fnFetch.get(cfnGetPath("locale", lang));
+
+			if(path) {
+				cfnMoveTo(path);
+			} else {
+				location.reload();
+			}
+		}
+
+		// 언어,통화 변경
+		async function fnLangCurrencyChange() {
+			const popup = document.querySelector("#popup-lang-currency");
+			const lang = popup.querySelector("#lang").value;
+			const currency = popup.querySelector("#currency").value;
+
+			await fnFetch.get(cfnGetPath("locale", lang, currency));
+			cfnMoveTo("/main");
+		}
+	</script>
+
+
+</head>
+<body>
+	
+	
+		<!-- Google Tag Manager (noscript) -->
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRBMG4GV" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		<!-- End Google Tag Manager (noscript) -->
+	
+
+
+	<div class="skip">
+		<a class="quickBtn" href="#container">본문바로가기</a>
+	</div>
+
+	<div class="wrap fade-box">
+
+		<!-- 로딩 -->
+		<div class="cptLoading" style="z-index: 9010">
+			<div class="loadingArea">
+				<div class="loadingBox4">
+					<div class="loader">
+						<span></span>
+						<span></span>
+						<span></span>
+						<span></span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- 레이아웃 -->
+		<div class="lytLayout">
+			<div class="layoutArea">
+
+				<!-- 상단영역 -->
+				<div class="layoutTop">
+					<!-- Top -->
+					
+	<script>
+		// 메뉴검색
+		async function fnSearchMenu(_this) {
+			const srchBox = _this.closest(".srchBox");
+			const keyword = srchBox.querySelector("input[name='searchKeyword']").value;
+
+			const result = await fnFetch.post("/menu/search", {searchKeyword: keyword});
+			const fragment = srchBox.querySelector(".srchList");
+			jQuery(fragment).replaceWith(result);
+		}
+
+		// 메뉴검색 창 닫기 - 검색내역 초기화
+		function fnSearchMenuClose() {
+			document.querySelectorAll(".srchBox").forEach(el => {
+				el.querySelector("input[name='searchKeyword']").value = "";
+				el.querySelector(".srchList").innerHTML = "";
+			});
+		}
+	</script>
+
+	<div class="cptGnb">
+		<div class="gnbArea">
+			<div class="gnbGroup">
+				<div class="logoBox">
+                    <!-- arex 로고 -->
+                    <div class="logo"><a href="/main">AREX</a></div>
+                    <!-- 협력사 로고 -->
+                    
+				</div>
+
+				<div class="gnbBox">
+					<!-- gnb 상단 -->
+					<div class="gnbTop">
+						<div class="gnbTopArea">
+							<ul class="depth1Group">
+								<li class="depth1List">
+									<a href="javascript:void(0)" onclick="cfnMoveTo('/member/login')" class="depth1Name">로그인</a>
+								</li>
+								<li class="depth1List">
+									<a href="/member/join/step1" class="depth1Name">회원가입</a>
+								</li>
+								
+								
+								<li class="depth1List">
+									<a href="https://www.arex.or.kr/locale.do?clientLocale=ko_KR" class="depth1Name" target="_blank" title="새 창 열림">기업 누리집</a>
+								</li>
+
+								<li class="depth1List depth1Btn">
+									<button type="button" class="depth1Name" onclick="openPopup2('popup-lang-currency', event)">
+										<span class="global"></span>
+										<span class="blind">언어 및 화폐 변경</span>
+										<span class="txt">
+											한국어 - KRW</span>
+									</button>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<!--// gnb 상단 -->
+					<!-- gnb 하단 -->
+					<div class="gnbCont">
+						<!-- 메뉴 -->
+						<div class="menuArea">
+                            <ul class="depth1Group">
+                                <li class="depth1List">
+                                    <a href="javascript:void(0);" class="depth1Name" target="_self"
+									   onclick="cfnMoveTo(&quot;\/ticket\/rsv&quot;)">승차권</a>
+
+                                    <!-- depth2 -->
+                                    <div class="depth2Area">
+                                        <div class="depth2Box">
+                                            <div class="depth2Tit">
+                                                <p class="mainTit">승차권</p>
+                                                <p class="subTit">승차권을 예매하고 편리하게 이용하세요.</p>
+                                                
+                                                
+                                                
+                                                
+                                            </div>
+                                            <ul class="depth2Group" role="menu">
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/ticket\/rsv&quot;)">승차권 예약</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/ticket\/info&quot;)">승차권 확인</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/ticket\/manage&quot;)">승차권 변경/반환</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/ticket\/history&quot;)">이용내역/영수증 조회</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="depth1List">
+                                    <a href="javascript:void(0);" class="depth1Name" target="_self"
+									   onclick="cfnMoveTo(&quot;\/train\/express\/introduce&quot;)">직통열차</a>
+
+                                    <!-- depth2 -->
+                                    <div class="depth2Area">
+                                        <div class="depth2Box">
+                                            <div class="depth2Tit">
+                                                <p class="mainTit">직통열차</p>
+                                                
+                                                <p class="subTit">도심과 공항을 가장 빠르고 쾌적하게 이용해보세요.</p>
+                                                
+                                                
+                                                
+                                            </div>
+                                            <ul class="depth2Group" role="menu">
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/introduce&quot;)">직통열차 소개</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/info&quot;)">직통열차 시각표</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/guide&quot;)">직통열차 이용안내</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/city\/info&quot;)">도심공항터미널</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/partners&quot;)">제휴사</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/partnerhotel&quot;)">호텔 셔틀버스 </a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/express\/partnercard&quot;)">제휴카드</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="depth1List">
+                                    <a href="javascript:void(0);" class="depth1Name" target="_self"
+									   onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차</a>
+
+                                    <!-- depth2 -->
+                                    <div class="depth2Area">
+                                        <div class="depth2Box">
+                                            <div class="depth2Tit">
+                                                <p class="mainTit">일반열차</p>
+                                                
+                                                
+                                                <p class="subTit">수도권 어디서나 인천공항까지 편하게 이용해 보세요.</p>
+                                                
+                                                
+                                            </div>
+                                            <ul class="depth2Group" role="menu">
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차 소개</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/fare&quot;)">일반열차 운임안내</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/ticket&quot;)">일반열차 승차권 안내</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">역 정보</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">열차시각표</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/service&quot;)">역 편의시설</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/live&quot;)">실시간 열차정보</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/street&quot;)">구글 스트리트 뷰</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="depth1List">
+                                    <a href="javascript:void(0);" class="depth1Name" target="_self"
+									   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">고객서비스</a>
+
+                                    <!-- depth2 -->
+                                    <div class="depth2Area">
+                                        <div class="depth2Box">
+                                            <div class="depth2Tit">
+                                                <p class="mainTit">고객서비스</p>
+                                                
+                                                
+                                                
+                                                <p class="subTit">고객을 위한 모든 서비스, 지금 바로 이용하세요.</p>
+                                                
+                                            </div>
+                                            <ul class="depth2Group" role="menu">
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">체험학습</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/info&quot;)">서울역 회의실</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/train\/normal\/shop&quot;)">역 구내매장</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/lost&quot;)">유실물센터</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/delay&quot;)">간편지연증명서</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/event&quot;)">행사신청</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/ad&quot;)">광고문의</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/membership&quot;)">도심공항 리워드</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/customer\/partner\/info&quot;)">마케팅 제휴신청</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="depth1List">
+                                    <a href="javascript:void(0);" class="depth1Name" target="_self"
+									   onclick="cfnMoveTo(&quot;\/help\/notice&quot;)">고객센터</a>
+
+                                    <!-- depth2 -->
+                                    <div class="depth2Area">
+                                        <div class="depth2Box">
+                                            <div class="depth2Tit">
+                                                <p class="mainTit">고객센터</p>
+                                                
+                                                
+                                                
+                                                
+                                                <p class="subTit">더 나은 서비스를 위해 고객님의 목소리에 귀 기울입니다.</p>
+                                            </div>
+                                            <ul class="depth2Group" role="menu">
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/help\/notice&quot;)">공지사항</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/help\/voc&quot;)">고객의 소리</a>
+                                                </li>
+                                                <li class="depth2List">
+                                                    <a href="javascript:void(0)" class="depth2Name" target="_self"
+                                                       onclick="cfnMoveTo(&quot;\/help\/faq&quot;)">FAQ</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                                
+                            </ul>
+						</div>
+			
+						<!-- 검색, 장바구니, 개인정보 -->
+						<div class="quickArea">
+							<button class="srchBtn" type="button">
+								<img src="/common/images/common/ic_26_srch.svg" alt="">
+								<span class="blind">메뉴검색 열기</span>
+							</button>
+							<button class="cartBtn" type="button" onclick="cfnMoveTo('/mypage/cart')">
+								<img src="/common/images/common/ic_26_cart.svg" alt="">
+								<span class="blind">장바구니</span>
+							</button>
+							<div class="comDropdown comMyDrop">
+								<div class="dropArea">
+									<button class="infoBtn btnDrop" type="button" title="열림">
+										<img src="/common/images/common/ic_26_info.svg" alt="">
+										<span class="blind">개인정보</span>
+									</button>
+									
+										<ul class="dropMenu" style="display: none;" >
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage&quot;)">
+													나의 AREX
+												</a>
+											</li>
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/history\/experience&quot;)">
+													체험학습 예약내역
+												</a>
+											</li>
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/history\/meetingroom&quot;)">
+													회의실 예약내역
+												</a>
+											</li>
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/coupon&quot;)">
+													나의 쿠폰함
+												</a>
+											</li>
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/cart&quot;)">
+													장바구니
+												</a>
+											</li>
+											<li>
+												<a href="javascript:void(0)"
+												   target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/member&quot;)">
+													회원정보
+												</a>
+											</li>
+										</ul>
+									
+								</div>
+							</div>
+						</div>
+						<!-- 메뉴 검색 -->
+						<div class="srchArea">
+							<div class="srchBox">
+								<div class="srchCont" role="search">
+									<label for="srchBox" class="blind">메뉴 검색</label>
+									<input id="srchBox" class="srchInput" name="searchKeyword" placeholder="메뉴 검색" onkeyup="cfnEvtHandler(event, () => fnSearchMenu(this));">
+									<button class="srchBtn" type="button" aria-label="검색 실행" onclick="fnSearchMenu(this)">
+										<img src="/common/images/common/ic_26_srchBtn_b.svg" alt="">
+									</button>
+								</div>
+								<ul class="srchList">
+									
+									
+								</ul>
+								<div class="srchClose">
+									<button type="button" class="srchCloseBtn" onclick="fnSearchMenuClose()">
+										<img src="/common/images/common/ic_44_close_b.svg" alt="">
+										<span class="blind">메뉴 검색 닫기</span>
+									</button>
+								</div>
+							</div>
+						</div>
+						<!-- 사이트맵 -->
+						<div class="sitemapArea">
+							<button class="openBtn" aria-expanded="false" type="button">
+								<img src="/common/images/common/ic_26_hamburger.svg" alt="pc 전체메뉴 열기">
+							</button>
+							<button class="moOpenBtn" aria-expanded="false" type="button">
+								<img src="/common/images/common/ic_26_hamburger.svg" alt="모바일 전체메뉴 열기">
+							</button>
+							<div class="sitemap">
+								<div class="sitemapInner">
+									<div class="sitemapCont">
+                                        <div class="sitemapHead">
+                                            <p class="tit">전체메뉴</p>
+                                        </div>
+										<nav aria-label="사이트맵 전체 메뉴">
+                                            <div class="depth1Wrap">
+                                                <ul class="depth1Group">
+                                                    <li class="depth1List">
+                                                        <div class="depth1Name">승차권</div>
+                                                        <ul class="depth2Group" role="menu">
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/ticket\/rsv&quot;)">승차권 예약</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/ticket\/info&quot;)">승차권 확인</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/ticket\/manage&quot;)">승차권 변경/반환</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/ticket\/history&quot;)">이용내역/영수증 조회</a>
+                                                                
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="depth1List">
+                                                        <div class="depth1Name">직통열차</div>
+                                                        <ul class="depth2Group" role="menu">
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/introduce&quot;)">직통열차 소개</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/info&quot;)">직통열차 시각표</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/guide&quot;)">직통열차 이용안내</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/city\/info&quot;)">도심공항터미널</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/express\/city\/info&quot;)">도심공항터미널 이용안내</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/express\/city\/proc&quot;)">도심공항터미널 이용절차</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/express\/city\/report&quot;)">항공보안 자율신고제도</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/partners&quot;)">제휴사</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/partnerhotel&quot;)">호텔 셔틀버스 </a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/express\/partnercard&quot;)">제휴카드</a>
+                                                                
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="depth1List">
+                                                        <div class="depth1Name">일반열차</div>
+                                                        <ul class="depth2Group" role="menu">
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차 소개</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/fare&quot;)">일반열차 운임안내</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/ticket&quot;)">일반열차 승차권 안내</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">역 정보</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">서울역</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/020&quot;)">공덕</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/030&quot;)">홍대입구</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/040&quot;)">디지털미디어시티</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/049&quot;)">마곡나루</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/050&quot;)">김포공항</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/060&quot;)">계양</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/070&quot;)">검암</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/075&quot;)">청라국제도시</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/077&quot;)">영종</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/080&quot;)">운서</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/090&quot;)">공항화물청사</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/100&quot;)">인천공항1터미널</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/110&quot;)">인천공항2터미널</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">열차시각표</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">서울역</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/020\/0&quot;)">공덕</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/030\/0&quot;)">홍대입구</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/040\/0&quot;)">디지털미디어시티</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/049\/0&quot;)">마곡나루</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/050\/0&quot;)">김포공항</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/060\/0&quot;)">계양</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/070\/0&quot;)">검암</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/075\/0&quot;)">청라국제도시</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/077\/0&quot;)">영종</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/080\/0&quot;)">운서</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/090\/0&quot;)">공항화물청사</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/100\/0&quot;)">인천공항1터미널</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/110\/0&quot;)">인천공항2터미널</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/service&quot;)">역 편의시설</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/live&quot;)">실시간 열차정보</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/street&quot;)">구글 스트리트 뷰</a>
+                                                                
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="depth1List">
+                                                        <div class="depth1Name">고객서비스</div>
+                                                        <ul class="depth2Group" role="menu">
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">체험학습</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">프로그램</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/experience\/rsv&quot;)">예약하기</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/info&quot;)">서울역 회의실</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/info&quot;)">이용안내</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/location&quot;)">위치안내</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/rsv&quot;)">예약하기</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/stat&quot;)">예약현황조회</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/mypage\/history\/meetingroom&quot;)">예약내역확인</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/help\/faq?etcNo=ET202509300000000007&quot;)">FAQ</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/train\/normal\/shop&quot;)">역 구내매장</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/lost&quot;)">유실물센터</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/delay&quot;)">간편지연증명서</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/event&quot;)">행사신청</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/ad&quot;)">광고문의</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/membership&quot;)">도심공항 리워드</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/customer\/partner\/info&quot;)">마케팅 제휴신청</a>
+                                                                <ul class="depth3Group" role="menu">
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/partner\/info&quot;)">제휴신청안내</a>
+                                                                    </li>
+                                                                    <li class="depth3List">
+																		<a href="javascript:void(0)" class="depth2Name" target="_self"
+																		   onclick="cfnMoveTo(&quot;\/customer\/partner\/apply&quot;)">제휴신청</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="depth1List">
+                                                        <div class="depth1Name">고객센터</div>
+                                                        <ul class="depth2Group" role="menu">
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/help\/notice&quot;)">공지사항</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/help\/voc&quot;)">고객의 소리</a>
+                                                                
+                                                            </li>
+                                                            <li class="depth2List">
+																<a href="javascript:void(0)" class="depth2Name" target="_self"
+																   onclick="cfnMoveTo(&quot;\/help\/faq&quot;)">FAQ</a>
+                                                                
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+										</nav>
+                                        <div class="sitemapFoot">
+                                            <button class="closeBtn" type="button">
+                                                <span class="blind">전체메뉴 닫기</span>
+                                            </button>
+                                        </div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- 모바일 메뉴 -->
+						<div class="moMenuArea">
+							<div class="moMenuBox">
+								<!-- 상단 -->
+								<div class="topBox">
+									<button type="button" class="logOutBtn" onclick="cfnMoveTo('/member/login')">로그인</button>
+									
+									<div class="topArea">
+										<button class="infoBtn" type="button" onclick="cfnMoveTo('/mypage')">
+											<img src="/common/images/common/ic_32_info_w.svg" alt="개인정보">
+											<span class="blind">개인정보</span>
+										</button>
+										<button class="cartBtn" type="button" onclick="cfnMoveTo('/mypage/cart')">
+											<img src="/common/images/common/ic_32_cart_w.svg" alt="장바구니">
+											<span class="blind">장바구니</span>
+										</button>
+										<button class="globalBtn" type="button" onclick="openPopup2('popup-lang-currency', event)">
+											<img src="/common/images/common/ic_32_global.svg" alt="언어설정">
+											<span class="blind">언어설정</span>
+										</button>
+										<button class="MoCloseBtn" type="button" onclick="fnSearchMenuClose()">
+											<img src="/common/images/common/ic_32_moClose.svg" alt="모바일메뉴 닫기">
+											<span class="blind">모바일메뉴 닫기</span>
+										</button>
+									</div>
+								</div>
+								<div class="topMenu" role="menu">
+									<div class="topMenuArea">
+										<p class="list">
+											<a href="javascript: void(0)" onclick="cfnMoveTo('/ticket/rsv')">
+												<img src="/common/images/common/ic_24_ticket_cir.svg" alt="">
+												승차권 예약
+											</a>
+										</p>
+										<p class="list">
+											<a href="javascript: void(0)" onclick="cfnMoveTo('/ticket/info')">
+												<img src="/common/images/common/ic_24_myticket_cir.svg" alt="">
+												나의 승차권
+											</a>
+										</p>
+									</div>
+								</div>
+								<div class="midBox">
+									<div class="srchBox">
+										<div class="srchCont" role="search">
+											<label for="srchBox2" class="blind">메뉴를 검색해보세요.</label>
+											<input id="srchBox2" class="srchInput" name="searchKeyword" placeholder="메뉴 검색" onkeyup="cfnEvtHandler(event, () => fnSearchMenu(this));">
+											<button class="srchBtn" type="button" aria-label="검색 실행" onclick="fnSearchMenu(this)">
+												<img src="/common/images/common/ic_26_srchBtn_b.svg" alt="">
+											</button>
+										</div>
+										<ul class="srchList"></ul>
+									</div>
+									<div class="naviBox" role="navigation">
+										<div class="naviArea">
+											
+												<button class="naviItem" data-target="MN202509110000000001" aria-pressed="false">승차권</button>
+											
+												<button class="naviItem" data-target="MN201502010000000003" aria-pressed="false">직통열차</button>
+											
+												<button class="naviItem" data-target="MN201503020000000013" aria-pressed="false">일반열차</button>
+											
+												<button class="naviItem" data-target="MN202509030000000018" aria-pressed="false">고객서비스</button>
+											
+												<button class="naviItem" data-target="MN202509030000000020" aria-pressed="false">고객센터</button>
+											
+												<button class="naviItem" data-target="MN202509110000000031" aria-pressed="false">마이페이지</button>
+											
+										</div>
+									</div>
+								</div>
+								<!-- 메인 콘텐츠 -->
+								<div class="moMenuBody" role="menu">
+									<!-- 직통열차 -->
+									<section id="MN202509110000000001" class="section">
+										<p class="title">승차권</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/ticket\/rsv&quot;)">승차권 예약</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/ticket\/info&quot;)">승차권 확인</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/ticket\/manage&quot;)">승차권 변경/반환</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/ticket\/history&quot;)">이용내역/영수증 조회</a>
+												
+											</li>
+										</ul>
+									</section>
+									<section id="MN201502010000000003" class="section">
+										<p class="title">직통열차</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/introduce&quot;)">직통열차 소개</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/info&quot;)">직통열차 시각표</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/guide&quot;)">직통열차 이용안내</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/city\/info&quot;)">도심공항터미널</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/express\/city\/info&quot;)">도심공항터미널 이용안내</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/express\/city\/proc&quot;)">도심공항터미널 이용절차</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/express\/city\/report&quot;)">항공보안 자율신고제도</a>
+													</li>
+												</ul>
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/partners&quot;)">제휴사</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/partnerhotel&quot;)">호텔 셔틀버스 </a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/express\/partnercard&quot;)">제휴카드</a>
+												
+											</li>
+										</ul>
+									</section>
+									<section id="MN201503020000000013" class="section">
+										<p class="title">일반열차</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차 소개</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/fare&quot;)">일반열차 운임안내</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/ticket&quot;)">일반열차 승차권 안내</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">역 정보</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">서울역</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/020&quot;)">공덕</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/030&quot;)">홍대입구</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/040&quot;)">디지털미디어시티</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/049&quot;)">마곡나루</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/050&quot;)">김포공항</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/060&quot;)">계양</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/070&quot;)">검암</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/075&quot;)">청라국제도시</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/077&quot;)">영종</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/080&quot;)">운서</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/090&quot;)">공항화물청사</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/100&quot;)">인천공항1터미널</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/110&quot;)">인천공항2터미널</a>
+													</li>
+												</ul>
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">열차시각표</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">서울역</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/020\/0&quot;)">공덕</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/030\/0&quot;)">홍대입구</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/040\/0&quot;)">디지털미디어시티</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/049\/0&quot;)">마곡나루</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/050\/0&quot;)">김포공항</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/060\/0&quot;)">계양</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/070\/0&quot;)">검암</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/075\/0&quot;)">청라국제도시</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/077\/0&quot;)">영종</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/080\/0&quot;)">운서</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/090\/0&quot;)">공항화물청사</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/100\/0&quot;)">인천공항1터미널</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/110\/0&quot;)">인천공항2터미널</a>
+													</li>
+												</ul>
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/service&quot;)">역 편의시설</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/live&quot;)">실시간 열차정보</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/street&quot;)">구글 스트리트 뷰</a>
+												
+											</li>
+										</ul>
+									</section>
+									<section id="MN202509030000000018" class="section">
+										<p class="title">고객서비스</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">체험학습</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">프로그램</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/experience\/rsv&quot;)">예약하기</a>
+													</li>
+												</ul>
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/info&quot;)">서울역 회의실</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/info&quot;)">이용안내</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/location&quot;)">위치안내</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/rsv&quot;)">예약하기</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/meetingroom\/stat&quot;)">예약현황조회</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/mypage\/history\/meetingroom&quot;)">예약내역확인</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/help\/faq?etcNo=ET202509300000000007&quot;)">FAQ</a>
+													</li>
+												</ul>
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/train\/normal\/shop&quot;)">역 구내매장</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/lost&quot;)">유실물센터</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/delay&quot;)">간편지연증명서</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/event&quot;)">행사신청</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/ad&quot;)">광고문의</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/membership&quot;)">도심공항 리워드</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/customer\/partner\/info&quot;)">마케팅 제휴신청</a>
+												<ul class="depth2Group" role="menu">
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/partner\/info&quot;)">제휴신청안내</a>
+													</li>
+													<li class="depth2List">
+														<a href="javascript:void(0)" class="depth2Name" target="_self"
+														   onclick="cfnMoveTo(&quot;\/customer\/partner\/apply&quot;)">제휴신청</a>
+													</li>
+												</ul>
+											</li>
+										</ul>
+									</section>
+									<section id="MN202509030000000020" class="section">
+										<p class="title">고객센터</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/help\/notice&quot;)">공지사항</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/help\/voc&quot;)">고객의 소리</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/help\/faq&quot;)">FAQ</a>
+												
+											</li>
+										</ul>
+									</section>
+									<section id="MN202509110000000031" class="section">
+										<p class="title">마이페이지</p>
+										<ul class="depth1Group">
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage&quot;)">나의 AREX</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/history\/experience&quot;)">체험학습 예약내역</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/history\/meetingroom&quot;)">회의실 예약내역</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/coupon&quot;)">나의 쿠폰함</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/cart&quot;)">장바구니</a>
+												
+											</li>
+											<li class="depth1List">
+												<a href="javascript:void(0)" class="depth1Name" target="_self"
+												   onclick="cfnMoveTo(&quot;\/mypage\/member&quot;)">회원정보</a>
+												
+											</li>
+										</ul>
+									</section>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--// gnb 하단 -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 언어/통화 선택 -->
+	<div id="popup-lang-currency" class="modPopupS s"> <!-- class - on : 팝업오픈 -->
+		<div class="popupDim">딤영역</div>
+		<div class="popupArea"> <!-- style - 너비값(width), 높이값(height) : 팝업 너비 및 높이 지정 -->
+			<div class="popupInMotion">
+				<div class="popupContainer">
+					<div class="popupContArea">
+						<button type="button" class="btnPopCloseS" onclick="closePopup2('popup-lang-currency')">닫기</button>
+						<div class="popTitle">언어 및 화폐 선택</div>
+						<div class="popCont">
+							<!-- 팝업 컨텐츠 영역 -->
+							<div class="comLog">
+								<div class="fnCont">
+									<div class="fnGroup">
+										<div class="labelBox">
+											<label for="lang">언어</label>
+										</div>
+										<div class="frmGroup">
+											<select name="lang" id="lang" class="iptSlt lg">
+												<option value="KOREA" selected="selected">한국어</option>
+												<option value="ENGLISH">ENGLISH</option>
+												<option value="CHINA">中國語(简体)</option>
+												<option value="TAIWAN">中國語(繁體)</option>
+												<option value="JAPAN">日本語</option>
+											</select>
+										</div>
+									</div>
+									<div class="fnGroup">
+										<div class="labelBox">
+											<label for="currency">통화</label>
+										</div>
+										<div class="frmGroup">
+											<select name="currency" id="currency" class="iptSlt lg" disabled>
+												<option value="KRW" selected="selected">KRW</option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- //팝업 컨텐츠 영역 -->
+						</div>
+
+						<!-- 팝업 하단 영역 -->
+						<div class="popBtm division">
+							<div class="alignC">
+								<div class="btnBox cta">
+									<button type="button" class="btn dkLine" onclick="closePopup2('popup-lang-currency')">취소</button>
+									<button type="button" class="btn blue" onclick="fnLangCurrencyChange()">확인</button>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+				</div>
+
+				<!-- 중단영역 -->
+				<div class="layoutContainer" id="container">
+					<!-- 서브 콘텐츠 영역 -->
+					<div class="layoutSubCont">
+						<!-- 서브 탑 (타이틀) -->
+						<div class="cptSubTop">
+							
+	<div class="subTopArea">
+		<div class="comBreadCrumb">
+			<div class="bcArea">
+				<ul class="bcList">
+					<li class="bcItem"><a href="/main">홈</a></li>
+
+					<li class="bcItem">
+						<div class="comDropdown comDropdownLocn">
+							<div class="dropArea">
+								<button type="button" class="btnDrop">일반열차</button>
+								<ul class="dropMenu">
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/ticket\/rsv&quot;)">승차권</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/express\/introduce&quot;)">직통열차</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/customer\/experience\/program&quot;)">고객서비스</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/help\/notice&quot;)">고객센터</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/mypage&quot;)">마이페이지</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</li>
+
+					<li class="bcItem">
+						<div class="comDropdown comDropdownLocn">
+							<div class="dropArea">
+								<button type="button" class="btnDrop">일반열차 소개</button>
+								<ul class="dropMenu">
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/introduce&quot;)">일반열차 소개</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/fare&quot;)">일반열차 운임안내</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/ticket&quot;)">일반열차 승차권 안내</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010&quot;)">역 정보</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/info\/010\/0&quot;)">열차시각표</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/service&quot;)">역 편의시설</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/live&quot;)">실시간 열차정보</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" target="_self"
+										   onclick="cfnMoveTo(&quot;\/train\/normal\/street&quot;)">구글 스트리트 뷰</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</li>
+
+					
+
+				</ul>
+			</div>
+		</div>
+
+		<div class="comSubTitle">
+			<div class="subTitleArea">
+				<h1>일반열차 소개</h1>
+			</div>
+		</div>
+	</div>
+
+
+						</div>
+
+						<!-- 서브 중단 (내용) -->
+						<div class="layoutContArea">
+							
+
+    <!-- 정적 html 컨텐트 내용 -->
+    <!-- 일반열차 소개 --> 
+<div class="cptBasicGroup"> 
+<div class="basicGroupArea"> 
+<div class="comSubInfo"> 
+<div class="infoText"> 일반열차는 <em>8개 연속 환승역을 통해 수도권 도시철도와 편리하게 연계되어 인천공항과 서울 도심간 뛰어난 접근성을 제공</em>하는 열차입니다. </div> </div> <!-- 20260114 추가 --> 
+<div class="comImgWrap"> 
+<div class="imgGroup"> 
+<div class="imgArea noBdr"> <img aria-describedby="cont_03_05_003" alt="공항철도 노선도" src="/common/images/contents/cont_03_05_001.jpg"> 
+<div class="blind" id="cont_03_05_003"> <dl><dt>직통열차 노선</dt><dd>서울역 &gt; 인천공항1터미널 &gt; 인천공항2터미널</dd></dl> <dl> <dt>일반열차 노선</dt> <dd> 서울역 - 환승 : KTX, 1호선, 4호선, 경의선 &gt;
+                                                    공덕 - 환승 : 5호선, 6호선, 경의중앙선 &gt; 
+                                                    홍대입구 - 환승 : 2호선, 경의중앙선 &gt;
+                                                    디지털미디어시티 - 환승 : 6호선, 경의중앙선 &gt; 
+                                                    마곡나루 - 환승 : 9호선 &gt;
+                                                    김포공항 - 환승 : 5호선, 9호선, 김포골드라인, 서해선 &gt; 
+                                                    계양 - 환승 : 인천1호선 &gt; 
+                                                    검암 - 환승 : 인천2호선 &gt; 
+                                                    청라국제도시 &gt; 영종 &gt; 윤서 &gt; 공항화물청사 &gt; 인천공항1터미널 &gt; 인천공항2터미널<br>
+<i>*직통열차는 서울역-인천공항을 무정차 운행하며 탑승 전 승차권을 별도로 구매하셔야 합니다.</i></dd> </dl> </div> </div> </div> </div> <!-- 20260114 추가 --> 
+<div class="comTitH2"> 
+<h2>일반열차</h2> </div> 
+<div class="comTitH4"> 
+<h4>소요시간</h4> </div> 
+<div class="comBasicText"> 
+<ul class="bList"> 
+<li class="listItem">서울역 ~ 인천공항1터미널역 : <em>59분</em> (일부 열차는 2~6분정도 추가소요)</li> 
+<li class="listItem">서울역 ~ 인천공항2터미널역 : <em>66분</em> (일부 열차는 2~6분정도 추가소요)</li> 
+</ul> </div> 
+<div class="comTitH4"> 
+<h4>열차안내</h4> </div> 
+<div class="comBasicText"> 
+<ul class="bList"> 
+<li class="listItem">구성 : 6량 1편성</li> 
+<li class="listItem">최고속도 : 110km/h</li> 
+<li class="listItem">최대 승차인원 : 918명</li> 
+<li class="listItem">운전형태 : 1인 승무 운전</li> 
+</ul> </div> 
+<div class="comTitH4"> 
+<h4>승차권 구입 및 타는 곳</h4> </div> 
+<div class="comBasicText"> 
+<ul class="bList"> 
+<li class="listItem">1회용 교통카드 : 각 역 승차권 자동발매기</li> 
+<li class="listItem">선불교통카드 : 교통카드 판매처(편의점 등), 교통카드 자판기 <span class="pubRefer">※ 선불교통카드는 승차권 자동발매기에서 충전 후 사용</span> </li> 
+</ul> </div> 
+<div class="comTitH3"> 
+<h3>공항철도 장점</h3> </div> 
+<div class="comImgWrap col4"> 
+<div class="imgGroup"> 
+<div class="imgArea"> <img alt="공항철도 철도위를 달리고 있는 열차 사진" src="/common/images/contents/cont_03_01_001.jpg"> 
+<p class="imgTxt">빠른 운행속도</p> </div> 
+<div class="imgArea"> <img alt="열차 안에서 창밖을 가리키며 웃고있는 모녀 사진" src="/common/images/contents/cont_03_01_002.jpg"> 
+<p class="imgTxt">차장 밖 풍경</p> </div> 
+<div class="imgArea"> <img alt="환승하기 위해 역내를 오가는 사람들 사진" src="/common/images/contents/cont_03_01_003.jpg"> 
+<p class="imgTxt">​편리한 환승​</p> </div> 
+<div class="imgArea"> <img alt="꽃밭옆을 달리고 있는 열차 사진" src="/common/images/contents/cont_03_01_004.jpg"> 
+<p class="imgTxt">관광열차</p> </div> </div> </div> </div> </div> <!--// 일반열차 소개 --><!-- 담당자 --> 
+<div class="comSubBtm"> 
+<div class="subBtmArea"> <dl class="manager"> <dt>담당부서</dt> <dd> 
+<ul> 
+<li>영업기획처</li> 
+</ul> </dd> </dl> 
+<ul class="btmList"> 
+<li class="phone">1599-7788</li> 
+</ul> </div> </div>
+
+
+						</div>
+
+						<!-- 플로팅 네비게이션  -->
+						<!--
+						<div class="comTopFloating" aria-label="플로팅 네비게이션 메뉴와 탑버튼">
+							<div class="topFloatArea">
+								<nav>
+									<ul class="topFloatMenu">
+										<li class="menuItem">
+											<button class="btnItem" type="button" onclick="cfnMoveTo('/ticket/rsv')" th:text="#{message.cmm.float}">승차권 예약</button>
+										</li>
+										<li class="menuItem">
+											<button class="btnItem" type="button" onclick="cfnMoveTo('/ticket/info')" th:text="#{message.cmm.float2}">유효승차권</button>
+										</li>
+									</ul>
+								</nav>
+								<div class="floatTopBox">
+									<button class="btnFloatTop" type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})">TOP</button>
+								</div>
+							</div>
+						</div>
+						-->
+					</div>
+				</div>
+
+				<!-- 하단영역 -->
+				<div class="layoutFooter">
+					<!-- Footer -->
+					
+
+	<div class="cptFooter">
+		<div class="footArea">
+			<div class="copyArea">
+				<div class="quickGroup">
+					<ul>
+						<li class="hglt"><a href="https://www.arex.or.kr/main.do" title="새 창 열림" target="_blank">AREX 공항철도</a></li>
+						<li><a onclick="cfnMoveTo('/policy/transport')" href="javascript:void(0)">여객운송약관</a></li>
+						<li><a onclick="cfnMoveTo('/policy/terms')" href="javascript:void(0)">누리집 이용약관</a></li>
+						<li><a onclick="cfnMoveTo('/policy/privacy')" href="javascript:void(0)">개인정보처리방침</a></li>
+					</ul>
+				</div>
+				<div class="copyGroup">
+					<div class="infoArea">
+						<ul>
+							<li class="add">(22694) 인천광역시 서해구 검바위로 46 (검암동) 공항철도(주)</li>
+							<li class="tel">전화 <span>1599-7788</span></li>
+							<li class="fax">팩스 <span>032-745-8899</span></li>
+							<li class="name">대표자 : 박대수</li>
+							<li class="lcn">사업자등록번호 : 101-81-68490</li>
+						</ul>
+					</div>
+					<div class="copyBox">
+						<p>Copyright (C) 2025 by AIRPORT RAILROAD Co., Ltd. All rights reserved.</p>
+					</div>
+				</div>
+			</div>
+			<div class="markArea">
+				<ul>
+					<!-- <li><img th:src="@{/common/images/common/eprivacy.svg}" alt="eprivacy mark"></li> -->
+					<li><img src="/common/images/common/wa_mark.svg" alt="wa mark"></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+<script>
+    agAcc();
+</script>

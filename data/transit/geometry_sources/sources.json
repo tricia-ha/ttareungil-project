@@ -1,0 +1,22 @@
+[
+  {
+    "file": "bus_spatial_links.csv",
+    "source": "https://t-data.seoul.go.kr/dataprovide/trafficdataviewfile.do?data_id=63",
+    "sha256": "aaf290d0b5710fc1fa3890e8d6a7c8bf3b955740af5accf7be70a5e68933561f"
+  },
+  {
+    "file": "bus_route_links.csv",
+    "source": "https://t-data.seoul.go.kr/dataprovide/trafficdataviewfile.do?data_id=57",
+    "sha256": "7518a17c65ccf7c39c1d8c250250a84cda829c1bdd1dd2e810eea11e0ca25d58"
+  },
+  {
+    "file": "bus_route_via_nodes.csv",
+    "source": "https://t-data.seoul.go.kr/dataprovide/trafficdataviewfile.do?data_id=58",
+    "sha256": "9560f790cf37011d442a24511cba72e1a219c01f0609a029487fcbfe3f8e3c8a"
+  },
+  {
+    "file": "bus_nodes.csv",
+    "source": "https://t-data.seoul.go.kr/dataprovide/trafficdataviewfile.do?data_id=13",
+    "sha256": "029e55806419c57206cde5c40a948054d824c663720ba48ad52d048084c6ac8d"
+  }
+]

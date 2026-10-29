@@ -1,0 +1,7 @@
+{
+  "source": "서울시 TOPIS 노드정보 CSV (노드유형 0, 사용여부 1)",
+  "source_sha256": "029e55806419c57206cde5c40a948054d824c663720ba48ad52d048084c6ac8d",
+  "rows": 50918,
+  "conflicting_ids_excluded": 0,
+  "matching": "exact NODE_ID only; no coordinate inference"
+}

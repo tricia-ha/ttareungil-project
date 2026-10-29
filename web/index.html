@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><meta
+      name="theme-color"
+      content="#81f104" /><title>따라와 · 따릉이와 대중교통을 함께</title>
+    <link rel="icon" href="/assets/logo.png" /><link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" /><link rel="stylesheet" href="/base.css" /><link
+      rel="stylesheet"
+      href="/app.css" />
+    <script
+      defer
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script
+    ><script defer src="/app.js"></script
+  ></head>
+  <body
+    ><div class="app"
+      ><aside id="sheet"
+        ><div
+          class="dragzone"
+          id="dragzone"
+          role="button"
+          tabindex="0"
+          aria-label="패널 펼치기·접기"
+          ><div class="grab"></div
+          ><header class="header"
+            ><a class="brand" href="/"
+              ><img class="logo" src="/assets/logo.png" alt="따라와" />따라와</a
+            ><span class="pill" id="accountChip">기본 예측</span></header
+          ></div
+        >
+        <nav class="main-tabs" aria-label="주요 기능"
+          ><button id="navRoutes" class="active" type="button">경로 탐색</button
+          ><button id="navPersonal" type="button">내 주행 기록</button></nav
+        >
+        <section id="routesPanel"
+          ><h1 class="title">가볍게 페달을,<br />더 편한 길로.</h1
+          ><div class="hero"
+            ><img src="/assets/full.webp" alt="자전거 타는 따라와 마스코트" /><p
+              >따릉이도, 버스도, 지하철도.<br />오늘의 이동을 함께 찾아요.</p
+            ></div
+          >
+          <div class="modes" role="tablist" aria-label="이동 방법"
+            ><button class="mode" role="tab" aria-selected="true" data-mode="integrated"
+              >통합<small>따릉이 + 대중교통</small></button
+            ><button class="mode" role="tab" aria-selected="false" data-mode="transit"
+              >대중교통<small>버스 + 지하철</small></button
+            ><button class="mode" role="tab" aria-selected="false" data-mode="bicycle"
+              >따릉이<small>도보 + 자전거</small></button
+            ></div
+          >
+          <form id="routeForm"
+            ><label for="origin">출발지</label
+            ><div class="fieldrow"
+              ><input
+                id="origin"
+                autocomplete="off"
+                placeholder="장소·주소·대여소 검색"
+                value="서울역"
+                required
+              /><button class="iconbtn" type="button" data-search="origin">검색</button
+              ><button
+                class="iconbtn"
+                type="button"
+                data-pick="origin"
+                aria-label="지도에서 출발지 선택"
+                >지도</button
+              ></div
+            ><ul class="sugg" id="originSuggestions" hidden></ul>
+            <div class="between"
+              ><button id="locate" type="button" class="textbtn">◎ 현재 위치</button
+              ><button id="swap" type="button" class="textbtn">출발·도착 바꾸기 ⇅</button></div
+            >
+            <label for="destination">도착지</label
+            ><div class="fieldrow"
+              ><input
+                id="destination"
+                autocomplete="off"
+                placeholder="어디로 가시나요?"
+                value="여의도 한강공원"
+                required
+              /><button class="iconbtn" type="button" data-search="destination">검색</button
+              ><button
+                class="iconbtn"
+                type="button"
+                data-pick="destination"
+                aria-label="지도에서 도착지 선택"
+                >지도</button
+              ></div
+            ><ul class="sugg" id="destinationSuggestions" hidden></ul>
+            <p class="hint" id="pickHint">장소를 검색하거나 지도에서 위치를 선택하세요.</p>
+            <label for="departure">출발 시각 · 한국시간</label
+            ><select id="departureMode"
+              ><option value="auto">준비 후 바로 출발</option
+              ><option value="scheduled">날짜·시각 지정</option></select
+            ><input id="departure" type="datetime-local" aria-label="출발 날짜와 시각" hidden />
+            <div class="options" id="bikeOptions"
+              ><label><input id="useWeather" type="checkbox" checked /> 기상청 예보 반영</label
+              ><label id="personalOption" hidden
+                ><input id="usePersonal" type="checkbox" checked /> 내 주행 기록 반영</label
+              ></div
+            >
+            <button class="primary" id="searchButton" type="submit"
+              >함께 갈 경로 찾기 ↗</button
+            ></form
+          >
+          <div class="status" id="jobStatus" role="status" aria-live="polite"></div
+          ><div class="status" id="serverStatus"></div>
+          <section id="results" class="results" aria-label="탐색 결과" hidden
+            ><div class="result-head"
+              ><h2>이렇게 이동해요</h2><span class="pill" id="resultCount"></span></div
+            ><p class="notice" id="resultNotice" hidden></p
+            ><p class="personal-note" id="routePersonalNote" hidden></p><div id="routeCards"></div
+            ><details id="searchDetails"
+              ><summary>탐색·모델 정보</summary><div id="diagnostics" class="hint"></div></details
+          ></section>
+          <p class="credit">지도 © OpenStreetMap contributors · Leaflet</p></section
+        >
+        <section id="personalPanel" hidden
+          ><h1 class="title">쌓일수록,<br />나에게 맞는 시간.</h1
+          ><p class="sub"
+            >따릉이 이용내역을 등록하면 다음 경로부터<br />나의 주행 수준을 반영합니다.</p
+          >
+          <div id="signedOut"
+            ><form id="accountForm"
+              ><label for="username">아이디</label
+              ><input
+                id="username"
+                type="text"
+                autocomplete="username"
+                minlength="2"
+                maxlength="32"
+                required
+                placeholder="원하는 아이디"
+              /><label for="password">비밀번호</label
+              ><input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                minlength="8"
+                maxlength="128"
+                required
+                placeholder="8자 이상"
+              /><button class="primary" id="loginProfile" type="submit">로그인</button
+              ><button class="secondary wide" id="createProfile" type="button"
+                >가입하기</button
+              ></form
+            ><p class="hint"
+              >아이디는 한글·영문·숫자·밑줄·점·하이픈으로 2~32자입니다. 같은 아이디와 비밀번호로
+              PC와 휴대폰에서 기록을 이어서 사용합니다.</p
+            ></div
+          >
+          <div id="signedIn" hidden
+            ><div class="profile-summary"
+              ><img src="/assets/head.webp" alt="" /><div
+                ><span class="pill">내 기록에 맞춘 예상시간</span
+                ><h2 id="factorText">기본 주행 수준</h2><p class="hint" id="profileStats"></p></div
+            ></div>
+            <section class="personal-guide"
+              ><p id="personalExplanation"></p><p class="hint" id="personalExample"></p
+              ><details
+                ><summary>내 기록은 어떻게 반영되나요?</summary
+                ><p class="hint"
+                  >등록한 실제 이용시간을 기본 예상시간과 비교해 배율과 고정 시간 차이를 함께
+                  보정합니다. 고정 시간은 대여·반납시간만을 뜻하지는 않습니다. 기록이 적거나 편차가
+                  크면 보정을 작게 적용합니다. 도보·버스·지하철 시간은 바꾸지 않습니다.</p
+                ></details
+              ></section
+            ><div class="account-actions"
+              ><strong id="usernameText"></strong
+              ><button class="textbtn" id="logout" type="button">로그아웃</button></div
+            >
+            <details id="passwordSettings"
+              ><summary>비밀번호 변경</summary
+              ><p class="hint"
+                >다른 사이트에서 사용하지 않는 새 비밀번호를 입력해 주세요. 기존 이용기록은
+                유지됩니다.</p
+              ><form id="passwordForm"
+                ><input id="passwordUsername" type="hidden" autocomplete="username" /><label
+                  for="currentPassword"
+                  >현재 비밀번호</label
+                ><input
+                  id="currentPassword"
+                  type="password"
+                  autocomplete="current-password"
+                  maxlength="128"
+                  required
+                /><label for="newPassword">새 비밀번호</label
+                ><input
+                  id="newPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="12"
+                  maxlength="128"
+                  required
+                  placeholder="12자 이상"
+                /><label for="repeatPassword">새 비밀번호 확인</label
+                ><input
+                  id="repeatPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="12"
+                  maxlength="128"
+                  required
+                /><button class="secondary wide" id="changePassword" type="submit"
+                  >비밀번호 변경하기</button
+                ></form
+              ><div id="passwordStatus" class="status" role="status" aria-live="polite"></div
+            ></details>
+            <button class="primary" id="openPhotoEditor" type="button">이용내역 등록</button
+            ><section class="upload-box" id="photoEditor" hidden
+              ><div class="photo-toolbar"
+                ><button class="textbtn" id="photoBack" type="button">← 내 기록으로</button
+                ><button class="secondary" id="photoMinimize" type="button">패널 접기</button></div
+              ><h2>이용내역 스크린샷 등록</h2
+              ><p class="hint"
+                >따릉이 앱의 대여·반납 이력 화면을 선택하세요.<br />한 건의 자전거 번호부터
+                이용거리까지 보여야 합니다.</p
+              ><label class="file-label" for="screenshotFile"
+                >사진첩에서 선택하기 <span>PNG · JPG / 최대 12MB</span></label
+              ><input id="screenshotFile" type="file" accept="image/png,image/jpeg" hidden />
+              <div id="cropPanel" hidden
+                ><details id="photoPreviewDetails" open
+                  ><summary>선택한 사진 접기·펼치기</summary
+                  ><div class="crop-preview" id="cropPreview"
+                    ><div class="crop-frame"
+                      ><img id="screenshotPreview" alt="선택한 이용내역" /><div
+                        id="cropShadeTop"
+                      ></div
+                      ><div id="cropShadeBottom"></div></div></div></details
+                ><div class="crop-controls" id="cropControls"
+                  ><label for="cropTop">위쪽 자르기 <output id="cropTopValue">0%</output></label
+                  ><input id="cropTop" type="range" min="0" max="95" value="0" /><label
+                    for="cropBottom"
+                    >아래쪽 경계 <output id="cropBottomValue">100%</output></label
+                  ><input id="cropBottom" type="range" min="5" max="100" value="100" /></div
+                ><p class="hint"
+                  >위·아래 범위를 조정해 한 건을 선택할 수 있습니다. 화면의 글자 크기는
+                  유지됩니다.</p
+                ><button class="primary" id="recognizeButton" type="button"
+                  >이용내역 읽기</button
+                ></div
+              >
+              <div id="ocrStatus" class="status" role="status" aria-live="polite"></div
+              ><section id="photoFeedback" class="photo-feedback" role="alert" tabindex="-1" hidden
+                ><h3 id="photoFeedbackTitle"></h3><p id="photoFeedbackMessage"></p
+                ><ul id="photoFeedbackDetails"></ul><p class="hint" id="photoFeedbackHint"></p
+                ><div class="photo-actions"
+                  ><button class="secondary" id="ocrManual" type="button" hidden
+                    >직접 입력·수정</button
+                  ><button class="secondary" id="ocrRetry" type="button">다시 읽기</button
+                  ><button class="secondary" id="ocrRecrop" type="button">자르기 조정</button
+                  ><button class="secondary" id="ocrChooseAnother" type="button"
+                    >다른 사진 선택</button
+                  ></div
+                ></section
+              ><div id="ocrReview" hidden
+                ><h2>원본을 보고 입력·수정해 주세요</h2
+                ><p class="hint" id="editModeHint"
+                  >읽은 값도 수정할 수 있습니다. 원본과 대조한 뒤 등록하세요.</p
+                ><label for="cardSelect">등록할 이용내역</label
+                ><select id="cardSelect"></select
+                ><div id="mappingInfo" class="note"></div
+                ><form id="confirmForm"
+                  ><div id="editFields"></div
+                  ><label class="checkline"
+                    ><input type="checkbox" id="confirmRead" required /> 번호·이름·시각·이용시간을
+                    원본과 확인했습니다.</label
+                  ><button class="primary" id="confirmButton" type="submit"
+                    >확인하고 내 기록에 등록</button
+                  ></form
+                ></div
+              ></section
+            >
+            <section class="history" id="historySection"
+              ><div class="result-head"
+                ><h2>등록한 기록</h2
+                ><button class="textbtn" id="refreshRides" type="button">새로고침</button></div
+              ><div id="rideList"></div></section
+            ><button class="danger-text" id="deleteProfile" type="button"
+              >계정과 모든 기록 삭제</button
+            ></div
+          ><div id="personalStatus" class="status" role="status" aria-live="polite"></div
+        ></section> </aside
+      ><main class="map" id="mapWrap" aria-label="경로 지도"
+        ><div id="map"></div
+        ><div class="topbar"
+          ><div class="floating"
+            ><strong>따라와 · 함께 가는 서울</strong
+            ><small id="mapCaption">출발지와 도착지를 선택해 주세요.</small></div
+          ><button class="secondary" id="fitMap" type="button">경로 맞춤</button></div
+        ><a
+          class="map-credit"
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener"
+          >© OpenStreetMap contributors</a
+        ><div class="map-legend"
+          ><span class="legend-bike">따릉이</span><span class="legend-bus">버스</span
+          ><span class="legend-subway">지하철</span><span class="legend-walk">도보</span></div
+        ></main
+      ></div
+    ><div class="toast" id="toast" role="status" aria-live="polite" hidden></div></body
+></html>
