@@ -6,10 +6,10 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from collections import deque
 from urllib.parse import urlsplit
-import json, os, re, secrets, socket, threading, time
+import hashlib, json, os, re, secrets, socket, threading, time
 import requests
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import Field, StrictBool, ValidationError
@@ -393,6 +393,10 @@ def create_app(service_factory=None, *, testing=False):
                 "Content-Security-Policy": "default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://unpkg.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
             }
         )
+        if request.url.path in ("/app.js", "/app.css", "/base.css"):
+            response.headers["Cache-Control"] = "no-cache"
+        if request.url.path == "/":
+            response.headers["Cache-Control"] = "no-store"
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
             secure = request.url.scheme == "https"
@@ -806,7 +810,11 @@ def create_app(service_factory=None, *, testing=False):
 
     @app.get("/")
     def index():
-        return FileResponse(WEB / "index.html")
+        html = (WEB / "index.html").read_text(encoding="utf-8-sig")
+        for name in ("base.css", "app.css", "app.js"):
+            version = hashlib.sha256((WEB / name).read_bytes()).hexdigest()[:12]
+            html = html.replace(f'"/{name}"', f'"/{name}?v={version}"')
+        return HTMLResponse(html)
 
     @app.get("/app.js")
     def javascript():
