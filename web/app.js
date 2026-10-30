@@ -1478,7 +1478,7 @@ function createRider(pos) {
   rider.marker = L.marker(pos, {
     icon: L.divIcon({
       className: 'rider-icon',
-      html: '<div class="rider-shadow"></div><div class="rider-badge"><img src="/assets/rider.png" alt="" /></div>',
+      html: '<div class="rider-shadow"></div><div class="rider-badge"><img src="/assets/head.webp" alt="" /></div>',
       iconSize: [56, 68],
       iconAnchor: [28, 68],
     }),

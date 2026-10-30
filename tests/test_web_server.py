@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 from contextlib import closing
-import copy, json, os, sys, tempfile, time, unittest
+import copy, json, os, re, sys, tempfile, time, unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -124,6 +124,33 @@ class WebTests(unittest.TestCase):
             "/openapi.json",
         ]:
             self.assertEqual(self.client.get(path).status_code, 404)
+
+    def test_html_uses_versioned_assets_and_revalidates_styles(self):
+        response = self.client.get("/")
+        self.assertEqual(response.headers["Cache-Control"], "no-store")
+        assets = re.findall(r'/(app\.js|app\.css|base\.css)\?v=([0-9a-f]{12})', response.text)
+        self.assertEqual({name for name, _ in assets}, {"app.js", "app.css", "base.css"})
+        for name, version in assets:
+            asset = self.client.get(f"/{name}?v={version}")
+            self.assertEqual(asset.status_code, 200)
+            self.assertEqual(asset.headers["Cache-Control"], "no-cache")
+
+    def test_css_update_changes_its_url_without_changing_script_url(self):
+        with tempfile.TemporaryDirectory() as directory:
+            web = Path(directory)
+            (web / "index.html").write_text(
+                '<link href="/base.css"><link href="/app.css"><script src="/app.js"></script>',
+                encoding="utf-8",
+            )
+            for name in ("base.css", "app.css", "app.js"):
+                (web / name).write_text("first version", encoding="utf-8")
+            with patch("web_server.WEB", web):
+                before = dict(re.findall(r'/(app\.js|app\.css|base\.css)\?v=([0-9a-f]{12})', self.client.get("/").text))
+                (web / "app.css").write_text("updated style", encoding="utf-8")
+                after = dict(re.findall(r'/(app\.js|app\.css|base\.css)\?v=([0-9a-f]{12})', self.client.get("/").text))
+            self.assertNotEqual(before["app.css"], after["app.css"])
+            self.assertEqual(before["app.js"], after["app.js"])
+            self.assertEqual(before["base.css"], after["base.css"])
 
     def test_cross_origin_and_bad_host_rejected(self):
         self.assertEqual(
