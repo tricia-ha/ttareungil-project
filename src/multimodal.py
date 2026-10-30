@@ -294,6 +294,7 @@ class Router:
         known_routes, known_expanded = [], 0
         known_roundtrip_pruned = known_roundtrip_waits = 0
         known_walking_replacements = 0
+        seed_stats = []
         if (
             lazy is not None
             and c.required_mode != "bicycle"
@@ -320,6 +321,26 @@ class Router:
             known_walking_replacements = known_result.get(
                 "walking_roundtrip_replacements", 0
             )
+            if not known_routes:
+                from transit_seed import timetable_seed
+
+                seed, stats = timetable_seed(
+                    self.network.walks,
+                    rides,
+                    origin,
+                    destination,
+                    start,
+                    end,
+                    dt.tzinfo,
+                    c.required_mode,
+                    min(
+                        begun + c.max_seconds,
+                        time.monotonic() + min(2.0, c.max_seconds * 0.2),
+                    ),
+                )
+                seed_stats.append(stats)
+                if seed is not None:
+                    known_routes.append(seed)
 
         # state: location, time, current vehicle trip. alighting is explicit.
         counter = itertools.count()
@@ -562,6 +583,7 @@ class Router:
         reused_bicycle_transitions = skipped_bicycle_wait_states = 0
         expired_bicycle_waits = 0
         skipped_dead_end_predictions = unroutable_waits = 0
+        seed_refreshed = False
 
         def known_dead_end(target):
             if not c.prune_known_dead_ends or target == destination:
@@ -795,6 +817,38 @@ class Router:
             )
 
         while heap or work:
+            # New confirmed transfer walks can complete a timetable journey even
+            # if time-expanded states have not reached its far end. Reserve a
+            # bounded final scan, without buying walks or pruning mixed paths.
+            if (
+                lazy is not None
+                and c.required_mode != "bicycle"
+                and not results
+                and not seed_refreshed
+                and self.network.transit
+                and time.monotonic() - begun
+                >= c.max_seconds - min(2.0, c.max_seconds * 0.15)
+            ):
+                seed_refreshed = True
+                from transit_seed import timetable_seed
+
+                seed, stats = timetable_seed(
+                    self.network.walks
+                    + [e for rows in lazy.walk_cache.values() for e in rows],
+                    rides,
+                    origin,
+                    destination,
+                    start,
+                    end,
+                    dt.tzinfo,
+                    c.required_mode,
+                    begun + c.max_seconds,
+                )
+                seed_stats.append(stats)
+                if seed is not None:
+                    known_routes.append(seed)
+                    keep_route(results, seed, c.top_k)
+                    publish_routes()
             if expanded + known_expanded >= c.max_expansions:
                 truncated = True
                 termination_reason = "max_expansions"
@@ -1087,6 +1141,7 @@ class Router:
             expanded_states=expanded + known_expanded,
             known_route_count=len(known_routes),
             known_route_expanded_states=known_expanded,
+            timetable_seed_scans=seed_stats,
             deferred_work_batches=work_batches,
             pending_work_items=len(work),
             transit_edges_examined=transit_edges_examined,
