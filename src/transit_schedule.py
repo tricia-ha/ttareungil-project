@@ -433,9 +433,11 @@ def build_timetable(
     if payload.get("subway_rows_file"):
         sources.append(folder / payload["subway_rows_file"])
     groups = _cached_subway_groups(str(folder.resolve()), file_signature(sources), tags)
+    from transit_coordinates import corrected_subway_stops
+
     subway, subway_report = subway_edges(
         (),
-        payload["subway_stops"],
+        corrected_subway_stops(payload["subway_stops"], folder),
         departure,
         horizon_minutes,
         holiday_dates,

@@ -4,6 +4,8 @@ from collections import defaultdict
 from heapq import heapify, heappop, heappush
 from statistics import median
 import math
+import time
+from datetime import datetime
 
 from multimodal import _time_parser, timestamp
 from multimodal_data import distance
@@ -35,7 +37,17 @@ class EndpointPriority:
     Actual costs, stock forecasts and road geometry remain the router's job.
     """
 
-    def __init__(self, nodes, transit, walks, groups, bike_radius, departure=None):
+    def __init__(
+        self,
+        nodes,
+        transit,
+        walks,
+        groups,
+        bike_radius,
+        departure=None,
+        walk_radius=900,
+        horizon_minutes=180,
+    ):
         self.nodes = nodes
         self.forward, self.reverse = defaultdict(dict), defaultdict(dict)
         self.outgoing, self.incoming = defaultdict(int), defaultdict(int)
@@ -65,7 +77,7 @@ class EndpointPriority:
             if a not in nodes or b not in nodes or minutes <= 0:
                 continue
             if departure is not None:
-                self.timed[a].append((leave, arrive, b))
+                self.timed[a].append((leave, arrive, edge))
             self.outgoing[a] += 1
             self.incoming[b] += 1
             kinds[a].add(edge["mode"])
@@ -101,61 +113,97 @@ class EndpointPriority:
         self.prefix = _paths(self.forward, seeds["origin"])
         self.suffix = _paths(self.reverse, seeds["destination"])
         self.bike_radius = bike_radius
+        self.walk_radius = walk_radius
+        self.horizon_minutes = horizon_minutes
         self.scores = {}
+        self.planned_walks = []
+        self.planner_stats = {}
         self.preferred = self._preferred_pair(walks, groups, departure)
 
     def _preferred_pair(self, walks, groups, departure):
         """Pair both endpoints using a time-aware optimistic no-API journey.
 
         Virtual access legs use straight walking estimates. Scheduled departure
-        and arrival times include waiting; existing transfer walks are allowed.
-        Unknown transfers stay in the normal candidate queues.
+        and arrival times include waiting. Nearby unverified transfer walks may
+        guide queries but never enter the actual movement graph as estimates.
         """
         if departure is None:
             return set()
+        from candidate_edges import SpatialIndex
+        from transit_seed import timetable_seed
+
         start = timestamp(departure)
-        arrivals, roots = {"origin": start}, {"origin": None}
-        exits = {}
-        for group in groups:
-            for a, b in group:
-                if a == "origin":
-                    arrivals[b] = start + self.access_costs[a, b] * 60
-                    roots[b] = b
-                else:
-                    exits[a] = self.access_costs[a, b] * 60
-        walking = defaultdict(list)
-        for edge in walks:
-            walking[edge["from"]].append((edge["to"], float(edge["minutes"]) * 60))
-        queue = [(value, key) for key, value in arrivals.items()]
-        heapify(queue)
+        endpoint_pairs = {pair for group in groups for pair in group}
+        known_pairs = {(e["from"], e["to"]) for e in walks}
+        index = SpatialIndex(
+            {
+                k: v
+                for k, v in self.nodes.items()
+                if k in self.kinds or k == "destination"
+            }
+        )
+        proposed = {}
 
-        def improve(a, b, value):
-            if value < arrivals.get(b, math.inf):
-                arrivals[b] = value
-                roots[b] = b if a == "origin" else roots[a]
-                heappush(queue, (value, b))
+        def walking_candidates(key):
+            if key not in proposed:
+                rows = []
+                source = self.nodes[key]
+                for length, other in index.near(source, self.walk_radius):
+                    pair = (key, other)
+                    if other in (key, "origin") or pair in known_pairs:
+                        continue
+                    if (
+                        key == "origin" or other == "destination"
+                    ) and pair not in endpoint_pairs:
+                        continue
+                    rows.append(
+                        {
+                            "from": key,
+                            "to": other,
+                            "minutes": max(0.05, length / self.walk_speed),
+                            "source": "unverified_walk_priority",
+                        }
+                    )
+                proposed[key] = rows
+            return proposed[key]
 
-        while queue:
-            when, key = heappop(queue)
-            if when != arrivals[key]:
-                continue
-            for other, duration in walking.get(key, ()):
-                improve(key, other, when + duration)
-            for leave, arrive, other in self.timed.get(key, ()):
-                if leave >= when:
-                    improve(key, other, arrive)
+        for rows in self.timed.values():
+            rows.sort(key=lambda row: row[0])
+        end = start + self.horizon_minutes * 60
+        # These estimates buy an actual connected journey, including an unknown
+        # bus/rail transfer walk. They never become movement times or prune the
+        # full optimizer's candidates. The final router uses confirmed links.
+        route, self.planner_stats = timetable_seed(
+            walks,
+            self.timed,
+            "origin",
+            "destination",
+            start,
+            end,
+            datetime.fromisoformat(departure).tzinfo
+            if isinstance(departure, str)
+            else departure.tzinfo,
+            "transit",
+            time.monotonic() + 2.0,
+            proposed_walks=walking_candidates,
+        )
+        preferred = set()
         best, pair = math.inf, None
-        for key, walk in exits.items():
-            value = arrivals.get(key, math.inf) + walk
-            if value < best and roots.get(key):
-                best, pair = value, (("origin", roots[key]), (key, "destination"))
+        if route is not None:
+            self.planned_walks = [
+                (e["from"], e["to"])
+                for e in route["legs"]
+                if e["mode"] == "walk" and e.get("source") == "unverified_walk_priority"
+            ]
+            preferred.update(p for p in self.planned_walks if p in endpoint_pairs)
+            best = start + route["total_minutes"] * 60
         for a, access in self.bikes["origin"]:
             for b, egress in self.bikes["destination"]:
                 length = distance(self.nodes[a], self.nodes[b])
                 value = start + (access + length / self.bike_speed + egress) * 60
                 if a != b and length <= self.bike_radius and value < best:
                     best, pair = value, (("origin", a), (b, "destination"))
-        return set(pair or ())
+        return preferred | set(pair or ())
 
     def score(self, pair):
         if pair in self.scores:

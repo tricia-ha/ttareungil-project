@@ -1,0 +1,62 @@
+{
+  "reviewed_on": "2026-10-30",
+  "reason": "Published coordinate CSV conflicts confirmed by national station data and independent place lookup. Only exact original points are replaced.",
+  "corrections": [
+    {
+      "station_key": "2:0217",
+      "name": "잠실새내",
+      "original": {
+        "latitude": 37.520731,
+        "longitude": 127.103738
+      },
+      "corrected": {
+        "latitude": 37.511653,
+        "longitude": 127.086224
+      },
+      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "reference_url": "http://place.map.kakao.com/21160539"
+    },
+    {
+      "station_key": "2:0245",
+      "name": "신답",
+      "original": {
+        "latitude": 37.56147,
+        "longitude": 127.056348
+      },
+      "corrected": {
+        "latitude": 37.569847,
+        "longitude": 127.047048
+      },
+      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "reference_url": "http://place.map.kakao.com/21160808"
+    },
+    {
+      "station_key": "2:0244",
+      "name": "용답",
+      "original": {
+        "latitude": 37.566412,
+        "longitude": 126.977863
+      },
+      "corrected": {
+        "latitude": 37.562066,
+        "longitude": 127.05087863
+      },
+      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "reference_url": "http://place.map.kakao.com/21160624"
+    },
+    {
+      "station_key": "5:2516",
+      "name": "발산",
+      "original": {
+        "latitude": 37.562182,
+        "longitude": 126.82693
+      },
+      "corrected": {
+        "latitude": 37.558692,
+        "longitude": 126.837633
+      },
+      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "reference_url": "http://place.map.kakao.com/21160847"
+    }
+  ]
+}

@@ -274,11 +274,37 @@ def _seed_endpoint_walks(
     if guard.is_dead("origin"):
         diagnostics["endpoint_origin_unreachable"] = True
         return False, cached_count, 0
-    if allowance <= 0 or not any(pair not in resolved for group in groups for pair in group):
+    if allowance <= 0 or not any(
+        pair not in resolved for group in groups for pair in group
+    ):
         return False, cached_count, 0
-    ranked_groups = [[pair for pair in group if pair not in cached_no_route] for group in groups]
-    priority = EndpointPriority(nodes, transit, walks, ranked_groups, config.max_bike_distance_m, departure)
-    for pair in priority.ordered(ranked_groups):
+    ranked_groups = [
+        [pair for pair in group if pair not in cached_no_route] for group in groups
+    ]
+    priority = EndpointPriority(
+        nodes,
+        transit,
+        walks,
+        ranked_groups,
+        config.max_bike_distance_m,
+        departure,
+        walk_radius=config.max_connector_distance_m,
+        horizon_minutes=config.horizon_minutes,
+    )
+    diagnostics["connector_journey_planner"] = priority.planner_stats
+    diagnostics["planned_unverified_walks"] = len(priority.planned_walks)
+    # Complete a time-aware journey rather than buy unrelated local access
+    # links. Destination/origin and internal bus/rail transfers all participate.
+    # Guessed walking costs only order calls; only actual responses enter walks.
+    planned = sorted(
+        priority.planned_walks,
+        key=lambda pair: (
+            pair[0] != "origin" and pair[1] != "destination",
+            pair[0] != "origin",
+        ),
+    )
+    ordered_pairs = dict.fromkeys(planned + list(priority.ordered(ranked_groups)))
+    for pair in ordered_pairs:
         if pair in resolved:
             continue
         spent = client.calls - before if client is not None else attempts
@@ -316,7 +342,9 @@ def _seed_endpoint_walks(
     )
 
 
-def build_scheduled_network(timetable, stations, origin, destination, walking, config, departure=None):
+def build_scheduled_network(
+    timetable, stations, origin, destination, walking, config, departure=None
+):
     """Add only bounded access/transfer connectors; never call Kakao for every pair."""
     config.validate()
     departure = departure or timetable.metadata.get("valid_departure")
@@ -527,7 +555,7 @@ def build_scheduled_network(timetable, stations, origin, destination, walking, c
                 candidate_scope="all_supported_stations_within_configured_radii",
                 connectors_lazy=True,
                 connector_limit_reached=connector_limit,
-                walking_query_policy="cached_first_balanced_endpoints_timetable_priority",
+                walking_query_policy="cached_first_connected_journey_then_balanced_endpoints",
                 cached_endpoint_connections=cached_seeds,
                 new_endpoint_calls=paid_seeds,
                 bicycle_available=config.bicycle_available,
@@ -827,6 +855,7 @@ def _run_scheduled_optimization(
 ):
     """Use a prepared subway/bus timetable, a Network, or an explicit GTFS ZIP."""
     from route_progress import notify_progress
+
     load_project_env()
     if departure is None:
         from multimodal_data import KST
@@ -887,7 +916,7 @@ def _run_scheduled_optimization(
             },
         )
     if timetable is None:
-        notify_progress(on_progress, 'timetable')
+        notify_progress(on_progress, "timetable")
         if gtfs_path is not None:
             path = Path(gtfs_path)
             timetable = load_gtfs(path, departure, c.horizon_minutes)
@@ -926,7 +955,7 @@ def _run_scheduled_optimization(
 
     snapshot, inventory, as_of, mapping = {}, None, None, {}
     if use_inventory:
-        notify_progress(on_progress, 'inventory')
+        notify_progress(on_progress, "inventory")
         from inventory_service import InventoryPredictor
 
         inventory = InventoryPredictor()
@@ -976,7 +1005,7 @@ def _run_scheduled_optimization(
             ):
                 link_cache.remember_result(previous)
         walking = KakaoWalking(client, link_cache)
-        notify_progress(on_progress, 'network')
+        notify_progress(on_progress, "network")
         network = build_scheduled_network(
             timetable, stations, origin, destination, walking, c, departure=departure
         )
@@ -1094,7 +1123,7 @@ def _run_scheduled_optimization(
             attach_transit_geometry(snapshot, PROJECT_ROOT / "data" / "transit")
             on_routes(snapshot)
 
-        notify_progress(on_progress, 'searching_weather' if use_kma else 'searching')
+        notify_progress(on_progress, "searching_weather" if use_kma else "searching")
         result = Router(
             network,
             bike_provider,
@@ -1103,7 +1132,7 @@ def _run_scheduled_optimization(
             on_routes=publish if on_routes is not None else None,
         ).search("origin", "destination", departure)
         result["nodes"] = network.nodes
-        notify_progress(on_progress, 'results')
+        notify_progress(on_progress, "results")
         from transit_geometry import attach_transit_geometry
 
         attach_transit_geometry(result, PROJECT_ROOT / "data" / "transit")

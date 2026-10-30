@@ -1,7 +1,8 @@
 """Candidate order changes must not become hidden candidate pruning."""
 
 from pathlib import Path
-import sys, unittest
+import sys
+import unittest
 
 sys.path[:0] = [
     str(Path(__file__).resolve().parents[1] / "src"),
@@ -48,6 +49,70 @@ def scenario():
 
 
 class EndpointPriorityTests(unittest.TestCase):
+    def test_new_coordinates_plan_unknown_middle_transfer_without_cache(self):
+        from datetime import datetime, timedelta
+
+        at = datetime.fromisoformat(START)
+        nodes = {
+            key: dict(latitude=lat, longitude=127.0, kind="stop")
+            for key, lat in (
+                ("A", 37.501),
+                ("B", 37.52),
+                ("C", 37.523),
+                ("subway:D", 37.54),
+            )
+        }
+
+        def ride(a, b, leave, arrive, trip, mode):
+            return dict(
+                **{"from": a, "to": b},
+                departure=(at + timedelta(minutes=leave)).isoformat(),
+                arrival=(at + timedelta(minutes=arrive)).isoformat(),
+                trip_id=trip,
+                mode=mode,
+            )
+
+        table = Network(
+            nodes,
+            transit=[
+                ride("A", "B", 5, 10, "B1", "bus"),
+                ride("C", "subway:D", 17, 22, "S1", "subway"),
+            ],
+        )
+
+        class ColdWalking(BudgetWalking):
+            def __call__(self, a, b, start, end):
+                edge = super().__call__(a, b, start, end)
+                edge["minutes"] = 6 if (start, end) == ("B", "C") else 2
+                edge["source"] = "verified_test_road"
+                return edge
+
+        for offset in (0.0, 0.0001):
+            walking = ColdWalking(6)
+            graph = build_scheduled_network(
+                table,
+                [],
+                dict(latitude=37.5 + offset, longitude=127.0),
+                dict(latitude=37.541 + offset, longitude=127.0),
+                walking,
+                ScheduledConfig(search_mode="transit"),
+                departure=START,
+            )
+            self.assertEqual(
+                walking.queries[:3],
+                [("origin", "A"), ("subway:D", "destination"), ("B", "C")],
+            )
+            result = Router(
+                Network(graph.nodes, walks=graph.walks, transit=graph.transit),
+                None,
+                Config(top_k=1, required_mode="transit"),
+            ).search("origin", "destination", START)
+            self.assertEqual(result["routes"][0]["total_minutes"], 24)
+            self.assertFalse(
+                any(e.get("source") == "unverified_walk_priority" for e in graph.walks)
+            )
+            self.assertLessEqual(walking.client.calls, 6)
+
     def test_farther_faster_bus_is_ranked_before_nearer_slow_subway(self):
         nodes, transit, groups = scenario()
         rank = EndpointPriority(nodes, transit, [], groups, 7000)
