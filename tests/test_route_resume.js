@@ -6,6 +6,7 @@ const fs = require('node:fs'),
 const source = fs.readFileSync(path.join(__dirname, '../web/app.js'), 'utf8');
 const elements = new Map();
 const context = {
+  rider: { active: false },
   state: { activeJob: null, jobPending: false, initializing: false, points: {} },
   $: (id) => {
     if (!elements.has(id)) elements.set(id, {});
