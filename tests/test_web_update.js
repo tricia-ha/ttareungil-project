@@ -27,9 +27,12 @@ const el = id => {
   if (!elements.has(id)) elements.set(id, new Element());
   return elements.get(id);
 };
+const modeButtons = ['integrated', 'transit', 'bicycle'].map(mode => {
+  const button = new Element('button'); button.dataset.mode = mode; return button;
+});
 const ctx = {
   document: { getElementById: el, createElement: tag => new Element(tag),
-    querySelectorAll: () => [], addEventListener() {}, documentElement: new Element() },
+    querySelectorAll: selector => selector === '[data-mode]' ? modeButtons : [], addEventListener() {}, documentElement: new Element() },
   window: { addEventListener() {}, isSecureContext: true },
   navigator: { geolocation: { clearWatch() {} } }, location: { search: '?sim=1' },
   innerWidth: 1200, URLSearchParams, console, Date, Map, Set, Blob,
@@ -86,6 +89,7 @@ ctx.L = { marker: layer, circle: layer, polyline: layer, divIcon: x => x };
   };
   state.initializing = false; state.filter = 'all'; ctx.showRoutes(base);
   const pending = el('routeForm').onsubmit({ preventDefault() {} });
+  assert.ok(modeButtons.every(button => button.disabled), 'Mode controls disabled during a search');
   assert.equal(state.result, null, 'Old results removed before request completes');
   assert.equal(state.currentRoute, null);
   assert.equal(el('routeCards').children.length, 0);
@@ -95,6 +99,25 @@ ctx.L = { marker: layer, circle: layer, polyline: layer, divIcon: x => x };
   accept({ ok: true, json: async () => ({ job_id: 'test-job' }) });
   await pending;
   assert.equal(state.currentRoute.total_minutes, 10);
+  assert.equal(JSON.parse(requests[0][1].body).mode, 'integrated');
+  for (const mode of ['transit', 'bicycle']) {
+    const button = modeButtons.find(button => button.dataset.mode === mode);
+    button.onclick();
+    assert.equal(state.mode, mode);
+    assert.equal(button.attributes['aria-selected'], 'true');
+    assert.equal(el('bikeOptions').hidden, mode === 'transit');
+    assert.match(el('searchButton').textContent, mode === 'transit' ? /대중교통/ : /따릉이/);
+    ctx.fetch = async (url, options) => {
+      requests.push([url, options]);
+      return { ok: true, json: async () => url === '/api/routes'
+        ? { job_id: 'mode-' + mode }
+        : { status: 'done', result: { routes: [mode === 'transit' ? transit : bike] } } };
+    };
+    await el('routeForm').onsubmit({ preventDefault() {} });
+    const sent = requests.filter(([url]) => url === '/api/routes').at(-1);
+    assert.equal(JSON.parse(sent[1].body).mode, mode, 'The selected mode must reach the server');
+    assert.equal(state.searched.has(mode), true);
+  }
 
   // Editing or swapping an input invalidates an older autocomplete response immediately.
   const scheduled = new Map(); let response;

@@ -49,6 +49,11 @@
             ></div
           >
 
+          <div class="modes" role="tablist" aria-label="이동 방법">
+            <button class="mode" type="button" role="tab" aria-selected="true" data-mode="integrated">통합 경로<small>따릉이 + 대중교통</small></button>
+            <button class="mode" type="button" role="tab" aria-selected="false" data-mode="transit">대중교통<small>버스 + 지하철</small></button>
+            <button class="mode" type="button" role="tab" aria-selected="false" data-mode="bicycle">따릉이<small>도보 + 자전거</small></button>
+          </div>
           <form id="routeForm">
             <label class="location-label origin-label" for="origin"><span class="location-dot" aria-hidden="true"></span>출발지</label>
             <div class="fieldrow">
@@ -87,7 +92,7 @@
               ></div
             >
             <button class="primary" id="searchButton" type="submit"
-              >함께 갈 경로 찾기 ↗</button
+              >통합 경로 찾기 ↗</button
             ></form
           >
           </div>
