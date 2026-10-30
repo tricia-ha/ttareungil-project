@@ -1,0 +1,38 @@
+{
+  "project": "bicycle",
+  "organized_at": "2026-10-29",
+  "purpose": "따릉이·대중교통 경로 탐색과 개인화",
+  "main_notebook": "notebooks/01_기능실행.ipynb",
+  "eta": {
+    "version": "V5.2.1",
+    "path": "models/eta_v5_2_1",
+    "weights_changed": false
+  },
+  "inventory": {
+    "path": "models/inventory_final",
+    "selected_model": "first_positive_level_district_7",
+    "training_end": "2026-10-07",
+    "scope_stations": 2771,
+    "prediction_math_changed": false
+  },
+  "optimization_bicycle_quantile": "p50",
+  "candidate_policy": "all supported stations; lazy OD and walking within configured radii",
+  "feature_version": "vector_wind_v2",
+  "source_directory": "src",
+  "review_document": "docs/VALIDATION.md",
+  "research_backup_required_at_runtime": false,
+  "python_entry": "src/project_service.py:ProjectService",
+  "search_modes": [
+    "integrated",
+    "transit",
+    "bicycle"
+  ],
+  "web_entry": "web/index.html",
+  "web_server": "scripts/serve.py",
+  "web_port": 8765,
+  "public_access": "ngrok assigned HTTPS development domain",
+  "web_ui_reference": "https://github.com/tricia-ha/ttareungil-project",
+  "web_database": "cache/runtime/web_personalization.sqlite",
+  "legacy_personalization_separate": true,
+  "personalization": "robust affine P50: factor * base + offset_min"
+}

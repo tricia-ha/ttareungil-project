@@ -1,0 +1,519 @@
+
+
+
+
+
+
+  
+<script>
+
+var width=0;
+	
+
+function getCookie(name) {
+	var nameOfCookie = name + "=";
+	var x = 0;
+	while (x <= document.cookie.length) {
+		var y = (x + nameOfCookie.length);
+		if (document.cookie.substring(x, y) == nameOfCookie) {
+			if ((endOfCookie = document.cookie.indexOf(";", y)) == -1) endOfCookie = document.cookie.length;
+			return unescape(document.cookie.substring(y, endOfCookie));
+		}
+		x = document.cookie.indexOf(" ", x) + 1;
+		if (x == 0) break;
+	}
+	return "";
+}
+
+var start_s = "";
+var start_d = "";
+
+function start(lay)
+{
+	if('SB' + lay != start_s)
+		{
+		if ((start_s == "") && (start_d == ""))		//출발 역
+		{
+			start_s = lay;
+			$('#tit' + lay).html('출발');
+			$("#" + lay).show();
+		}
+		else if ((start_s != "") &&  (start_d == ""))	//도착 역
+		{
+			start_d = lay;
+			$('#tit' + lay).html('도착');
+			$("#" + lay).show();
+			
+			result();
+		}
+		else
+		{
+			$('.click_event').hide();
+			start_s = "";
+			start_d = "";
+			result();
+		}
+	}
+}
+
+
+function reset()
+{
+	$('.click_event').hide();
+	start_s = "";
+	start_d = "";
+	result();
+	$('#oqLayer').attr("src", "/dxline/dxline_3_result.jsp");
+	
+}
+
+function result(){
+	$('#oqLayer').attr("src", "/dxline/dxline_3_result.jsp?start_s=" + start_s + "&start_d=" + start_d);
+}
+result();
+
+function search(st_cd, page, open, main, sub) {
+	var form = document.getElementById("frm");
+		form.st_cd.value = st_cd;
+		form.pageID.value = page;
+		form.open_main.value = open;
+		form.open_sub1.value = main;
+		form.open_sub2.value = sub;
+		form.submit();
+}
+
+function searchtab(st_cd, page, open, main, sub, tabno) {
+	var form = document.getElementById("frm");
+		form.st_cd.value = st_cd;
+		form.pageID.value = page;
+		form.open_main.value = open;
+		form.open_sub1.value = main;
+		form.open_sub2.value = sub;
+		form.tabNo.value = tabno;
+		form.submit();
+}
+
+</script>
+    <!--본문 시작-->
+    <form method="post" name="noticeForm" id="noticeForm" action="/index.jsp">
+		<input type="hidden" name="pageID" id="pageID" value="/notice/notice1.jsp" />
+		<input type="hidden" name="open_main" value="3" />
+		<input type="hidden" name="open_sub1" value="1" />
+		<input type="hidden" name="open_sub2" value="0" />
+		<input type="hidden" name="nowPage" value="1" />
+		<input type="hidden" name="tabNo" value="" />
+	</form>
+    <div class="sub_cont">
+                <div class="sub_tit">
+            		<h3>DX LINE 노선도</h3>
+                		<p>미래를 움직이는 첨단 신기술, DX LINE</p>
+            	</div>
+            	<form id="frm" action="/index.jsp" method="post">
+	            	<input type="hidden" id="st_cd" name="st_cd"/>
+	            	<input type="hidden" name="open_main" value="1"/>
+	            	<input type="hidden" name="open_sub1" value="4"/>
+	            	<input type="hidden" name="open_sub2" value="1"/>
+					<input type="hidden" name="tabNo" value="" />
+	            	<input type="hidden" name="pageID" value="/dxline/dxline3_1.jsp"/>
+	            </form>
+                <!-- //sub_tit ; e -->
+                <h4 class="small_tit">운임 및 소요시간 계산 </h4>
+                	<p class="mb20">출발역과 도착역간의 운임 및 소요시간을 확인해보세요. </p>
+                    <div class="time_box">
+                    	<ul>
+                    		 
+						           		<li class="time_icon01"> 
+						           		 
+					           		<a href="javascript:start('SB001')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	신사<br />
+	                                        	新沙<br />
+	                                        	Sinsa
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB001" style="display:none">
+		                                	<p class="mb10"><span id="titSB001">출발</span><strong>신사</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB001', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB001', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB001', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon02"> 
+						           		 
+					           		<a href="javascript:start('SB002')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	논현<br />
+	                                        	論峴<br />
+	                                        	Nonhyeon
+
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB002" style="display:none">
+		                                	<p class="mb10"><span id="titSB002">출발</span><strong>논현</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB002', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB002', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB002', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon03"> 
+						           		 
+					           		<a href="javascript:start('SB003')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	신논현<br />
+	                                        	新論峴<br />
+	                                        	Sinnonhyeon
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB003" style="display:none">
+		                                	<p class="mb10"><span id="titSB003">출발</span><strong>신논현</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB003', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB003', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB003', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon04"> 
+						           		 
+					           		<a href="javascript:start('SB004')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	강남<br />
+	                                        	江南<br />
+	                                        	Gangnam
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB004" style="display:none">
+		                                	<p class="mb10"><span id="titSB004">출발</span><strong>강남</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB004', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB004', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB004', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon05"> 
+						           		 
+					           		<a href="javascript:start('SB005')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	양재<br /><span class=sta_txt>(서초구청)</span><br />
+	                                        	良才<br />
+	                                        	Yangjae<br />(Seocho-gu office)
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB005" style="display:none">
+		                                	<p class="mb10"><span id="titSB005">출발</span><strong>양재</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB005', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB005', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB005', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon06"> 
+						           		 
+					           		<a href="javascript:start('SB006')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	양재시민의숲<br />(매헌)<br />
+	                                        	良才市民의숲<br />(梅軒)<br />
+	                                        	Yangjae Citizen's<br />Forest<br />(Maeheon)
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB006" style="display:none">
+		                                	<p class="mb10"><span id="titSB006">출발</span><strong>양재시민의숲</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB006', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB006', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB006', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon07"> 
+						           		 
+					           		<a href="javascript:start('SB007')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	청계산입구<br />
+	                                        	淸溪山入口<br />
+	                                        	Cheonggyesan
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB007" style="display:none">
+		                                	<p class="mb10"><span id="titSB007">출발</span><strong>청계산입구</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB007', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB007', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB007', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon08"> 
+						           		 
+					           		<a href="javascript:start('SB008')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	판교<br /><span class=sta_txt>(판교테크노밸리)</span><br />
+	                                        	板橋<br />
+	                                        	Pangyo
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB008" style="display:none">
+		                                	<p class="mb10"><span id="titSB008">출발</span><strong>판교</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB008', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB008', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB008', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+						           		<li class="time_icon09"> 
+						           		 
+					           		<a href="javascript:start('SB009')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	정자<br />
+	                                        	亭子<br />
+	                                        	Jeongja
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB009" style="display:none">
+		                                	<p class="mb10"><span id="titSB009">출발</span><strong>정자</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB009', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB009', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB009', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon10"> 
+					           			 
+					           		<a href="javascript:start('SB010')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img01.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	미금<br /><span class=sta_txt>(분당서울대병원)</span><br />
+	                                        	美金<br />
+	                                        	Migeum<br>(Seoul National<br>Univ. Bundang<br>Hospital)
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB010" style="display:none">
+		                                	<p class="mb10"><span id="titSB010">출발</span><strong>미금</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB010', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB010', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB010', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon11"> 
+					           			 
+					           		<a href="javascript:start('SB011')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	동천<br />
+	                                        	東川<br />
+	                                        	Dongcheon
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB011" style="display:none">
+		                                	<p class="mb10"><span id="titSB011">출발</span><strong>동천</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB011', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB011', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB011', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon12"> 
+					           			 
+					           		<a href="javascript:start('SB012')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	수지구청<br />
+	                                        	水枝區廳<br />
+	                                        	Suji-gu office
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB012" style="display:none">
+		                                	<p class="mb10"><span id="titSB012">출발</span><strong>수지구청</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB012', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB012', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB012', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon13"> 
+					           			 
+					           		<a href="javascript:start('SB013')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	성복<br />
+	                                        	星福<br />
+	                                        	Seongbok
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB013" style="display:none">
+		                                	<p class="mb10"><span id="titSB013">출발</span><strong>성복</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB013', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB013', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB013', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon14"> 
+					           			 
+					           		<a href="javascript:start('SB014')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	상현<br />
+	                                        	上峴<br />
+	                                        	Sanghyeon
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB014" style="display:none">
+		                                	<p class="mb10"><span id="titSB014">출발</span><strong>상현</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB014', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB014', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB014', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon15"> 
+					           			 
+					           		<a href="javascript:start('SB015')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	광교중앙<br />(아주대)<br />
+	                                        	光敎中央<br />(亞洲大)<br />
+	                                        	Gwanggyo<br /> Jungang<br />(Ajou Univ.)
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB015" style="display:none">
+		                                	<p class="mb10"><span id="titSB015">출발</span><strong>광교중앙</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB015', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB015', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB015', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	 
+					           			<li class="time_icon16"> 
+					           			 
+					           		<a href="javascript:start('SB016')" class="ac"> 
+					           		 
+                            				<img src="/images/sub/guide/line_img03.jpg" alt="역 이미지" /> 
+                            				
+		                                    <span> 
+		                                    	광교(경기대)<br />
+	                                        	光敎(京畿大)<br />
+	                                        	Gwanggyo<br />(Kyonggi Univ.)
+	                                    	</span>
+                                		</a>
+	                                	<div class="click_event" id="SB016" style="display:none">
+		                                	<p class="mb10"><span id="titSB016">출발</span><strong>광교(경기대)</strong></p>
+		                                    <ul>
+		                                    	<li><a href="javascript:search('SB016', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0');">· 역정보</a></li>
+		                                        <li><a href="javascript:search('SB016', '/dxline/dxline3_1.jsp', '1' ,'4' ,'1');">· 열차 시간표</a></li>
+		                                        <li><a href="javascript:searchtab('SB016', '/dxline/dxline6_1.jsp', '1' ,'6' ,'0', '2');">· 환승안내</a></li>
+		                                    </ul>
+		                                    <a href="javascript:reset();" class="btn_click">설정다시하기</a>
+		                                    <img src="/images/sub/guide/bott_click.png" alt="background" />
+		                                </div>	
+				            		</li>
+					            	
+                        </ul>
+                    </div>
+                    <!-- //time_box : e -->
+                    <div class="so_time" >
+                    	<h5>운임 / 소요시간</h5>
+                    	<iframe id="oqLayer" class="fl" style="width:500px;margin-top:20px;height:50px;" frameborder="0" scrolling="no" src="/dxline/dxline_3_result.jsp" title="운임/소요시간 보기" ></iframe>
+                    </div>
+            </div>
+    <!--본문 끝-->
+

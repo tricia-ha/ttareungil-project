@@ -1,0 +1,6 @@
+# Preserve distributed files exactly, including data and model checksums.
+* -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+data/** binary
+models/** binary
+data/**/*.md diff
+models/**/*.md diff

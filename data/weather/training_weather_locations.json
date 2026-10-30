@@ -1,0 +1,143 @@
+{
+  "source": "open_meteo_archive_training_data",
+  "source_sha256": "deccdf1e9a47ac46bc47f15a9a86d7bd582d79597f3c70ac4450391d9f40a7e8",
+  "locations": [
+    {
+      "location": "강남구",
+      "latitude": 37.49926834530726,
+      "longitude": 127.0574609342458
+    },
+    {
+      "location": "강동구",
+      "latitude": 37.54768160682927,
+      "longitude": 127.14758803170731
+    },
+    {
+      "location": "강북구",
+      "latitude": 37.63238739526315,
+      "longitude": 127.02527792385963
+    },
+    {
+      "location": "강서구",
+      "latitude": 37.55904437056122,
+      "longitude": 126.83602060561223
+    },
+    {
+      "location": "관악구",
+      "latitude": 37.47991132014084,
+      "longitude": 126.9407124056338
+    },
+    {
+      "location": "광진구",
+      "latitude": 37.54418058067416,
+      "longitude": 127.08175607764043
+    },
+    {
+      "location": "구로구",
+      "latitude": 37.49335075113044,
+      "longitude": 126.86009873104348
+    },
+    {
+      "location": "금천구",
+      "latitude": 37.466310422602746,
+      "longitude": 126.89319589726028
+    },
+    {
+      "location": "노원구",
+      "latitude": 37.64599156221476,
+      "longitude": 127.06792639402686
+    },
+    {
+      "location": "도봉구",
+      "latitude": 37.6602661969863,
+      "longitude": 127.04034664164382
+    },
+    {
+      "location": "동대문구",
+      "latitude": 37.58085913164835,
+      "longitude": 127.05164052087912
+    },
+    {
+      "location": "동작구",
+      "latitude": 37.49971956694444,
+      "longitude": 126.94980812027777
+    },
+    {
+      "location": "마포구",
+      "latitude": 37.56114254025,
+      "longitude": 126.91629409816666
+    },
+    {
+      "location": "서대문구",
+      "latitude": 37.57213755341464,
+      "longitude": 126.9344355885366
+    },
+    {
+      "location": "서초구",
+      "latitude": 37.48285357173334,
+      "longitude": 127.01967208853334
+    },
+    {
+      "location": "성동구",
+      "latitude": 37.55435922847826,
+      "longitude": 127.04147761782608
+    },
+    {
+      "location": "성북구",
+      "latitude": 37.601112600987655,
+      "longitude": 127.02815482024693
+    },
+    {
+      "location": "송파구",
+      "latitude": 37.501550812590914,
+      "longitude": 127.12118180027272
+    },
+    {
+      "location": "양천구",
+      "latitude": 37.525032284054056,
+      "longitude": 126.8601722373874
+    },
+    {
+      "location": "영등포구",
+      "latitude": 37.51980368819209,
+      "longitude": 126.90878972632768
+    },
+    {
+      "location": "용산구",
+      "latitude": 37.53294622517242,
+      "longitude": 126.97573948954025
+    },
+    {
+      "location": "은평구",
+      "latitude": 37.61563444166666,
+      "longitude": 126.92295090322916
+    },
+    {
+      "location": "종로구",
+      "latitude": 37.57731445459184,
+      "longitude": 126.98867042683672
+    },
+    {
+      "location": "중구",
+      "latitude": 37.56235193076087,
+      "longitude": 126.98954325152172
+    },
+    {
+      "location": "중랑구",
+      "latitude": 37.59954637263158,
+      "longitude": 127.0895931043158
+    },
+    {
+      "location": "seoul_reference",
+      "latitude": 37.5665,
+      "longitude": 126.978
+    }
+  ],
+  "start": "2024-01-01 00:00:00",
+  "end": "2026-06-30 23:00:00",
+  "rows": 569088,
+  "timezone": "Asia/Seoul",
+  "wind_speed_unit": "ms",
+  "models_parameter": null,
+  "notes": "Training request used archive default model selection; exact historical service revisions are not pinned."
+}

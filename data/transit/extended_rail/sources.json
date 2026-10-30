@@ -1,0 +1,281 @@
+{
+  "recorded_at": "2026-10-17T04:57:04.689125+00:00",
+  "files": [
+    {
+      "file": "korail_25745.xlsx",
+      "url": "https://www.korail.com/file/cubedata/COMMON/jfile/202608/28/202608281a045c7905b490.xlsx",
+      "bytes": 292371,
+      "sha256": "5cee7c8d3409d02bcde2c412b6ab6bc5d5fa5335d07e9331187d89bed6473a70"
+    },
+    {
+      "file": "korail_25746.xlsx",
+      "url": "https://www.korail.com/file/cubedata/COMMON/jfile/202608/28/202608281a045c7cc64640.xlsx",
+      "bytes": 246076,
+      "sha256": "a6e95ad13a77fd6a39ee42eb869b7a2238bed6e4a1050514b27f871fd0d3527a"
+    },
+    {
+      "file": "korail_25702.xlsx",
+      "url": "https://www.korail.com/file/cubedata/COMMON/jfile/202608/21/202608211a02345f4b6660.xlsx",
+      "bytes": 611577,
+      "sha256": "44543f0280afb17acbcdb12aefcd40ec79ff28fc28b6c1e1f80d9743ee3d14d0"
+    },
+    {
+      "file": "arex_20251229.xlsx",
+      "url": "https://www.airportrailroad.com/static/file/%EC%97%B4%EC%B0%A8%EC%8B%9C%EA%B0%81%ED%91%9C_251229.xlsx",
+      "bytes": 222989,
+      "sha256": "6429855c6d969ccf58e3a7f891914698e858529fe5c34d4035fbe65d95ce37a7"
+    },
+    {
+      "file": "arex_20261023.xlsx",
+      "url": "https://www.airportrailroad.com/file/download/AF202610140000000001",
+      "bytes": 215295,
+      "sha256": "f4d17c380bff6a556f2b84b2f03b194ba2bb2c21513096a5c8d6d1b4a835411e"
+    },
+    {
+      "file": "discovery/shinbundang.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline1.jsp",
+      "bytes": 29506,
+      "sha256": "0153f7998af634748a275ef4e79684574017ba29fc9bf5c1d496a478e2757f36"
+    },
+    {
+      "file": "ui_01.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_01.php?pGubn=T2",
+      "bytes": 51913,
+      "sha256": "d50c778daefd4771ffac4be275627f347df157bc95d6c17888ca2d7c7fbe800c"
+    },
+    {
+      "file": "ui_02.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_02.php?pGubn=T2",
+      "bytes": 49426,
+      "sha256": "7526a18d1a02cf533835dbd4dd5e003d616042f81d978f4bf2f9b391dfbaab5f"
+    },
+    {
+      "file": "ui_03.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_03.php?pGubn=T2",
+      "bytes": 49212,
+      "sha256": "ca67fb77b2fcbc08c71d740899ad830573a6f98e97be11c9ccd3afe58581b91e"
+    },
+    {
+      "file": "ui_04.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_04.php?pGubn=T2",
+      "bytes": 49199,
+      "sha256": "5069ef0b34faa7124d72a1207e55936a83b53ee854737b32951d117e8dac7690"
+    },
+    {
+      "file": "ui_05.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_05.php?pGubn=T2",
+      "bytes": 49168,
+      "sha256": "fa93fc12a06ec90d207759c71bae7605ea9e092ddc05d626614130679c6f8d58"
+    },
+    {
+      "file": "ui_06.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_06.php?pGubn=T2",
+      "bytes": 49172,
+      "sha256": "583e82ee2552458ae6a948c4202312ca6ed99d43c8e1838a38c4c565a5c6b525"
+    },
+    {
+      "file": "ui_07.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_07.php?pGubn=T2",
+      "bytes": 49192,
+      "sha256": "6e5614fab5dac55a572aaab9f8fe2ac250c4b67a13029f163b67e8114df29eab"
+    },
+    {
+      "file": "ui_08.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_08.php?pGubn=T2",
+      "bytes": 49187,
+      "sha256": "9fa883396eb3bd8e0fb905825169e54bddd630f63534df76af5b0b3263785c53"
+    },
+    {
+      "file": "ui_09.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_09.php?pGubn=T2",
+      "bytes": 49204,
+      "sha256": "eae9dac72d8bc807ad6b68d5f634719eb4f19e0902515c982c0914e7af288f67"
+    },
+    {
+      "file": "ui_10.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_10.php?pGubn=T2",
+      "bytes": 49196,
+      "sha256": "d306ca3744fd4be6e7cc6ccc09b82dc0a9a21764484b22f8458c5d7c80c37c7e"
+    },
+    {
+      "file": "ui_11.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_11.php?pGubn=T2",
+      "bytes": 49206,
+      "sha256": "d0c8184a889939f6bf40979f646457043a1b6711377a03cbf4235f59de16c2c4"
+    },
+    {
+      "file": "ui_12.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_12.php?pGubn=T2",
+      "bytes": 49186,
+      "sha256": "b8f92e19d5098cab09560c25fa015463bb42c1fb56279e01ee306abb182ad929"
+    },
+    {
+      "file": "ui_13.html",
+      "url": "https://www.ui-line.com/html/intro/intro00/intro_00_13.php?pGubn=T2",
+      "bytes": 47011,
+      "sha256": "e150eb60c94728ad0761aedbd0f1090019a4e0f5ec8323ee1aa8469fb5c0f6c7"
+    },
+    {
+      "file": "sillim_01.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010201.html",
+      "bytes": 65283,
+      "sha256": "eb6ded919d1505df71ab0fe0be7c1bba05a0802241591bf1d9d3eb17da15a85e"
+    },
+    {
+      "file": "sillim_02.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010202.html",
+      "bytes": 66167,
+      "sha256": "76c488d4d8e4ae0ed99128bc38cd53d51bd3ed514cc2fcc4590b1c13f0a18b82"
+    },
+    {
+      "file": "sillim_03.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010203.html",
+      "bytes": 57071,
+      "sha256": "8a7ffaa095eff3440d0dfc41d588cf613d7b5ee6b904444a23e2782e5b141ded"
+    },
+    {
+      "file": "sillim_04.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010204.html",
+      "bytes": 56656,
+      "sha256": "dfb94f570b8c1a7004b667ebddb85bc66def3ff9388b9c060523a66fda1abd14"
+    },
+    {
+      "file": "sillim_05.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010205.html",
+      "bytes": 57089,
+      "sha256": "ed8dc618034b8e0abd4438a83cd6f786bf59511920d6834fe9d4a9f045e27608"
+    },
+    {
+      "file": "sillim_06.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010206.html",
+      "bytes": 57118,
+      "sha256": "39d1e3e10b9bec904703b76184a8d6bdc3663e04bf38c4de7bfd223fcf86304e"
+    },
+    {
+      "file": "sillim_07.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010207.html",
+      "bytes": 56843,
+      "sha256": "30fc0ee78613ac22ec68b119168bbcd427ea7acf67db33960fef9b66a28c4c4a"
+    },
+    {
+      "file": "sillim_08.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010208.html",
+      "bytes": 56982,
+      "sha256": "66bbe13b5d97994562ed91c607ffae0c833b35b50288e061fbaff24eb5e0e31e"
+    },
+    {
+      "file": "sillim_09.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010209.html",
+      "bytes": 56958,
+      "sha256": "f39843b1c07aa2ccf5ed9aa6bba9bb78a42ea903d8181611c3132355fe36ee08"
+    },
+    {
+      "file": "sillim_10.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010210.html",
+      "bytes": 66267,
+      "sha256": "f732b18dd4accefe91ec8c251cf08e2e7ab7d83e16215a33de718202eb291d2f"
+    },
+    {
+      "file": "sillim_11.html",
+      "url": "https://www.sillimlrt.com/kr/html/sub01/01010211.html",
+      "bytes": 56092,
+      "sha256": "21bd58badf3df418b09dbac517f61953df1137560c9b3c51ca046decbc8f17b2"
+    },
+    {
+      "file": "shinbundang_01.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB001",
+      "bytes": 28853,
+      "sha256": "fd275533f89a8f5a80dfdaa7026b55a2d20e26b1c1d1fa8257a88febff25ebac"
+    },
+    {
+      "file": "shinbundang_02.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB002",
+      "bytes": 29731,
+      "sha256": "374668b128ffd39622812eea34ed1904bfd292818c492a05888039660e7893fd"
+    },
+    {
+      "file": "shinbundang_03.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB003",
+      "bytes": 29633,
+      "sha256": "d9fbb204e22b21400577e885b47e8cc24c1830bdeca4e86e9decf2ad6b96ba0b"
+    },
+    {
+      "file": "shinbundang_04.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB004",
+      "bytes": 29791,
+      "sha256": "819e4f6f699810e29c9b193be09a366d1829c51fa5399969c0b6ac177a78a545"
+    },
+    {
+      "file": "shinbundang_05.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB005",
+      "bytes": 29850,
+      "sha256": "f90801e31796692ab331cab02fb590db2018a46a1c6b62c808d2a9fe8188244a"
+    },
+    {
+      "file": "shinbundang_06.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB006",
+      "bytes": 29877,
+      "sha256": "53db3b68d597507cc26d9b248b89b37c83ffc276ae74fa752055fbfc4977cca4"
+    },
+    {
+      "file": "shinbundang_07.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB007",
+      "bytes": 29841,
+      "sha256": "a23f5631088e4c7f5cac8aa12529dc2a72062c27099797804287ee33a9edcfee"
+    },
+    {
+      "file": "shinbundang_08.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB008",
+      "bytes": 29789,
+      "sha256": "1dec157319ee8865c6e2e5db6ae65fe640d5af38ca10c99dde9d66f5db93330b"
+    },
+    {
+      "file": "shinbundang_09.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB009",
+      "bytes": 29534,
+      "sha256": "6b0d0837e98574965aae582d0267df47936c434aac5d802b9875a6e0095a70c7"
+    },
+    {
+      "file": "shinbundang_10.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB010",
+      "bytes": 29486,
+      "sha256": "51ff532acb3b200de01b47345509e83210ec6b9282121ee73546ae1a84d00cfe"
+    },
+    {
+      "file": "shinbundang_11.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB011",
+      "bytes": 29493,
+      "sha256": "c1995872f37243108eb610d92185f1b49f54aa1491b7dfef9001c15cd93703e9"
+    },
+    {
+      "file": "shinbundang_12.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB012",
+      "bytes": 29402,
+      "sha256": "572646894b4228a85e945f36c651055dc6cd0ae35abd726c4bc6a51eceb52f2b"
+    },
+    {
+      "file": "shinbundang_13.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB013",
+      "bytes": 29402,
+      "sha256": "9b06c25df2a732891fd87a78e2f32b2a16b8bb26d58c40769f68063f1cfa8468"
+    },
+    {
+      "file": "shinbundang_14.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB014",
+      "bytes": 29436,
+      "sha256": "fccb3bccded576da8c3f6667338401f2fff5a5890ff0bc417174f92c9fc69029"
+    },
+    {
+      "file": "shinbundang_15.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB015",
+      "bytes": 29488,
+      "sha256": "af9aa06f13081c8cdd99e1908f4aada971d3e51a834300e073710e3c18a766e6"
+    },
+    {
+      "file": "shinbundang_16.html",
+      "url": "https://www.shinbundang.co.kr/dxline/dxline3_1.jsp?st_cd=SB016",
+      "bytes": 28659,
+      "sha256": "7df7f132c0a12c72165706857ecc8f942757888a754273cb64d22a7c89cdca87"
+    }
+  ]
+}

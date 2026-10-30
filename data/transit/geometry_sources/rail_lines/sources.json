@@ -1,0 +1,120 @@
+{
+  "commit": "2dd0168d0e083df1b9c54fd7d587016cc897a3ee",
+  "recorded_at": "2026-10-17T05:35:02.418597+00:00",
+  "attribution": "OpenStreetMap contributors; OSM geometry export by jebowe3",
+  "geometry_date": "unknown; repository snapshot only, not guaranteed current",
+  "files": [
+    {
+      "line": "1호선",
+      "file": "line_1.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_1.geojson",
+      "features": 14,
+      "sha256": "613c715249813c4a52e11167762c366a40617c5956010e73dd0f67ef5600d924"
+    },
+    {
+      "line": "2호선",
+      "file": "line_2.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_2.geojson",
+      "features": 3,
+      "sha256": "494912e4fc7756afc83fe457e4ea154aee8d4fd2d13b924de89c86bf2e4240dd"
+    },
+    {
+      "line": "3호선",
+      "file": "line_3.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_3.geojson",
+      "features": 2,
+      "sha256": "3cd0830dea3a45e2529b2110054051331eeb2db9f03039440a2ac68ad31fab03"
+    },
+    {
+      "line": "4호선",
+      "file": "line_4.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_4.geojson",
+      "features": 4,
+      "sha256": "9039a0d9e26f754d0db3a790ebe816cddbe7d7807fa3b8e7c9d85dfcf630123f"
+    },
+    {
+      "line": "5호선",
+      "file": "line_5.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_5.geojson",
+      "features": 2,
+      "sha256": "2f14e1456681b561e1b937658ec948e855a78dea7a58a068784d3279c8b602c8"
+    },
+    {
+      "line": "6호선",
+      "file": "line_6.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_6.geojson",
+      "features": 1,
+      "sha256": "3aae61fcf3c77135e3ccc7e666cdb0129fbe5ddbabf54e6e1f42d483695cad32"
+    },
+    {
+      "line": "7호선",
+      "file": "line_7.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_7.geojson",
+      "features": 1,
+      "sha256": "cee51cf65473d917cb800ba5613e276d8efe0e9cd1efcee3cbfa9ede790bab43"
+    },
+    {
+      "line": "8호선",
+      "file": "line_8.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_8.geojson",
+      "features": 1,
+      "sha256": "de9a8eda80a4859635ead990dc5e277e8ad0b751542dae79ab7ec5e479da74ad"
+    },
+    {
+      "line": "9호선",
+      "file": "line_9.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/line_9.geojson",
+      "features": 1,
+      "sha256": "362fae151a6510a5a68e1519ed90b21a6dff03be8a7824a8b9e1c98f1a00f8bc"
+    },
+    {
+      "line": "경의중앙선",
+      "file": "gyeongui_jungang_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/gyeongui_jungang_line.geojson",
+      "features": 6,
+      "sha256": "9e63f8b9143de1c34f1aee927cda874ae19454465150a71945f5630db924ba69"
+    },
+    {
+      "line": "수인분당선",
+      "file": "suin_bundang_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/suin_bundang_line.geojson",
+      "features": 4,
+      "sha256": "94918059039f8e4884a400336b735130ed5849d4288db97f9e7b30ccf5ddccdb"
+    },
+    {
+      "line": "경춘선",
+      "file": "gyeongchun_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/gyeongchun_line.geojson",
+      "features": 3,
+      "sha256": "5a944fb0dd4976b0df1cf508ad9c79477b385b7abb22d2158520ceb9e78ff172"
+    },
+    {
+      "line": "공항철도",
+      "file": "airport_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/airport_line.geojson",
+      "features": 4,
+      "sha256": "ca3a448973ce25a4470f025fa9b1081abc95ddd7522f1aa888ea3830a3f55a9a"
+    },
+    {
+      "line": "신분당선",
+      "file": "shinbundang_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/shinbundang_line.geojson",
+      "features": 1,
+      "sha256": "80d28603791b33e27586fc848b5e1cd656c8bc3f90f20dc05e4375a0dea7c059"
+    },
+    {
+      "line": "우이신설선",
+      "file": "ui_sinseol_light_rail_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/ui_sinseol_light_rail_line.geojson",
+      "features": 1,
+      "sha256": "804ce2fcfd02d82b9cdbdedf13df9d8e7edc5b4bc6a1e20d52ccf2882a90a5ce"
+    },
+    {
+      "line": "신림선",
+      "file": "sillim_line.geojson",
+      "url": "https://raw.githubusercontent.com/jebowe3/seoul_transportation/2dd0168d0e083df1b9c54fd7d587016cc897a3ee/sillim_line.geojson",
+      "features": 1,
+      "sha256": "49d9ae83984f6fc902810b7f7b390d959e307a50481e9f5d6d6f650a1f47bbb6"
+    }
+  ]
+}
