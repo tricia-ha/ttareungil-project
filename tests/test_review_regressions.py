@@ -410,6 +410,7 @@ class ReviewRegressions(unittest.TestCase):
                 sys.modules,
                 {"eta_service": types.SimpleNamespace(BicycleETAService=Model)},
             ),
+            patch('shared_assets.prepare_route_cache'),
             patch("scheduled_runtime._run_scheduled_optimization", side_effect=inner),
         ):
             run_scheduled_optimization(
