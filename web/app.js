@@ -479,22 +479,48 @@ function labelFor(id) {
 function displayLegs(route) {
   const values = [];
   let previous = null;
-  for (const leg of route.legs || []) {
-    if (leg.mode === 'alight') continue;
-    const gap = previous && leg.start ? (new Date(leg.start) - new Date(previous)) / 60000 : 0;
-    if (gap > 0.5 && leg.mode !== 'wait')
-      values.push({ mode: 'wait', minutes: gap, from: leg.from, to: leg.from, start: previous });
+  let onboard = null;
+  const append = (leg) => {
     const last = values.at(-1);
-    if (
-      last &&
-      ['bus', 'subway'].includes(leg.mode) &&
-      last.mode === leg.mode &&
-      last.trip_id === leg.trip_id
-    ) {
+    if (leg.mode === 'wait' && last?.mode === 'wait' && last.to === leg.from &&
+        last.from === leg.from && last.arrival && leg.start &&
+        Math.abs(new Date(last.arrival) - new Date(leg.start)) < 1) {
+      last.minutes += leg.minutes;
+      last.arrival = leg.arrival;
+      last.wait_for = leg.wait_for || last.wait_for;
+    } else values.push(leg);
+  };
+  for (const leg of route.legs || []) {
+    if (leg.mode === 'alight') {
+      onboard = null;
+      continue;
+    }
+    const rawGap = previous && leg.start ? (new Date(leg.start) - new Date(previous)) / 60000 : 0;
+    const gap = Number.isFinite(rawGap) ? Math.max(0, rawGap) : 0;
+    const transit = ['bus', 'subway'].includes(leg.mode);
+    const last = values.at(-1);
+    const continuing = transit && onboard && leg.trip_id && last &&
+      onboard.mode === leg.mode && onboard.trip_id === leg.trip_id && onboard.to === leg.from;
+    if (gap > 1e-6 && leg.mode !== 'wait' && !continuing)
+      append({ mode: 'wait', minutes: gap, from: leg.from, to: leg.from, start: previous, arrival: leg.start });
+    if (continuing) {
       last.to = leg.to;
       last.arrival = leg.arrival;
-      last.minutes += +leg.minutes;
-    } else values.push({ ...leg, minutes: +leg.minutes });
+      last.minutes += +leg.minutes + Math.max(0, gap);
+    } else {
+      const total = +leg.minutes;
+      const start = Date.parse(leg.start), departure = Date.parse(leg.departure);
+      const wait = Number.isFinite(start) && Number.isFinite(departure)
+        ? (departure - start) / 60000 : +leg.wait_minutes;
+      const boardingTime = Number.isFinite(departure) ? leg.departure
+        : Number.isFinite(start) && Number.isFinite(wait) ? new Date(start + wait * 60000).toISOString() : null;
+      if (transit && boardingTime && wait > 1e-6 && wait < total) {
+        append({ mode: 'wait', minutes: wait, from: leg.from, to: leg.from,
+          start: leg.start, arrival: boardingTime, wait_for: leg.mode });
+        append({ ...leg, start: boardingTime, minutes: total - wait, wait_minutes: 0 });
+      } else append({ ...leg, minutes: total });
+    }
+    onboard = transit ? leg : null;
     previous = leg.arrival;
   }
   return values;
@@ -727,7 +753,9 @@ function showRoutes(base, { reveal = true } = {}) {
         node(
           'p',
           '',
-          leg.mode === 'wait' ? '탑승·출발 대기' : labelFor(leg.from) + ' → ' + labelFor(leg.to),
+          leg.mode === 'wait'
+            ? labelFor(leg.from) + ' · ' + (leg.wait_for ? '승차 준비·대기' : '출발 대기')
+            : labelFor(leg.from) + ' → ' + labelFor(leg.to),
         ),
       );
       li.append(middle, node('span', '', minute(leg.minutes) + '분'));
