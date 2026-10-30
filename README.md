@@ -37,6 +37,8 @@ Python 연결은 `examples/python_usage.py`, 노트북은 `노트북_실행.cmd`
 
 ## 점검과 이동
 
+공식 OCR 가중치는 `models/ocr`, 미리 계산한 OSM 대여소 경로는 `data/reference`에 포함되어 있습니다. 기존 경로 캐시는 유지하며, 캐시가 없는 환경에서만 포함된 경로로 초기화합니다. API 키·개인 DB·실시간 재고는 각 실행 환경에서 준비합니다.
+
 `프로젝트_점검.cmd`로 실행 환경을 검사합니다. 압축 전에는 `프로젝트_점검.cmd --clean`으로 인증키·개인 DB·캐시·노트북 출력 포함 여부를 검사합니다. 설치 후의 `.venv`, `.env`, 개인 자료는 압축에서 제외합니다. 다른 PC에서는 `.venv`를 복사하지 않고 다시 설치합니다.
 
 [웹·휴대폰 사용법](docs/WEB.md) · [Python 사용법](docs/USAGE.md) · [사진 등록](docs/SCREENSHOT_IMPORT.md) · [개인화](docs/PERSONALIZATION.md) · [검증·제한](docs/VALIDATION.md)

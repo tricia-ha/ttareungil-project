@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "models": [
+    {
+      "filename": "craft_mlt_25k.pth",
+      "bytes": 83152330,
+      "sha256": "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
+      "md5": "2f8227d2def4037cdb3b34389dcf9ec1",
+      "source": "https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/craft_mlt_25k.zip"
+    },
+    {
+      "filename": "korean_g2.pth",
+      "bytes": 16081533,
+      "sha256": "ecdead53c909748aad74bc2f2beeab3e3ad751134db6335e97ea19f879ca407e",
+      "md5": "befecf7b1ca2fffb5af814a51443682d",
+      "source": "https://github.com/JaidedAI/EasyOCR/releases/download/v1.3/korean_g2.zip"
+    }
+  ]
+}
