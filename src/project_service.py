@@ -196,6 +196,7 @@ class ProjectService:
         mode="integrated",
         profile_id=None,
         on_routes=None,
+        on_progress=None,
         **options,
     ):
         """Return routes/legs/times/geometry and search diagnostics as a Python dict."""
@@ -208,8 +209,12 @@ class ProjectService:
             profile_id=profile_id,
             **options,
         )
-        if on_routes is not None:
-            return self.route(RouteQuery.model_validate(query), on_routes=on_routes)
+        if on_routes is not None or on_progress is not None:
+            return self.route(
+                RouteQuery.model_validate(query),
+                on_routes=on_routes,
+                on_progress=on_progress,
+            )
         return self._execute(query)
 
     def create_profile(self):
@@ -490,8 +495,9 @@ class ProjectService:
             historical_weather=weather,
         )
 
-    def route(self, q, on_routes=None):
+    def route(self, q, on_routes=None, on_progress=None):
         from scheduled_runtime import ScheduledConfig, run_scheduled_optimization
+        from route_progress import notify_progress
 
         when = None if q.departure == "auto" else q.departure
         if when is not None:
@@ -528,6 +534,9 @@ class ProjectService:
             if q.use_inventory and uses_bike
             else None,
         )
+        if uses_bike:
+            notify_progress(on_progress, 'model')
+        model = self.shared_model() if uses_bike else None
         return run_scheduled_optimization(
             q.origin.model_dump(),
             q.destination.model_dump(),
@@ -536,7 +545,7 @@ class ProjectService:
             use_kma=q.use_kma and uses_bike,
             use_inventory=q.use_inventory and uses_bike,
             refresh_inventory=q.refresh_inventory,
-            eta_service=self.shared_model() if uses_bike else None,
+            eta_service=model,
             personalization_id=q.profile_id if uses_bike else None,
             personalization_path=self.db_path,
             user_factor=q.user_factor,
@@ -545,4 +554,5 @@ class ProjectService:
             output_dir=RUNTIME_OUTPUT_DIR / "runs" / uuid.uuid4().hex,
             progress=None,
             on_routes=on_routes,
+            on_progress=on_progress,
         )

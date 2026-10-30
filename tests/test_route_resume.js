@@ -27,6 +27,11 @@ vm.runInContext(source.slice(source.indexOf('async function runJob('), source.in
 vm.runInContext(source.slice(source.indexOf('async function resumeRoute('), source.indexOf('function labelFor(')), context);
 
 (async () => {
+  const progressText = context.routeProgressText({progress: {message: '시간표를 확인하고 있습니다.', detail: '자료 준비 중', elapsed_seconds: 42, stage_elapsed_seconds: 8}}, 'working');
+  assert.match(progressText, /시간표를 확인/);
+  assert.match(progressText, /전체 경과 42초/);
+  assert.match(progressText, /현재 단계 8초/);
+  assert.equal(context.routeProgressText({}, 'working'), 'working');
   const requests = [], partials = [], toggles = [];
   const result = { routes: [{ total_minutes: 10 }] };
   context.busy = (on) => toggles.push(on);

@@ -18,6 +18,7 @@ from project_service import ProjectService, Input, Point, RideEdits
 from web_accounts import WebAccounts
 from web_capacity import Capacity, GIB
 from route_identity import distinct_routes
+from route_progress import STAGES
 
 WEB = PROJECT_ROOT / "web"
 MAX_IMAGE = 12 * 1024 * 1024
@@ -268,10 +269,46 @@ class Backend:
                 model_required=model_required,
                 route_query=route_query,
             )
+            self._progress(self.jobs[job_id], 'queued')
             self.executor.submit(self.run, job_id, fn, stream)
             return dict(job_id=job_id, status="queued")
 
+    def _progress(self, job, stage):
+        if (
+            job.get('kind') != 'route'
+            or not isinstance(stage, str)
+            or stage not in STAGES
+        ):
+            return
+        if job.get('progress', {}).get('stage') == stage:
+            return
+        message, detail = STAGES[stage]
+        job.update(
+            progress=dict(stage=stage, message=message, detail=detail),
+            stage_started=time.monotonic(),
+        )
+
+    def snapshot(self, job):
+        value = {
+            k: v for k, v in job.items()
+            if k not in ('owner', 'created', 'stage_started', 'finished')
+        }
+        if job.get('progress'):
+            now = job.get('finished', time.monotonic())
+            value['progress'] = dict(
+                job['progress'],
+                elapsed_seconds=max(0, int(now - job['created'])),
+                stage_elapsed_seconds=max(0, int(now - job.get('stage_started', now))),
+            )
+        return value
+
     def publish(self, job_id, result):
+        if 'progress_stage' in result:
+            with self.lock:
+                job = self.jobs[job_id]
+                if job['status'] == 'running':
+                    self._progress(job, result['progress_stage'])
+            return
         snapshot = json.loads(json.dumps(result, ensure_ascii=False, allow_nan=False))
         with self.lock:
             job = self.jobs[job_id]
@@ -289,6 +326,7 @@ class Backend:
             with self.capacity.slot(resource_kind):
                 with self.lock:
                     self.jobs[job_id]["status"] = "running"
+                    self._progress(self.jobs[job_id], 'starting')
                 result = (
                     fn(lambda value: self.publish(job_id, value)) if stream else fn()
                 )
@@ -311,6 +349,11 @@ class Backend:
                     job.pop("partial_result", None)
                 else:
                     job.update(status="error", error=safe_error(exc))
+        finally:
+            with self.lock:
+                job = self.jobs[job_id]
+                job['finished'] = time.monotonic()
+                self._progress(job, 'done' if job['status'] == 'done' else 'error')
 
 
 def allowed_hosts():
@@ -713,6 +756,7 @@ def create_app(service_factory=None, *, testing=False):
                     80, max(1, int(os.getenv("WEB_MAX_KAKAO_CALLS", "20")))
                 ),
                 on_routes=lambda value: on_update(compact_routes(value)),
+                on_progress=lambda stage: on_update({'progress_stage': stage}),
             )
             if q.mode != "transit" and q.use_inventory and refresh:
                 backend.last_inventory_refresh = time.monotonic()
@@ -749,7 +793,7 @@ def create_app(service_factory=None, *, testing=False):
             return {
                 "job": dict(
                     job_id=key,
-                    **{k: v for k, v in value.items() if k not in ("owner", "created")},
+                    **backend.snapshot(value),
                 )
             }
 
@@ -806,7 +850,7 @@ def create_app(service_factory=None, *, testing=False):
             value = backend.jobs.get(job_id)
             if not value or value["owner"] != backend.principal(session):
                 raise HTTPException(404, "작업을 찾을 수 없습니다.")
-            return {k: v for k, v in value.items() if k not in ("owner", "created")}
+            return backend.snapshot(value)
 
     @app.get("/")
     def index():

@@ -308,7 +308,9 @@ async function runJob(path, options, target, working, onPartial = null, existing
       if (j.status === 'error') throw new Error(j.error);
       status(
         target,
-        j.status === 'queued'
+        onPartial && j.progress
+          ? routeProgressText(j, working)
+          : j.status === 'queued'
           ? '다른 작업 또는 PC 자원 때문에 대기 중입니다. 잠시 기다려 주세요.'
           : onPartial && j.partial_result
             ? `${orderedRoutes(j.partial_result).length}개 경로를 찾았습니다. 더 짧은 경로를 확인하고 있습니다.`
@@ -322,6 +324,19 @@ async function runJob(path, options, target, working, onPartial = null, existing
     state.jobPending = false;
     busy(false);
   }
+}
+function routeProgressText(job, fallback) {
+  const progress = job.progress;
+  if (!progress?.message) return fallback;
+  const lines = [progress.message];
+  if (job.partial_result?.routes?.length) {
+    lines.push(`${orderedRoutes(job.partial_result).length}개 경로를 찾았습니다. 확보한 경로는 먼저 확인할 수 있습니다.`);
+  }
+  if (progress.detail) lines.push(progress.detail);
+  if (Number.isFinite(progress.elapsed_seconds)) {
+    lines.push(`전체 경과 ${Math.max(0, Math.floor(progress.elapsed_seconds))}초 · 현재 단계 ${Math.max(0, Math.floor(progress.stage_elapsed_seconds || 0))}초`);
+  }
+  return lines.join('\n');
 }
 function routeOutcome(result) {
   if (!Array.isArray(result?.routes)) return { message: '완료했습니다.', error: false };
