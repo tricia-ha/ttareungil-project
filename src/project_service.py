@@ -151,6 +151,8 @@ class ProjectService:
             return self.eta_service
 
     def shared_model(self):
+        if self._guarded_model is not None:
+            return self._guarded_model
         with self._model_lock:
             if self._guarded_model is None:
                 self._guarded_model = LockedModel(self.model(), self._model_lock)
@@ -534,7 +536,7 @@ class ProjectService:
             if q.use_inventory and uses_bike
             else None,
         )
-        if uses_bike:
+        if uses_bike and self.eta_service is None:
             notify_progress(on_progress, 'model')
         model = self.shared_model() if uses_bike else None
         return run_scheduled_optimization(
