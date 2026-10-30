@@ -23,6 +23,7 @@ Windows Python 3.13에서 전체 자동 검사를 수행합니다. 검사 결과
 .venv\Scripts\python.exe -B -m unittest discover -s tests
 node tests/test_web_ux.js
 node tests/test_route_resume.js
+node tests/test_web_update.js
 .venv\Scripts\python.exe -B scripts/check_project.py
 .venv\Scripts\python.exe -B scripts/check_project_clean.py
 ```

@@ -27,11 +27,11 @@ Python 연결은 `examples/python_usage.py`, 노트북은 `노트북_실행.cmd`
 |---|---|
 | `src/` | 경로 탐색·모델 연결·사진 인식·개인화·웹 서버 |
 | `web/` | PC·휴대폰 화면과 이미지 |
-| `models/` | 이동시간·재고 예측 모델과 통계 |
-| `data/` | 시간표·도로 형상·대여소 매핑·과거 날씨 |
+| `models/` | 이동시간·재고 모델, 통계, OCR 가중치 |
+| `data/` | 시간표·도로 형상·대여소 매핑·과거 날씨·공유 경로 |
 | `notebooks/`, `examples/` | 실행 노트북·Python 예제 |
 | `scripts/`, `tests/` | 설치·자료 준비·점검·자동 검사 |
-| `docs/`, `config/` | 사용법·검증 범위·프로젝트 정보 |
+| `docs/` | 사용법·검증 범위 |
 
 개인 DB·캐시·로그·QR은 `cache/`, `outputs/`에 생성됩니다. 형제 폴더 `<프로젝트 폴더명>_local`에 저장 위치가 있으면 그곳을 사용합니다. 예를 들어 `ttareungil-project`의 외부 저장 폴더는 `ttareungil-project_local`입니다. ngrok 인증 정보도 이 외부 폴더에 보관합니다.
 
@@ -42,5 +42,3 @@ Python 연결은 `examples/python_usage.py`, 노트북은 `노트북_실행.cmd`
 `프로젝트_점검.cmd`로 실행 환경을 검사합니다. 압축 전에는 `프로젝트_점검.cmd --clean`으로 인증키·개인 DB·캐시·노트북 출력 포함 여부를 검사합니다. 설치 후의 `.venv`, `.env`, 개인 자료는 압축에서 제외합니다. 다른 PC에서는 `.venv`를 복사하지 않고 다시 설치합니다.
 
 [웹·휴대폰 사용법](docs/WEB.md) · [Python 사용법](docs/USAGE.md) · [사진 등록](docs/SCREENSHOT_IMPORT.md) · [개인화](docs/PERSONALIZATION.md) · [검증·제한](docs/VALIDATION.md)
-
-화면과 브랜드 이미지는 [ttareungil-project](https://github.com/tricia-ha/ttareungil-project)를 바탕으로 구성했습니다.
