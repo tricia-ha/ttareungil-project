@@ -23,3 +23,6 @@ dist/
 web_ngrok.json
 
 .ocr_deps/
+Thumbs.db
+desktop.ini
+.DS_Store
