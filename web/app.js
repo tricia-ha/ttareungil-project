@@ -4,8 +4,8 @@ const state = {
   mode: 'integrated',
   session: {},
   points: {
-    origin: { name: '서울역', latitude: 37.5568, longitude: 126.9723 },
-    destination: { name: '여의도 한강공원', latitude: 37.5284, longitude: 126.9326 },
+    origin: { name: '홍익대학교 서울캠퍼스', latitude: 37.550874837441, longitude: 126.925554591431 },
+    destination: { name: '건국대학교 서울캠퍼스', latitude: 37.543536094587516, longitude: 127.07741635877292 },
   },
   markers: {},
   picking: null,
@@ -145,6 +145,10 @@ function initMap() {
     setSheet('mid');
   });
   renderMarkers();
+  map.fitBounds(
+    Object.values(state.points).map((p) => [p.latitude, p.longitude]),
+    { padding: [32, 32], maxZoom: 12 },
+  );
 }
 function renderMarkers() {
   if (!map) return;
