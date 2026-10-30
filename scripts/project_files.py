@@ -37,6 +37,7 @@ def required_paths():
             "README.md",
             "src/project_service.py",
             "src/route_progress.py",
+            "src/road_startup_cache.py",
             "examples/python_usage.py",
             "notebooks/01_기능실행.ipynb",
             "docs/USAGE.md",

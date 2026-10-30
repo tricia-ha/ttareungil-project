@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import gzip
 import json
 import math
 import os
@@ -10,13 +9,13 @@ import threading
 from pathlib import Path
 from typing import Iterable, Mapping
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 import torch
 from torch import nn
 
-from route_runtime import RouteEngine, canonical_id, normalize_departure
+from route_runtime import canonical_id, normalize_departure
+from road_startup_cache import load_routes
 from routing_errors import NoBicycleRoute
 from project_paths import ETA_MODEL_DIR, RUNTIME_CACHE_DIR
 from history_lookup import IndexedHistoryTable
@@ -311,17 +310,11 @@ class BicycleETAService:
         self.model.eval()
 
         print("Loading offline Seoul OSM road graph...", flush=True)
-        with gzip.open(
-            artifact_dir / "seoul_roads_v2_elevation.json.gz", "rt", encoding="utf-8"
-        ) as stream:
-            saved_graph = json.load(stream)
-        graph = nx.node_link_graph(saved_graph["graph"], edges="edges")
         cache_dir = Path(os.getenv("BICYCLE_CACHE_DIR", str(RUNTIME_CACHE_DIR / "eta")))
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        self.routes = RouteEngine(
-            graph,
-            cache_dir / "routes_v2.sqlite",
-            signature=manifest["graph_signature"],
+        self.routes = load_routes(
+            artifact_dir / "seoul_roads_v2_elevation.json.gz",
+            cache_dir,
+            manifest["graph_signature"],
         )
         self.weather_provider = weather_provider
         print("BicycleETAService ready", flush=True)

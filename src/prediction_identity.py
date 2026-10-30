@@ -8,6 +8,9 @@ from pathlib import Path
 # implementation. Any future prediction-code change gets a new fingerprint and
 # cannot silently reuse an alias for the old feature implementation.
 VERIFIED_COMPATIBILITY = {
+    # Python 3.13 startup-cache build: all road/tree buffers, 30 feature/ETA
+    # rows and 5 uncached OSM paths exactly match the frozen constructor.
+    "845adbf970fe47d3d7bafb30c716a0154203ce22301503b9afe7f5427cea3252": "ec2495ab3da889e9648a6352eef47f8429acdf18fba636d3e4f30db186c814c1",
     # Python 3.12 / 3.13 AST encodings of the verified indexed-history build.
     # Frozen reference: 98만 OD, 30 actual feature batches exactly equal;
     # no model weights, feature formulas, route or weather semantics changed.
@@ -19,12 +22,15 @@ VERIFIED_COMPATIBILITY = {
 def prediction_code_identity(folder=None):
     folder = Path(folder or Path(__file__).parent)
     digest = hashlib.sha256()
-    for name in (
+    names = [
         "eta_service.py",
         "route_runtime.py",
         "kma_weather_forecast_provider.py",
         "history_lookup.py",
-    ):
+    ]
+    if (folder / "road_startup_cache.py").is_file():
+        names.append("road_startup_cache.py")
+    for name in names:
         tree = ast.parse((folder / name).read_text(encoding="utf-8-sig"))
         digest.update(name.encode())
         digest.update(ast.dump(tree, include_attributes=False).encode())
