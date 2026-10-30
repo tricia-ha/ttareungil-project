@@ -228,7 +228,7 @@ function setMode(mode) {
     .querySelectorAll('[data-mode]')
     .forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
   $('bikeOptions').hidden = mode === 'transit';
-  $('searchButton').textContent = '함께 갈 경로 찾기 ↗';
+  $('searchButton').textContent = modeNames[mode] + ' 경로 찾기 ↗';
 }
 function showView(name) {
   const results = name === 'results';
@@ -368,6 +368,7 @@ $('routeForm').onsubmit = async (e) => {
   }
   try {
     let received = false;
+    const mode = state.mode;
     state.result = null;
     state.base = null;
     $('routeCards').replaceChildren();
@@ -386,10 +387,9 @@ $('routeForm').onsubmit = async (e) => {
       use_inventory: true,
       personalize: $('usePersonal').checked,
     };
-    setMode('integrated');
     const result = await runJob(
       '/api/routes',
-      jsonRequest('POST', { ...state.lastQuery, mode: 'integrated' }),
+      jsonRequest('POST', { ...state.lastQuery, mode }),
       'jobStatus',
       '모델 준비 및 경로 탐색 중입니다. 처음 실행은 더 오래 걸릴 수 있습니다.',
       (partial) => {
@@ -398,7 +398,7 @@ $('routeForm').onsubmit = async (e) => {
         received = true;
       },
     );
-    state.searched.add('integrated');
+    state.searched.add(mode);
     showRoutes(result, { reveal: !received });
     if (!received) setSheet('full');
   } catch (error) {
