@@ -1,4 +1,4 @@
-"""Download OCR weights once; later recognition is local."""
+"""Prepare OCR with bundled weights, downloading only for legacy installations."""
 
 from pathlib import Path
 import sys
@@ -6,13 +6,13 @@ import sys
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / "src"))
 from ocr_dependencies import load_easyocr
-from project_paths import CACHE_ROOT
+from shared_assets import ocr_model_options
 
 easyocr = load_easyocr()
 easyocr.Reader(
     ["ko", "en"],
     gpu=False,
-    model_storage_directory=str(CACHE_ROOT / "ocr_models"),
+    **ocr_model_options(),
     verbose=False,
 )
 print("한국어 OCR 준비 완료")

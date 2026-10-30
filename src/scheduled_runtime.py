@@ -787,7 +787,9 @@ def run_scheduled_optimization(
     if transit_only or options.get("eta_service") is not None:
         return _run_scheduled_optimization(origin, destination, departure, **options)
     from eta_service import BicycleETAService
+    from shared_assets import prepare_route_cache
 
+    prepare_route_cache()
     with BicycleETAService() as service:
         return _run_scheduled_optimization(
             origin,
@@ -982,7 +984,9 @@ def _run_scheduled_optimization(
         if network.bikes or network.bike_policy:
             if eta_service is None:
                 from eta_service import BicycleETAService
+                from shared_assets import prepare_route_cache
 
+                prepare_route_cache()
                 owned_service = BicycleETAService()
                 eta_service = owned_service
             provider = V521BikeProvider(

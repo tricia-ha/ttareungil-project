@@ -143,7 +143,9 @@ class ProjectService:
         with self._model_lock:
             if self.eta_service is None:
                 from eta_service import BicycleETAService
+                from shared_assets import prepare_route_cache
 
+                prepare_route_cache()
                 self.eta_service = BicycleETAService()
                 self.owns_model = True
             return self.eta_service

@@ -180,7 +180,7 @@ class ConcurrencyTests(unittest.TestCase):
             time.sleep(0.02)
             return Model()
 
-        with patch.dict(
+        with patch('shared_assets.prepare_route_cache'), patch.dict(
             sys.modules, {"eta_service": SimpleNamespace(BicycleETAService=construct)}
         ):
             with ProjectService() as service, ThreadPoolExecutor(max_workers=2) as pool:

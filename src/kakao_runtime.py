@@ -269,7 +269,9 @@ def run_optimization(
                 if progress:
                     progress("V5.2.1 모델·OSM 도로망 불러오기", flush=True)
                 from eta_service import BicycleETAService
+                from shared_assets import prepare_route_cache
 
+                prepare_route_cache()
                 owned_service = BicycleETAService()
                 eta_service = owned_service
             if use_inventory:

@@ -9,7 +9,7 @@ import threading
 from datetime import datetime, timezone, timedelta
 from functools import lru_cache
 
-from project_paths import PROJECT_ROOT, CACHE_ROOT, STATION_CATALOG
+from project_paths import PROJECT_ROOT, STATION_CATALOG
 
 KST = timezone(timedelta(hours=9))
 _reader = None
@@ -56,12 +56,13 @@ def recognize(data: bytes):
         global _reader
         if _reader is None:
             from ocr_dependencies import load_easyocr
+            from shared_assets import ocr_model_options
 
             easyocr = load_easyocr()
             _reader = easyocr.Reader(
                 ["ko", "en"],
                 gpu=False,
-                model_storage_directory=str(CACHE_ROOT / "ocr_models"),
+                **ocr_model_options(),
                 verbose=False,
             )
         import numpy as np

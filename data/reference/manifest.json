@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "graph_signature": "abd22fb72175947f516fd099",
+  "rows": 47595,
+  "uncompressed_bytes": 135942144,
+  "sha256": "24202fc69fe33c1ce42e60acbff8c7bf3ea55a8cacc7da3f720f6e41ad7a6812",
+  "bytes": 33407547,
+  "source": "Computed OSM routes between public Seoul Bike stations; no users, query timestamps or API responses",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "license_url": "https://opendatacommons.org/licenses/odbl/1-0/"
+}
