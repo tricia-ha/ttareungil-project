@@ -145,6 +145,10 @@ function initMap() {
     setSheet('mid');
   });
   renderMarkers();
+  map.fitBounds(
+    Object.values(state.points).map((p) => [p.latitude, p.longitude]),
+    { padding: [32, 32], maxZoom: 12 },
+  );
 }
 function renderMarkers() {
   if (!map) return;
