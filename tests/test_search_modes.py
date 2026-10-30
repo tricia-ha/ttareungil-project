@@ -180,6 +180,7 @@ class SearchModeTests(unittest.TestCase):
     def test_transit_can_choose_bus_only_without_eta_or_inventory(self):
         import scheduled_runtime as runtime
 
+        stages, outputs = [], []
         table = Network(
             nodes=self.nodes, transit=[self.rides[0]], metadata=self.table.metadata
         )
@@ -196,17 +197,22 @@ class SearchModeTests(unittest.TestCase):
             ),
             patch("transit_geometry.attach_transit_geometry"),
         ):
-            r = run_scheduled_optimization(
-                self.origin,
-                self.destination,
-                self.when,
-                config=ScheduledConfig(search_mode="transit", top_k=1),
-                timetable=table,
-                use_kma=True,
-                use_inventory=True,
-                output_dir=Path(d) / "out",
-                progress=None,
-            )
+            for callback in (None, stages.append):
+                outputs.append(run_scheduled_optimization(
+                    self.origin,
+                    self.destination,
+                    self.when,
+                    config=ScheduledConfig(search_mode="transit", top_k=1),
+                    timetable=table,
+                    use_kma=True,
+                    use_inventory=True,
+                    output_dir=Path(d) / "out",
+                    progress=None,
+                    on_progress=callback,
+                ))
+        r = outputs[1]
+        self.assertEqual(outputs[0]['routes'], r['routes'])
+        self.assertEqual(stages, ['network', 'searching', 'results'])
         self.assertTrue(r["routes"])
         self.assertEqual(
             {e["mode"] for e in r["routes"][0]["legs"]} - {"walk", "alight", "wait"},

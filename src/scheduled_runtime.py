@@ -823,8 +823,10 @@ def _run_scheduled_optimization(
     personalization_id=None,
     personalization_path=None,
     on_routes=None,
+    on_progress=None,
 ):
     """Use a prepared subway/bus timetable, a Network, or an explicit GTFS ZIP."""
+    from route_progress import notify_progress
     load_project_env()
     if departure is None:
         from multimodal_data import KST
@@ -885,6 +887,7 @@ def _run_scheduled_optimization(
             },
         )
     if timetable is None:
+        notify_progress(on_progress, 'timetable')
         if gtfs_path is not None:
             path = Path(gtfs_path)
             timetable = load_gtfs(path, departure, c.horizon_minutes)
@@ -923,6 +926,7 @@ def _run_scheduled_optimization(
 
     snapshot, inventory, as_of, mapping = {}, None, None, {}
     if use_inventory:
+        notify_progress(on_progress, 'inventory')
         from inventory_service import InventoryPredictor
 
         inventory = InventoryPredictor()
@@ -972,6 +976,7 @@ def _run_scheduled_optimization(
             ):
                 link_cache.remember_result(previous)
         walking = KakaoWalking(client, link_cache)
+        notify_progress(on_progress, 'network')
         network = build_scheduled_network(
             timetable, stations, origin, destination, walking, c, departure=departure
         )
@@ -1089,6 +1094,7 @@ def _run_scheduled_optimization(
             attach_transit_geometry(snapshot, PROJECT_ROOT / "data" / "transit")
             on_routes(snapshot)
 
+        notify_progress(on_progress, 'searching_weather' if use_kma else 'searching')
         result = Router(
             network,
             bike_provider,
@@ -1097,6 +1103,7 @@ def _run_scheduled_optimization(
             on_routes=publish if on_routes is not None else None,
         ).search("origin", "destination", departure)
         result["nodes"] = network.nodes
+        notify_progress(on_progress, 'results')
         from transit_geometry import attach_transit_geometry
 
         attach_transit_geometry(result, PROJECT_ROOT / "data" / "transit")

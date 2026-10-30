@@ -376,6 +376,10 @@ summary {
 .status:empty {
   display: none;
 }
+#jobStatus {
+  white-space: pre-line;
+  line-height: 1.55;
+}
 .leaflet-container {
   font-family: inherit;
 }
