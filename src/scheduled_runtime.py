@@ -179,7 +179,7 @@ class KakaoWalking:
 
 
 def _seed_endpoint_walks(
-    nodes, stops, stations, walking, config, walks, diagnostics, transit
+    nodes, stops, stations, walking, config, walks, diagnostics, transit, departure=None
 ):
     """Restore all cached access edges; reserve calls for reached-node work.
 
@@ -223,6 +223,7 @@ def _seed_endpoint_walks(
     resolved = {(e["from"], e["to"]) for e in walks}
     cached_lookup = getattr(walking, "cached", None)
     cached_count = 0
+    cached_no_route = set()
     for a, b in ordered:
         if (a, b) in resolved:
             continue
@@ -249,6 +250,8 @@ def _seed_endpoint_walks(
             if edge is not None:
                 walks.append(edge)
                 cached_count += 1
+            else:
+                cached_no_route.add((a, b))
     client = getattr(walking, "client", None)
     if client is not None and not all(
         hasattr(client, name) for name in ("calls", "max_calls")
@@ -263,38 +266,49 @@ def _seed_endpoint_walks(
     before = client.calls if client is not None else 0
     attempts = 0
     blocked = False
-    for rank in zip_longest(*(group[:4] for group in groups)):
-        for pair in rank:
-            if pair is None or pair in resolved:
-                continue
-            spent = client.calls - before if client is not None else attempts
-            if spent >= allowance:
-                break
-            a, b = pair
-            if not config.bicycle_available and (
-                nodes[a].get("kind") == "bike" or nodes[b].get("kind") == "bike"
-            ):
-                diagnostics["skipped_unavailable_bicycle_seeds"] = (
-                    diagnostics.get("skipped_unavailable_bicycle_seeds", 0) + 1
-                )
-                continue
-            if guard.is_dead(b):
-                diagnostics["skipped_dead_end_walk_candidates"] = (
-                    diagnostics.get("skipped_dead_end_walk_candidates", 0) + 1
-                )
-                continue
-            try:
-                attempts += 1
-                edge = walking(nodes[a], nodes[b], a, b)
-            except CallLimit:
-                blocked = True
-                continue
-            except KakaoError as exc:
-                record_walking_error(diagnostics, exc, a, b)
-                continue
-            resolved.add(pair)
-            if edge is not None:
-                walks.append(edge)
+    from endpoint_priority import EndpointPriority
+
+    diagnostics["endpoint_priority"] = "geometry_and_scheduled_travel_time"
+    diagnostics["probability_pruning"] = False
+    diagnostics["endpoint_candidate_count"] = sum(map(len, groups))
+    if guard.is_dead("origin"):
+        diagnostics["endpoint_origin_unreachable"] = True
+        return False, cached_count, 0
+    if allowance <= 0 or not any(pair not in resolved for group in groups for pair in group):
+        return False, cached_count, 0
+    ranked_groups = [[pair for pair in group if pair not in cached_no_route] for group in groups]
+    priority = EndpointPriority(nodes, transit, walks, ranked_groups, config.max_bike_distance_m, departure)
+    for pair in priority.ordered(ranked_groups):
+        if pair in resolved:
+            continue
+        spent = client.calls - before if client is not None else attempts
+        if spent >= allowance:
+            break
+        a, b = pair
+        if not config.bicycle_available and (
+            nodes[a].get("kind") == "bike" or nodes[b].get("kind") == "bike"
+        ):
+            diagnostics["skipped_unavailable_bicycle_seeds"] = (
+                diagnostics.get("skipped_unavailable_bicycle_seeds", 0) + 1
+            )
+            continue
+        if guard.is_dead(b):
+            diagnostics["skipped_dead_end_walk_candidates"] = (
+                diagnostics.get("skipped_dead_end_walk_candidates", 0) + 1
+            )
+            continue
+        try:
+            attempts += 1
+            edge = walking(nodes[a], nodes[b], a, b)
+        except CallLimit:
+            blocked = True
+            break
+        except KakaoError as exc:
+            record_walking_error(diagnostics, exc, a, b)
+            continue
+        resolved.add(pair)
+        if edge is not None:
+            walks.append(edge)
     return (
         blocked,
         cached_count,
@@ -302,9 +316,10 @@ def _seed_endpoint_walks(
     )
 
 
-def build_scheduled_network(timetable, stations, origin, destination, walking, config):
+def build_scheduled_network(timetable, stations, origin, destination, walking, config, departure=None):
     """Add only bounded access/transfer connectors; never call Kakao for every pair."""
     config.validate()
+    departure = departure or timetable.metadata.get("valid_departure")
     walking_diagnostics = {}
     if config.search_mode != "integrated":
         edges = [
@@ -482,6 +497,7 @@ def build_scheduled_network(timetable, stations, origin, destination, walking, c
             transfers,
             walking_diagnostics,
             timetable.transit,
+            departure=departure,
         )
         bike_policy = (
             {"max_distance_m": config.max_bike_distance_m}
@@ -511,7 +527,7 @@ def build_scheduled_network(timetable, stations, origin, destination, walking, c
                 candidate_scope="all_supported_stations_within_configured_radii",
                 connectors_lazy=True,
                 connector_limit_reached=connector_limit,
-                walking_query_policy="cached_first_balanced_endpoints_goal_first",
+                walking_query_policy="cached_first_balanced_endpoints_timetable_priority",
                 cached_endpoint_connections=cached_seeds,
                 new_endpoint_calls=paid_seeds,
                 bicycle_available=config.bicycle_available,
@@ -955,7 +971,7 @@ def _run_scheduled_optimization(
                 link_cache.remember_result(previous)
         walking = KakaoWalking(client, link_cache)
         network = build_scheduled_network(
-            timetable, stations, origin, destination, walking, c
+            timetable, stations, origin, destination, walking, c, departure=departure
         )
         network.metadata["restored_walk_connections"] = (
             link_cache.restore(network, client) if link_cache else 0
