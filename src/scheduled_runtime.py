@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone, timedelta
-import csv
 import json
 import os
 import copy
@@ -692,6 +691,8 @@ def build_scheduled_network(
                 existing_walk_pairs.add((a, b))
 
     bikes = []
+    from station_coordinates import bicycle_coordinates
+
     for start, a in station_nodes.items():
         if not config.bicycle_available:
             break
@@ -709,14 +710,18 @@ def build_scheduled_network(
             : config.bike_neighbors
         ]:
             bikes.append(
-                {
-                    "from": start,
-                    "to": end,
-                    "eta_from": str(a["station_id"]),
-                    "eta_to": str(nodes[end]["station_id"]),
-                    "inventory_from": a.get("inventory_station_id"),
-                    "straight_distance_m": d,
-                }
+                bicycle_coordinates(
+                    {
+                        "from": start,
+                        "to": end,
+                        "eta_from": str(a["station_id"]),
+                        "eta_to": str(nodes[end]["station_id"]),
+                        "inventory_from": a.get("inventory_station_id"),
+                        "straight_distance_m": d,
+                    },
+                    a,
+                    nodes[end],
+                )
             )
     metadata = dict(
         timetable.metadata,
@@ -950,8 +955,9 @@ def _run_scheduled_optimization(
     output.mkdir(parents=True, exist_ok=True)
     stations = []
     if c.search_mode not in ("subway", "transit"):
-        with STATION_CATALOG.open(encoding="utf-8-sig", newline="") as stream:
-            stations = list(csv.DictReader(stream))
+        from station_coordinates import routing_station_catalog
+
+        stations = routing_station_catalog(STATION_CATALOG)
 
     snapshot, inventory, as_of, mapping = {}, None, None, {}
     if use_inventory:

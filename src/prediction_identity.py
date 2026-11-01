@@ -8,6 +8,13 @@ from pathlib import Path
 # implementation. Any future prediction-code change gets a new fingerprint and
 # cannot silently reuse an alias for the old feature implementation.
 VERIFIED_COMPATIBILITY = {
+    # The saved current-location catalog affects routing edge keys only.
+    # Frozen 30-row feature/output equality rechecked after adding this reader.
+    "c010367d87de7cad5cadddd9e8c68c04ca9fc5d2fa03945b6436bbad69f957b0": "ec2495ab3da889e9648a6352eef47f8429acdf18fba636d3e4f30db186c814c1",
+    # Python 3.13: 30 frozen feature rows and complete predictions match exactly.
+    # Moved endpoints carry explicit coordinates in each edge/cache key; only
+    # unchanged endpoint requests can reuse the prior prediction namespace.
+    "cb36e047e6744aba584d14744e25980099e62f81a9347c5f70d1e31a875b05ef": "ec2495ab3da889e9648a6352eef47f8429acdf18fba636d3e4f30db186c814c1",
     # Python 3.13 startup-cache build: all road/tree buffers, 30 feature/ETA
     # rows and 5 uncached OSM paths exactly match the frozen constructor.
     "845adbf970fe47d3d7bafb30c716a0154203ce22301503b9afe7f5427cea3252": "ec2495ab3da889e9648a6352eef47f8429acdf18fba636d3e4f30db186c814c1",
@@ -30,6 +37,8 @@ def prediction_code_identity(folder=None):
     ]
     if (folder / "road_startup_cache.py").is_file():
         names.append("road_startup_cache.py")
+    if (folder / "station_coordinates.py").is_file():
+        names.append("station_coordinates.py")
     for name in names:
         tree = ast.parse((folder / name).read_text(encoding="utf-8-sig"))
         digest.update(name.encode())

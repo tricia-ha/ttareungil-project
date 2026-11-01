@@ -4,4 +4,6 @@ data/** binary
 models/** binary
 data/**/*.md diff
 data/transit/files/subway_coordinate_corrections.json diff
+data/transit/files/bus_coordinate_corrections.json diff
+data/inventory/station_location_updates.json diff
 models/**/*.md diff

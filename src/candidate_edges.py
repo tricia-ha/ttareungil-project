@@ -3,6 +3,7 @@
 from collections import defaultdict, deque
 import math
 from multimodal_data import distance
+from station_coordinates import bicycle_coordinates
 from kakao_routes import CallLimit, KakaoError, WalkingDeadline, record_walking_error
 
 
@@ -225,14 +226,18 @@ class LazyConnections:
                 ):
                     continue
                 rows.append(
-                    {
-                        "from": start,
-                        "to": end,
-                        "eta_from": str(source["station_id"]),
-                        "eta_to": str(target["station_id"]),
-                        "inventory_from": source.get("inventory_station_id"),
-                        "straight_distance_m": d,
-                    }
+                    bicycle_coordinates(
+                        {
+                            "from": start,
+                            "to": end,
+                            "eta_from": str(source["station_id"]),
+                            "eta_to": str(target["station_id"]),
+                            "inventory_from": source.get("inventory_station_id"),
+                            "straight_distance_m": d,
+                        },
+                        source,
+                        target,
+                    )
                 )
             goal = self.network.nodes.get("destination")
             if goal:

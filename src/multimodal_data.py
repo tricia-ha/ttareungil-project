@@ -7,6 +7,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from multimodal import Network, timestamp
+from station_coordinates import bicycle_coordinates
 
 KST = timezone(timedelta(hours=9))
 
@@ -286,11 +287,15 @@ def connect(
                 candidates = candidates[:bike_neighbors]
             for other in candidates:
                 bikes.append(
-                    dict(
-                        **{"from": key, "to": other},
-                        eta_from=str(nodes[key]["eta_id"]),
-                        eta_to=str(nodes[other]["eta_id"]),
-                        inventory_from=nodes[key].get("inventory_id"),
+                    bicycle_coordinates(
+                        dict(
+                            **{"from": key, "to": other},
+                            eta_from=str(nodes[key]["eta_id"]),
+                            eta_to=str(nodes[other]["eta_id"]),
+                            inventory_from=nodes[key].get("inventory_id"),
+                        ),
+                        nodes[key],
+                        nodes[other],
                     )
                 )
     return Network(

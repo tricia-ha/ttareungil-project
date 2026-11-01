@@ -335,8 +335,28 @@ class BicycleETAService:
             result = result.loc[result["district"].eq(district)]
         return result
 
+    def _request_station(self, station_id, coordinates=None):
+        station = self.stations.loc[station_id]
+        if coordinates is None:
+            return station
+        if not isinstance(coordinates, Mapping):
+            raise ValueError("Station coordinates require latitude and longitude")
+        lat, lon = float(coordinates["latitude"]), float(coordinates["longitude"])
+        if not (math.isfinite(lat + lon) and 33 <= lat <= 39 and 124 <= lon <= 132):
+            raise ValueError("Station coordinates are outside the supported region")
+        station = station.copy()
+        station["latitude"], station["longitude"] = lat, lon
+        return station
+
     def _route_row(
-        self, start_station_id, end_station_id, departure, bike_type, user_type
+        self,
+        start_station_id,
+        end_station_id,
+        departure,
+        bike_type,
+        user_type,
+        start_coordinates=None,
+        end_coordinates=None,
     ):
         start_id, end_id = canonical_id(start_station_id), canonical_id(end_station_id)
         if start_id not in self.stations.index:
@@ -345,7 +365,8 @@ class BicycleETAService:
             raise KeyError(f"Unknown or inactive end station: {end_id}")
         if start_id == end_id:
             raise ValueError("Start and end stations must be different")
-        start, end = self.stations.loc[start_id], self.stations.loc[end_id]
+        start = self._request_station(start_id, start_coordinates)
+        end = self._request_station(end_id, end_coordinates)
         with self.lock:
             candidates = self.routes.candidates(
                 float(start.latitude),
@@ -672,6 +693,8 @@ class BicycleETAService:
         bike_type: str = "regular",
         user_type: str = "domestic",
         weather: Mapping | None = None,
+        start_coordinates: Mapping | None = None,
+        end_coordinates: Mapping | None = None,
     ) -> dict:
         return self.predict_batch(
             [
@@ -682,6 +705,8 @@ class BicycleETAService:
                     "bike_type": bike_type,
                     "user_type": user_type,
                     "weather": weather,
+                    "start_coordinates": start_coordinates,
+                    "end_coordinates": end_coordinates,
                 }
             ]
         )[0]
@@ -693,6 +718,8 @@ class BicycleETAService:
         departure,
         bike_type: str = "regular",
         user_type: str = "domestic",
+        start_coordinates: Mapping | None = None,
+        end_coordinates: Mapping | None = None,
     ) -> dict:
         """Fetch KMA forecasts for both stations and return one ETA prediction."""
         start_id, end_id = canonical_id(start_station_id), canonical_id(end_station_id)
@@ -706,7 +733,8 @@ class BicycleETAService:
             self.weather_provider = KMAWeatherForecastProvider(
                 cache_dir=RUNTIME_CACHE_DIR / "kma_forecast"
             )
-        start, end = self.stations.loc[start_id], self.stations.loc[end_id]
+        start = self._request_station(start_id, start_coordinates)
+        end = self._request_station(end_id, end_coordinates)
         forecast = self.weather_provider.for_route(
             float(start.latitude),
             float(start.longitude),
@@ -722,6 +750,8 @@ class BicycleETAService:
             bike_type=bike_type,
             user_type=user_type,
             weather=weather,
+            start_coordinates=start_coordinates,
+            end_coordinates=end_coordinates,
         )
         result["model"]["weather_source"] = forecast.get(
             "provider", "kma_vilage_forecast"
@@ -759,7 +789,10 @@ class BicycleETAService:
                     self.weather_provider = KMAWeatherForecastProvider(
                         cache_dir=RUNTIME_CACHE_DIR / "kma_forecast"
                     )
-                start, end = self.stations.loc[start_id], self.stations.loc[end_id]
+                start = self._request_station(
+                    start_id, request.get("start_coordinates")
+                )
+                end = self._request_station(end_id, request.get("end_coordinates"))
                 forecast = self.weather_provider.for_route(
                     float(start.latitude),
                     float(start.longitude),
@@ -807,6 +840,11 @@ class BicycleETAService:
                 request["departure"],
                 request.get("bike_type", "regular"),
                 request.get("user_type", "domestic"),
+                **{
+                    key: request[key]
+                    for key in ("start_coordinates", "end_coordinates")
+                    if request.get(key) is not None
+                },
             )
             weather_frame, weather_source = self._attach_weather(
                 pd.DataFrame([row]), request.get("weather")

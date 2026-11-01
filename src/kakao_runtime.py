@@ -13,6 +13,7 @@ from kakao_routes import KakaoClient, point
 from kakao_optimizer import KakaoConfig, build_network, search, save_json, map_html
 from multimodal import V521BikeProvider, timestamp
 from multimodal_cache import CachedBikeProvider
+from station_coordinates import different_coordinates, routing_station_catalog
 from project_paths import (
     PROJECT_ROOT,
     ETA_MODEL_DIR,
@@ -57,6 +58,15 @@ def eligible_station_catalog(stations, mapping, inventory, snapshot):
             counts["unsupported_inventory"] += 1
             continue
         merged = dict(row)
+        original = {
+            k: row.get("eta_catalog_" + k, row[k]) for k in ("latitude", "longitude")
+        }
+        if different_coordinates(original, live):
+            merged["eta_catalog_latitude"] = float(original["latitude"])
+            merged["eta_catalog_longitude"] = float(original["longitude"])
+        else:
+            merged.pop("eta_catalog_latitude", None)
+            merged.pop("eta_catalog_longitude", None)
         merged.update(
             station_id=eta_id,
             station_name=live.get("station_name") or row.get("station_name"),
@@ -227,8 +237,7 @@ def run_optimization(
             raise ValueError("기상청 예보를 사용하려면 KMA_API_KEY를 설정하세요.")
     output = Path(output_dir) if output_dir else RUNTIME_OUTPUT_DIR / "kakao"
     output.mkdir(parents=True, exist_ok=True)
-    with STATION_CATALOG.open(encoding="utf-8-sig", newline="") as stream:
-        stations = list(csv.DictReader(stream))
+    stations = routing_station_catalog(STATION_CATALOG)
     snapshot, inventory, as_of, mapping = {}, None, None, {}
     if use_inventory:
         from inventory_service import InventoryPredictor

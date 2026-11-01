@@ -1,0 +1,54 @@
+{
+  "reviewed_on": "2026-10-30",
+  "corrections": [
+    {
+      "station_key": "122000716",
+      "name": "글래드라이브강남호텔",
+      "original": {
+        "latitude": 37.48373,
+        "longitude": 127.068697
+      },
+      "corrected": {
+        "latitude": 37.508085,
+        "longitude": 127.036999,
+        "name": "경복아파트사거리.트레블로지강남역삼서울"
+      },
+      "source": "TOPIS exact NODE_ID 122000716; Seoul ARS 23390 confirmed in Kakao and Google Maps with route 6703 and onward direction",
+      "reference_url": "https://www.google.com/maps/search/?api=1&query=23390&query_place_id=ChIJLeBk3PmjfDURVUd1DPied-k",
+      "evidence": {
+        "kakao_url": "https://map.kakao.com/?q=23390",
+        "region": "Seoul Gangnam; exclude identically numbered stops in Namyangju and Daejeon",
+        "old_name": "글래드라이브강남호텔",
+        "direction": "선정릉역.라마다서울호텔",
+        "route": "6703",
+        "google_plus_code": "8Q99G25P+6QQ",
+        "operator_url": "https://www.klimousine.com/bus/realbus.php?bus_no=6703"
+      }
+    },
+    {
+      "station_key": "123000318",
+      "name": "오륜사거리",
+      "original": {
+        "latitude": 37.5045363345,
+        "longitude": 127.1386561317
+      },
+      "corrected": {
+        "latitude": 37.5062520048,
+        "longitude": 127.139242931
+      },
+      "source": "Google Maps exact Seoul stop ID 24409 agrees with TOPIS location; replace displaced master point",
+      "reference_url": "https://www.google.com/maps/search/?api=1&query=24409&query_place_id=ChIJ_Uuv-ZqvfDURcktHb95c4Yw",
+      "evidence": {
+        "checked_on": "2026-11-01",
+        "google_plus_code": "8Q99G44Q+FMQ",
+        "region": "Seoul",
+        "ars": "24409",
+        "routes": [
+          "89",
+          "3316"
+        ],
+        "coordinate_basis": "TOPIS point within about 5 m of the exact Google Maps stop; old master is about 198 m away"
+      }
+    }
+  ]
+}

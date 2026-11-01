@@ -24,6 +24,7 @@ TRANSIT_FILES = (
     "README.md",
     "transit_geometry.sqlite",
     "files/subway_coordinate_corrections.json",
+    "files/bus_coordinate_corrections.json",
 )
 
 
@@ -33,6 +34,7 @@ def required_paths():
         + [f"models/inventory_final/{p}" for p in INVENTORY_FILES]
         + [
             "data/inventory/station_crosswalk.csv",
+            "data/inventory/station_location_updates.json",
             "notebooks/02_시간표최적화.ipynb",
             "requirements.txt",
             "README.md",
@@ -41,6 +43,7 @@ def required_paths():
             "src/road_startup_cache.py",
             "src/transit_seed.py",
             "src/transit_coordinates.py",
+            "src/station_coordinates.py",
             "examples/python_usage.py",
             "notebooks/01_기능실행.ipynb",
             "docs/USAGE.md",
