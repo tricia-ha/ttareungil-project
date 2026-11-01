@@ -1,4 +1,6 @@
 import sys
+import json
+import csv
 import threading
 import tempfile
 import unittest
@@ -6,7 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from station_coordinates import bicycle_coordinates
+from station_coordinates import bicycle_coordinates, routing_station_catalog
 from kakao_runtime import eligible_station_catalog
 from eta_service import BicycleETAService
 from multimodal import V521BikeProvider
@@ -138,6 +140,7 @@ class StationCoordinateTests(unittest.TestCase):
         )
         self.assertEqual(positions[-1], (37.551, 126.921, 37.56, 126.93))
         self.assertEqual(prepared[-1]["start_coordinates"], self.moved)
+
         self.service.predict_batch = lambda requests: prepared.extend(requests) or [
             dict(model={}) for _ in requests
         ]
@@ -157,6 +160,77 @@ class StationCoordinateTests(unittest.TestCase):
         output = self.service.predict_with_kma_batch([request])
         self.assertEqual(output[0]["weather_error"], "RuntimeError")
         self.assertEqual(prepared[-1]["start_coordinates"], self.moved)
+
+    def test_saved_current_location_live_refresh_and_catalog_are_separate(self):
+        with tempfile.TemporaryDirectory() as folder:
+            catalog = Path(folder) / "stations.csv"
+            fields = ["station_id", "latitude", "longitude", "catalog_as_of"]
+            original = dict(
+                station_id="1",
+                latitude=37.55,
+                longitude=126.92,
+                catalog_as_of="2026-06",
+            )
+            with catalog.open("w", newline="", encoding="utf8") as stream:
+                writer = csv.DictWriter(stream, fields)
+                writer.writeheader()
+                writer.writerow(original)
+            updates = Path(folder) / "current.json"
+            updates.write_text(
+                json.dumps(
+                    dict(
+                        snapshot_at="2026-11-01",
+                        stations={"1": dict(original=original, current=self.moved)},
+                    )
+                ),
+                encoding="utf8",
+            )
+            before = catalog.read_bytes()
+            rows = routing_station_catalog(catalog, updates)
+            self.assertEqual(rows[0]["latitude"], 37.551)
+            self.assertEqual(rows[0]["eta_catalog_latitude"], 37.55)
+            self.assertEqual(catalog.read_bytes(), before)
+            # A later live position still compares against the model's original,
+            # rather than overwriting the original with the saved current point.
+            snapshot = {
+                "ST-1": dict(latitude=37.552, longitude=126.922, current_bikes=1)
+            }
+            latest, _ = eligible_station_catalog(
+                rows, {"1": "ST-1"}, SimpleNamespace(station_ids={"ST-1"}), snapshot
+            )
+            self.assertEqual(latest[0]["latitude"], 37.552)
+            self.assertEqual(latest[0]["eta_catalog_latitude"], 37.55)
+            snapshot["ST-1"].update(latitude=37.55, longitude=126.92)
+            returned, _ = eligible_station_catalog(
+                rows, {"1": "ST-1"}, SimpleNamespace(station_ids={"ST-1"}), snapshot
+            )
+            self.assertNotIn("eta_catalog_latitude", returned[0])
+
+    def test_newer_catalog_is_not_replaced_by_saved_position(self):
+        with tempfile.TemporaryDirectory() as folder:
+            catalog = Path(folder) / "stations.csv"
+            catalog.write_text(
+                "station_id,latitude,longitude,catalog_as_of\n1,37.55,126.92,2026-12\n",
+                encoding="utf8",
+            )
+            updates = Path(folder) / "current.json"
+            updates.write_text(
+                json.dumps(
+                    dict(
+                        snapshot_at="2026-11-01",
+                        stations={
+                            "1": dict(
+                                original=dict(latitude=37.55, longitude=126.92),
+                                current=self.moved,
+                            )
+                        },
+                    )
+                ),
+                encoding="utf8",
+            )
+            self.assertEqual(
+                float(routing_station_catalog(catalog, updates)[0]["latitude"]), 37.55
+            )
 
 
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ def required_paths():
         + [f"models/inventory_final/{p}" for p in INVENTORY_FILES]
         + [
             "data/inventory/station_crosswalk.csv",
+            "data/inventory/station_location_updates.json",
             "notebooks/02_시간표최적화.ipynb",
             "requirements.txt",
             "README.md",

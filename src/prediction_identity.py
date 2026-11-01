@@ -8,6 +8,9 @@ from pathlib import Path
 # implementation. Any future prediction-code change gets a new fingerprint and
 # cannot silently reuse an alias for the old feature implementation.
 VERIFIED_COMPATIBILITY = {
+    # The saved current-location catalog affects routing edge keys only.
+    # Frozen 30-row feature/output equality rechecked after adding this reader.
+    "c010367d87de7cad5cadddd9e8c68c04ca9fc5d2fa03945b6436bbad69f957b0": "ec2495ab3da889e9648a6352eef47f8429acdf18fba636d3e4f30db186c814c1",
     # Python 3.13: 30 frozen feature rows and complete predictions match exactly.
     # Moved endpoints carry explicit coordinates in each edge/cache key; only
     # unchanged endpoint requests can reuse the prior prediction namespace.

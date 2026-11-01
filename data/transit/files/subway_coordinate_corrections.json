@@ -10,10 +10,10 @@
         "longitude": 127.103738
       },
       "corrected": {
-        "latitude": 37.511653,
-        "longitude": 127.086224
+        "latitude": 37.5116263587296,
+        "longitude": 127.086314327913
       },
-      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160539",
       "evidence": {
         "checked_on": "2026-10-30",
@@ -24,7 +24,9 @@
           "adjacent station relation",
           "map record comparison"
         ],
-        "note": "Matching records may share source data; reviewed using physical location context."
+        "note": "Matching records may share source data; reviewed using physical location context.",
+        "coordinate_basis": "Kakao Maps",
+        "address": "서울 송파구 올림픽로 지하 140"
       }
     },
     {
@@ -35,10 +37,10 @@
         "longitude": 127.056348
       },
       "corrected": {
-        "latitude": 37.569847,
-        "longitude": 127.047048
+        "latitude": 37.5698386846442,
+        "longitude": 127.047080117369
       },
-      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160808",
       "evidence": {
         "checked_on": "2026-10-30",
@@ -49,7 +51,9 @@
           "adjacent station relation",
           "map record comparison"
         ],
-        "note": "Matching records may share source data; reviewed using physical location context."
+        "note": "Matching records may share source data; reviewed using physical location context.",
+        "coordinate_basis": "Kakao Maps",
+        "address": "서울 성동구 천호대로 232"
       }
     },
     {
@@ -60,10 +64,10 @@
         "longitude": 126.977863
       },
       "corrected": {
-        "latitude": 37.562066,
-        "longitude": 127.05087863
+        "latitude": 37.562122776762756,
+        "longitude": 127.05088954367504
       },
-      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160624",
       "evidence": {
         "checked_on": "2026-10-30",
@@ -74,7 +78,9 @@
           "adjacent station relation",
           "map record comparison"
         ],
-        "note": "Matching records may share source data; reviewed using physical location context."
+        "note": "Matching records may share source data; reviewed using physical location context.",
+        "coordinate_basis": "Kakao Maps",
+        "address": "서울 성동구 용답길 86"
       }
     },
     {
@@ -85,10 +91,10 @@
         "longitude": 126.82693
       },
       "corrected": {
-        "latitude": 37.558692,
-        "longitude": 126.837633
+        "latitude": 37.558677743241596,
+        "longitude": 126.83773640693936
       },
-      "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160847",
       "evidence": {
         "checked_on": "2026-10-30",
@@ -99,7 +105,9 @@
           "adjacent station relation",
           "map record comparison"
         ],
-        "note": "Matching records may share source data; reviewed using physical location context."
+        "note": "Matching records may share source data; reviewed using physical location context.",
+        "coordinate_basis": "Kakao Maps",
+        "address": "서울 강서구 공항대로 지하 267"
       }
     },
     {
@@ -110,16 +118,16 @@
         "longitude": 126.972533
       },
       "corrected": {
-        "latitude": 37.55585,
-        "longitude": 126.972103
+        "latitude": 37.55597933890212,
+        "longitude": 126.97209238331357
       },
-      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/27254967",
       "evidence": {
         "checked_on": "2026-10-30",
         "address": "서울 중구 세종대로 지하 2",
         "naver_url": "https://pts.map.naver.com/end-subway/ends/web/133/home",
-        "coordinate_basis": "national",
+        "coordinate_basis": "Kakao Maps",
         "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
       }
     },
@@ -134,13 +142,13 @@
         "latitude": 37.56022863776301,
         "longitude": 126.82469691791624
       },
-      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160747",
       "evidence": {
         "checked_on": "2026-10-30",
         "address": "서울 강서구 공항대로 지하 163",
         "naver_url": "https://pts.map.naver.com/end-subway/ends/web/514/home",
-        "coordinate_basis": "map",
+        "coordinate_basis": "Kakao Maps",
         "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
       }
     },
@@ -152,16 +160,16 @@
         "longitude": 126.898643
       },
       "corrected": {
-        "latitude": 37.5760805,
-        "longitude": 126.901343
+        "latitude": 37.57601374718818,
+        "longitude": 126.90127778415635
       },
-      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160854",
       "evidence": {
         "checked_on": "2026-10-30",
         "address": "서울 은평구 수색로 지하 175",
         "naver_url": "https://pts.map.naver.com/end-subway/ends/web/618/home",
-        "coordinate_basis": "national",
+        "coordinate_basis": "Kakao Maps",
         "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
       }
     },
@@ -176,13 +184,13 @@
         "latitude": 37.6066060557557,
         "longitude": 127.107946139148
       },
-      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "source": "Kakao Maps exact station/line, corroborated by station address and neighboring railway alignment",
       "reference_url": "http://place.map.kakao.com/21160860",
       "evidence": {
         "checked_on": "2026-10-30",
         "address": "서울 중랑구 송림길 147",
         "naver_url": "https://pts.map.naver.com/end-subway/ends/web/1314/home",
-        "coordinate_basis": "map",
+        "coordinate_basis": "Kakao Maps",
         "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
       }
     }

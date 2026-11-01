@@ -24,6 +24,31 @@
         "google_plus_code": "8Q99G25P+6QQ",
         "operator_url": "https://www.klimousine.com/bus/realbus.php?bus_no=6703"
       }
+    },
+    {
+      "station_key": "123000318",
+      "name": "오륜사거리",
+      "original": {
+        "latitude": 37.5045363345,
+        "longitude": 127.1386561317
+      },
+      "corrected": {
+        "latitude": 37.5062520048,
+        "longitude": 127.139242931
+      },
+      "source": "Google Maps exact Seoul stop ID 24409 agrees with TOPIS location; replace displaced master point",
+      "reference_url": "https://www.google.com/maps/search/?api=1&query=24409&query_place_id=ChIJ_Uuv-ZqvfDURcktHb95c4Yw",
+      "evidence": {
+        "checked_on": "2026-11-01",
+        "google_plus_code": "8Q99G44Q+FMQ",
+        "region": "Seoul",
+        "ars": "24409",
+        "routes": [
+          "89",
+          "3316"
+        ],
+        "coordinate_basis": "TOPIS point within about 5 m of the exact Google Maps stop; old master is about 198 m away"
+      }
     }
   ]
 }

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone, timedelta
-import csv
 import json
 import os
 import copy
@@ -956,8 +955,9 @@ def _run_scheduled_optimization(
     output.mkdir(parents=True, exist_ok=True)
     stations = []
     if c.search_mode not in ("subway", "transit"):
-        with STATION_CATALOG.open(encoding="utf-8-sig", newline="") as stream:
-            stations = list(csv.DictReader(stream))
+        from station_coordinates import routing_station_catalog
+
+        stations = routing_station_catalog(STATION_CATALOG)
 
     snapshot, inventory, as_of, mapping = {}, None, None, {}
     if use_inventory:
