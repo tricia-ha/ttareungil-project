@@ -49,6 +49,43 @@ def scenario():
 
 
 class EndpointPriorityTests(unittest.TestCase):
+    def test_mixed_skeleton_prioritizes_internal_rail_to_bicycle_walk(self):
+        nodes = {
+            "origin": dict(latitude=37.5000, longitude=127.0, kind="endpoint"),
+            "rail_a": dict(latitude=37.5002, longitude=127.0, kind="stop"),
+            "rail_b": dict(latitude=37.5200, longitude=127.0, kind="stop"),
+            "bike:1": dict(latitude=37.5202, longitude=127.0, kind="bike"),
+            "bike:2": dict(latitude=37.5390, longitude=127.0, kind="bike"),
+            "destination": dict(latitude=37.5400, longitude=127.0, kind="endpoint"),
+        }
+        transit = [
+            dict(
+                **{"from": "rail_a", "to": "rail_b"},
+                mode="subway",
+                trip_id="rail",
+                departure="2026-10-30T08:35:00+09:00",
+                arrival="2026-10-30T08:45:00+09:00",
+            )
+        ]
+        groups = [
+            [("origin", "rail_a")],
+            [("bike:2", "destination")],
+        ]
+        rank = EndpointPriority(
+            nodes,
+            transit,
+            [],
+            groups,
+            7000,
+            START,
+            walk_radius=900,
+        )
+        self.assertTrue(rank.planner_stats["mixed"]["found"])
+        self.assertEqual(rank.planned_walks, rank.mixed_planned_walks)
+        self.assertIn(("rail_b", "bike:1"), rank.planned_walks)
+        self.assertIn(("origin", "rail_a"), rank.planned_walks)
+        self.assertIn(("bike:2", "destination"), rank.planned_walks)
+
     def test_new_coordinates_plan_unknown_middle_transfer_without_cache(self):
         from datetime import datetime, timedelta
 

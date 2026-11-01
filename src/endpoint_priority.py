@@ -1,6 +1,7 @@
 """API-free endpoint ordering; these estimates are neither ETAs nor probabilities."""
 
 from collections import defaultdict
+from bisect import bisect_left
 from heapq import heapify, heappop, heappush
 from statistics import median
 import math
@@ -119,6 +120,182 @@ class EndpointPriority:
         self.planned_walks = []
         self.planner_stats = {}
         self.preferred = self._preferred_pair(walks, groups, departure)
+        transit_walks = list(self.planned_walks)
+        mixed_walks, mixed_stats = self._preferred_mixed_journey(
+            walks, groups, departure
+        )
+        self.mixed_planned_walks = mixed_walks
+        # Validate one complete mixed skeleton first, then the transit-only
+        # skeleton. This prevents an internal rail/bike interchange from being
+        # crowded out by many unrelated endpoint links.
+        self.planned_walks = list(dict.fromkeys(mixed_walks + transit_walks))
+        self.planner_stats = dict(
+            transit=self.planner_stats,
+            mixed=mixed_stats,
+        )
+
+    def _preferred_mixed_journey(self, walks, groups, departure):
+        """Find one complete transit+bicycle skeleton without buying API calls.
+
+        This is a query planner, not a route result. Unknown walks and bicycle
+        times are optimistic geometric estimates used only to decide which
+        walking links to verify first. The main router still retains and scores
+        every radius-valid candidate using confirmed walks, schedules, stock
+        and the bicycle model.
+        """
+        if departure is None or not self.timed:
+            return [], {"found": False, "reason": "no_departure_or_transit"}
+        from candidate_edges import SpatialIndex
+
+        start = timestamp(departure)
+        end = start + self.horizon_minutes * 60
+        endpoint_pairs = {pair for group in groups for pair in group}
+        known = defaultdict(list)
+        known_pairs = set()
+        for edge in walks:
+            a, b = edge["from"], edge["to"]
+            if a in self.nodes and b in self.nodes:
+                known[a].append((b, float(edge["minutes"]), False))
+                known_pairs.add((a, b))
+
+        searchable = {
+            key: value
+            for key, value in self.nodes.items()
+            if key in ("origin", "destination")
+            or value.get("kind") in ("stop", "bike")
+        }
+        walk_index = SpatialIndex(searchable)
+        bikes = {
+            key: value for key, value in searchable.items() if value.get("kind") == "bike"
+        }
+        if len(bikes) < 2:
+            return [], {"found": False, "reason": "insufficient_bicycle_stations"}
+        bike_index = SpatialIndex(bikes)
+        walk_cache, bike_cache = {}, {}
+
+        def virtual_walks(node):
+            if node in walk_cache:
+                return walk_cache[node]
+            source = self.nodes[node]
+            rows = []
+            for length, other in walk_index.near(source, self.walk_radius):
+                pair = (node, other)
+                if other in (node, "origin") or pair in known_pairs:
+                    continue
+                if source.get("kind") == self.nodes[other].get("kind") == "bike":
+                    continue
+                if node == "origin" or other == "destination":
+                    if pair not in endpoint_pairs:
+                        continue
+                rows.append((other, max(0.05, length / self.walk_speed), True))
+            # Planning remains bounded, but preserves destination access and a
+            # spatially diverse set per mode. No candidate is removed from the
+            # real optimizer by this ordering-only cap.
+            selected = []
+            by_kind = defaultdict(list)
+            for row in rows:
+                other = row[0]
+                kind = "destination" if other == "destination" else self.nodes[other].get("kind")
+                by_kind[kind].append(row)
+            for kind in sorted(by_kind):
+                ordered = sorted(
+                    by_kind[kind],
+                    key=lambda row: (
+                        distance(self.nodes[row[0]], self.nodes["destination"]),
+                        row[1],
+                        row[0],
+                    ),
+                )
+                selected.extend(ordered[:8])
+            walk_cache[node] = known.get(node, []) + selected
+            return walk_cache[node]
+
+        def bicycle_edges(node):
+            if node in bike_cache:
+                return bike_cache[node]
+            if node not in bikes:
+                return []
+            rows = [
+                (other, length / self.bike_speed)
+                for length, other in bike_index.near(self.nodes[node], self.bike_radius)
+                if other != node
+            ]
+            rows.sort(
+                key=lambda row: (
+                    distance(self.nodes[row[0]], self.nodes["destination"]),
+                    row[1],
+                    row[0],
+                )
+            )
+            bike_cache[node] = rows[:32]
+            return bike_cache[node]
+
+        for rows in self.timed.values():
+            rows.sort(key=lambda row: row[0])
+        queue = [(start, "origin", 0)]
+        best = {("origin", 0): start}
+        parent = {}
+        expanded = 0
+        deadline = time.monotonic() + 1.5
+        goal = None
+        while queue and time.monotonic() < deadline and expanded < 30000:
+            at, node, used = heappop(queue)
+            if at != best.get((node, used)):
+                continue
+            expanded += 1
+            if node == "destination" and used == 3:
+                goal = (node, used)
+                break
+
+            def submit(other, arrival, mask, action):
+                if arrival > end:
+                    return
+                key = (other, mask)
+                if arrival + 1e-6 < best.get(key, math.inf):
+                    best[key] = arrival
+                    parent[key] = ((node, used), action)
+                    heappush(queue, (arrival, other, mask))
+
+            for other, minutes, unverified in virtual_walks(node):
+                submit(
+                    other,
+                    at + minutes * 60,
+                    used,
+                    ("walk", node, other, unverified),
+                )
+            rows = self.timed.get(node, ())
+            if rows:
+                index = bisect_left([row[0] for row in rows], at - 1e-6)
+                for leave, arrive, edge in rows[index:]:
+                    submit(edge["to"], arrive, used | 2, ("transit", node, edge["to"], False))
+            for other, minutes in bicycle_edges(node):
+                submit(other, at + minutes * 60, used | 1, ("bicycle", node, other, False))
+
+        if goal is None:
+            return [], {
+                "found": False,
+                "expanded": expanded,
+                "timed_out": time.monotonic() >= deadline,
+            }
+        actions = []
+        cursor = goal
+        while cursor != ("origin", 0):
+            previous, action = parent[cursor]
+            actions.append(action)
+            cursor = previous
+        actions.reverse()
+        planned = [
+            (a, b)
+            for mode, a, b, unverified in actions
+            if mode == "walk" and unverified
+        ]
+        return planned, {
+            "found": True,
+            "expanded": expanded,
+            "estimated_minutes": (best[goal] - start) / 60,
+            "unverified_walks": len(planned),
+            "actions": len(actions),
+        }
 
     def _preferred_pair(self, walks, groups, departure):
         """Pair both endpoints using a time-aware optimistic no-API journey.

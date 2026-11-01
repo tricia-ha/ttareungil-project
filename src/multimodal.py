@@ -344,7 +344,9 @@ class Router:
 
         # state: location, time, current vehicle trip. alighting is explicit.
         counter = itertools.count()
-        heap, best, records, required_used, bicycle_paths = [], {}, {}, {}, {}
+        heap, completion_heap = [], []
+        best, records, required_used, bicycle_paths = {}, {}, {}, {}
+        expanded_record_ids = set()
         platform_ready = {}
         transit_anchors = {}
         walking_anchors = {}
@@ -484,6 +486,16 @@ class Router:
             heapq.heappush(
                 heap, (priority, boardings, idx, node, t, trip, penalty, after_bike)
             )
+            if retain_mixed and used == 3 and (leg is None or leg.get("mode") != "wait"):
+                # Mixed completion is a separate search objective. Once both
+                # modes have been used, finish that valid frontier promptly
+                # instead of leaving it behind thousands of cheaper partial
+                # states. The ordinary heap is retained and still refines the
+                # globally fastest routes.
+                heapq.heappush(
+                    completion_heap,
+                    (priority, boardings, idx, node, t, trip, penalty, after_bike),
+                )
             return idx
 
         push(origin, start, None, 0.0, 0, None, None)
@@ -614,6 +626,7 @@ class Router:
         expired_bicycle_waits = 0
         skipped_dead_end_predictions = unroutable_waits = 0
         seed_refreshed = False
+        mixed_completion_priority_pops = 0
 
         def known_dead_end(target):
             if not c.prune_known_dead_ends or target == destination:
@@ -850,7 +863,7 @@ class Router:
                 ),
             )
 
-        while heap or work:
+        while heap or work or completion_heap:
             # New confirmed transfer walks can complete a timetable journey even
             # if time-expanded states have not reached its far end. Reserve a
             # bounded final scan, without buying walks or pruning mixed paths.
@@ -901,7 +914,7 @@ class Router:
             # Round-robin unfinished expensive tasks, alternating with reached
             # states. Continuations are not reinserted at the original time in
             # the route heap (which would monopolize its minimum again).
-            if work and (work_turn or not heap):
+            if work and (work_turn or not heap) and not completion_heap:
                 item = work.popleft()
                 bound, state_key, state_value, iterator = item
                 if best.get(state_key) == state_value:
@@ -914,9 +927,14 @@ class Router:
                 work_turn = False
                 continue
             work_turn = True
-            priority, boards, idx, node, t, trip, penalty, after_bike = heapq.heappop(
-                heap
-            )
+            if completion_heap:
+                item = heapq.heappop(completion_heap)
+                mixed_completion_priority_pops += 1
+            else:
+                item = heapq.heappop(heap)
+            priority, boards, idx, node, t, trip, penalty, after_bike = item
+            if idx in expanded_record_ids:
+                continue
             used = required_used[idx]
             if best.get(
                 (
@@ -930,6 +948,7 @@ class Router:
                 )
             ) != (penalty, boards):
                 continue
+            expanded_record_ids.add(idx)
             expanded += 1
             score = t - start + penalty * 60  # Report actual objective, never g+h.
             if node == destination and trip is None:
@@ -1126,7 +1145,8 @@ class Router:
             )
             state_value = (penalty, boards)
             if lazy is not None and self.network.walk_policy:
-                work.append(
+                target = work.appendleft if retain_mixed and used == 3 else work.append
+                target(
                     (
                         priority,
                         state_key,
@@ -1180,6 +1200,7 @@ class Router:
             mixed_routes=mixed_results,
             mixed_routes_requested=retain_mixed,
             mixed_route_found=bool(mixed_results),
+            mixed_completion_priority_pops=mixed_completion_priority_pops,
             search_complete=not incomplete,
             budget_exhausted=truncated or skipped_predictions > 0 or connectors_missing,
             expanded_states=expanded + known_expanded,

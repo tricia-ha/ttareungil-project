@@ -300,13 +300,15 @@ def _seed_endpoint_walks(
     # Complete a time-aware journey rather than buy unrelated local access
     # links. Destination/origin and internal bus/rail transfers all participate.
     # Guessed walking costs only order calls; only actual responses enter walks.
-    planned = sorted(
-        priority.planned_walks,
-        key=lambda pair: (
-            pair[0] != "origin" and pair[1] != "destination",
-            pair[0] != "origin",
-        ),
-    )
+    planned = priority.planned_walks
+    if not priority.mixed_planned_walks:
+        planned = sorted(
+            planned,
+            key=lambda pair: (
+                pair[0] != "origin" and pair[1] != "destination",
+                pair[0] != "origin",
+            ),
+        )
     ordered_pairs = dict.fromkeys(planned + list(priority.ordered(ranked_groups)))
     for pair in ordered_pairs:
         if pair in resolved:
@@ -571,7 +573,7 @@ def build_scheduled_network(
                 candidate_scope="all_supported_stations_within_configured_radii",
                 connectors_lazy=True,
                 connector_limit_reached=connector_limit,
-                walking_query_policy="cached_first_connected_journey_then_balanced_endpoints",
+                walking_query_policy="complete_transit_and_mixed_skeletons_then_balanced_endpoints",
                 cached_endpoint_connections=cached_seeds,
                 new_endpoint_calls=paid_seeds,
                 bicycle_available=config.bicycle_available,
