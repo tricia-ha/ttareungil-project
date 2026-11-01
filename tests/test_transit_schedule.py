@@ -55,9 +55,41 @@ class TimetableTests(unittest.TestCase):
         self.assertEqual(clock_seconds("0.0030"), 1800)
         self.assertEqual(clock_seconds("0.0600"), 21600)
         self.assertEqual(clock_seconds("25:10:00"), 90600)
+        self.assertEqual(clock_seconds("1.0000"), 86400)
+        self.assertEqual(clock_seconds("1.0005"), 86700)
+        self.assertEqual(clock_seconds("1.0130"), 91800)
         self.assertEqual(day_type(date(2026, 10, 16), {date(2026, 10, 16)}), "holiday")
         with self.assertRaises(ValueError):
             clock_seconds("0.6")
+        for value in ("1.0060", "1.2400", "2.0000", "1.0"):
+            with self.assertRaises(ValueError):
+                clock_seconds(value)
+
+    def test_explicit_next_day_last_bus_keeps_daytime_and_midnight_services(self):
+        route = dict(self.route, 첫차시간="0.0400", 막차시간="1.0005", 배차="10")
+        network, report = reconstruct_bus(
+            [route],
+            self.seq,
+            self.stops,
+            "2026-11-03T00:00:00+09:00",
+            30,
+            holiday_dates=set(),
+        )
+        self.assertGreater(len(network.transit), 0)
+        self.assertTrue(all("bus:2026-11-02:" in e["trip_id"] for e in network.transit))
+        day, day_report = reconstruct_bus(
+            [route],
+            self.seq,
+            self.stops,
+            "2026-11-02T12:00:00+09:00",
+            30,
+            holiday_dates=set(),
+        )
+        self.assertGreater(len(day.transit), 0)
+        self.assertEqual(day_report["routes_with_edges"], 1)
+
+    def test_saturday_public_holiday_uses_holiday_profile(self):
+        self.assertEqual(day_type(date(2026, 10, 3), {date(2026, 10, 3)}), "holiday")
 
     def test_bus_previous_day_distance_and_vehicle_identity(self):
         n, report = reconstruct_bus(

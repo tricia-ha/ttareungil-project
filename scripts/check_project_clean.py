@@ -49,7 +49,7 @@ def check_clean(root):
         ):
             problems.append("Saved notebook output: " + p.name)
     for p in (root / "data/inventory").iterdir():
-        if p.is_file() and p.name != "station_crosswalk.csv":
+        if p.is_file() and p.name not in {"station_crosswalk.csv", "station_location_updates.json"}:
             problems.append("Local inventory snapshot: " + p.name)
     # Compare against known local credential values without ever printing them.
     secrets = set()

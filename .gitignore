@@ -26,3 +26,8 @@ web_ngrok.json
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Resumable source responses; the validated weekday/weekend tables are shared.
+data/transit/map_timetables/stops/
+data/transit/map_timetables/collection.json
+data/transit/map_timetables/compiled/_building-*/
