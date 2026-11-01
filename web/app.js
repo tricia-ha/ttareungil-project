@@ -173,57 +173,99 @@ function renderMarkers() {
 }
 function setPoint(key, p) {
   if (!(p.latitude > 37 && p.latitude < 38.2 && p.longitude > 126.3 && p.longitude < 127.8)) {
-    notify('서울·수도권의 위치를 선택해 주세요.');
+    placeFeedback(key, '서울·수도권의 위치를 선택해 주세요.', true);
+    $(key).focus();
     return;
   }
   state.points[key] = { name: p.name, latitude: p.latitude, longitude: p.longitude };
   $(key).value = p.name;
+  placeFeedback(key, '선택 완료');
   cancelPlaceSearch(key);
   renderMarkers();
 }
 const placeSeq = { origin: 0, destination: 0 };
+const placeActive = { origin: -1, destination: -1 };
+function placeFeedback(key, message = '', error = false) {
+  const input = $(key);
+  const feedback = $(key + 'Feedback');
+  input.setAttribute('aria-invalid', String(error));
+  feedback.textContent = message;
+  feedback.className = 'field-feedback' + (error ? ' error' : '');
+}
+function placeButtons(key) {
+  return [...$(key + 'Suggestions').querySelectorAll('button[role="option"]')];
+}
+function highlightPlace(key, index, focus = false) {
+  const buttons = placeButtons(key);
+  if (!buttons.length) return;
+  index = (index + buttons.length) % buttons.length;
+  placeActive[key] = index;
+  buttons.forEach((button, i) => {
+    const selected = i === index;
+    button.setAttribute('aria-selected', String(selected));
+    button.classList.toggle('active', selected);
+  });
+  $(key).setAttribute('aria-activedescendant', buttons[index].id);
+  buttons[index].scrollIntoView({ block: 'nearest' });
+  if (focus) $(key).focus();
+}
 function cancelPlaceSearch(key) {
   clearTimeout(placeTimers[key]);
   placeSeq[key]++;
+  placeActive[key] = -1;
   $(key + 'Suggestions').hidden = true;
+  $(key).setAttribute('aria-expanded', 'false');
+  $(key).removeAttribute('aria-activedescendant');
 }
-async function searchPlace(key, { silent = false } = {}) {
+async function searchPlace(key, { silent = false, focusResults = false } = {}) {
   const q = $(key).value.trim();
   const box = $(key + 'Suggestions');
   const seq = ++placeSeq[key];
   if (q.length < 2) {
-    if (!silent) return notify('장소 이름을 두 글자 이상 입력해 주세요.');
+    if (!silent) {
+      placeFeedback(key, '장소 이름을 두 글자 이상 입력해 주세요.', true);
+      $(key).focus();
+    }
     box.hidden = true;
     return;
   }
+  placeFeedback(key);
   if (!silent) {
     box.replaceChildren(node('li', '', '검색 중…'));
     box.hidden = false;
+    $(key).setAttribute('aria-expanded', 'true');
   }
   try {
     const values = await api('/api/places?q=' + encodeURIComponent(q));
     if (seq !== placeSeq[key]) return;
     box.hidden = false;
+    $(key).setAttribute('aria-expanded', 'true');
     box.replaceChildren();
     if (!values.length) {
       box.append(node('li', 'hint', '검색 결과가 없습니다. 지도에서 선택해 주세요.'));
+      placeFeedback(key, '검색 결과가 없습니다. 검색어를 바꾸거나 지도에서 선택해 주세요.', true);
       return;
     }
-    for (const p of values) {
+    values.forEach((p, index) => {
       const li = node('li');
       const b = node('button', '', p.name + (p.address ? ' · ' + p.address : ''));
       b.type = 'button';
+      b.id = `${key}Option${index}`;
+      b.setAttribute('role', 'option');
+      b.setAttribute('aria-selected', 'false');
+      b.onmouseenter = () => highlightPlace(key, index);
       b.onclick = () => {
         setPoint(key, p);
         fitMap();
       };
       li.append(b);
       box.append(li);
-    }
+    });
+    if (focusResults) highlightPlace(key, 0, true);
   } catch (e) {
     if (seq !== placeSeq[key]) return;
     box.hidden = true;
-    if (!silent) notify(e.message);
+    if (!silent) placeFeedback(key, e.message, true);
   }
 }
 function setMode(mode) {
@@ -253,6 +295,8 @@ function showPanel(personal) {
   $('routesPanel').hidden = personal;
   $('navRoutes').classList.toggle('active', !personal);
   $('navPersonal').classList.toggle('active', personal);
+  $('navRoutes').setAttribute('aria-selected', String(!personal));
+  $('navPersonal').setAttribute('aria-selected', String(personal));
   setSheet(personal ? 'full' : 'mid');
   if (personal) refreshAccount().catch((e) => status('personalStatus', e.message, true));
 }
@@ -277,6 +321,7 @@ async function runJob(path, options, target, working, onPartial = null, existing
   if (state.activeJob || state.jobPending) throw new Error('진행 중인 작업이 끝난 뒤 다시 시도해 주세요.');
   state.jobPending = true;
   busy(true);
+  if (target === 'jobStatus') $('searchButton').textContent = '경로 찾는 중…';
   let id;
   try {
     const value = existingJob || await api(path, options);
@@ -327,6 +372,7 @@ async function runJob(path, options, target, working, onPartial = null, existing
     state.activeJob = null;
     state.jobPending = false;
     busy(false);
+    if (target === 'jobStatus') $('searchButton').textContent = modeNames[state.mode] + ' 경로 찾기 ↗';
   }
 }
 function routeProgressText(job, fallback) {
@@ -375,7 +421,10 @@ $('routeForm').onsubmit = async (e) => {
     return;
   }
   if (!state.points.origin || !state.points.destination) {
-    notify('장소 검색 결과를 선택하거나 지도에서 위치를 지정해 주세요.');
+    const missing = !state.points.origin ? 'origin' : 'destination';
+    placeFeedback(missing, '검색 결과에서 장소를 선택하거나 지도에서 위치를 지정해 주세요.', true);
+    $(missing).focus();
+    $(missing).scrollIntoView({ block: 'center', behavior: 'smooth' });
     return;
   }
   if (rider.active) stopGuide();
@@ -1314,7 +1363,10 @@ function renderCard() {
 }
 $('confirmForm').onsubmit = async (e) => {
   e.preventDefault();
-  if (!$('confirmRead').checked) return;
+  if (!$('confirmRead').checked) {
+    $('confirmRead').focus();
+    return photoProblem('원본 사진과 인식 결과를 대조했다는 확인란을 체크해 주세요.', [], 'confirm');
+  }
   const edits = {};
   for (const [key, , type] of editSchema) {
     let value = $('edit_' + key).value.trim();
@@ -1326,6 +1378,8 @@ $('confirmForm').onsubmit = async (e) => {
     if (type === 'datetime-local') value += ':00+09:00';
     edits[key] = value;
   }
+  if (new Date(edits.returned_at) <= new Date(edits.started_at))
+    return photoProblem('반납 시각은 대여 시각보다 늦어야 합니다.', [], 'confirm');
   try {
     hidePhotoFeedback();
     const r = await runJob(
@@ -1366,7 +1420,7 @@ $('confirmForm').onsubmit = async (e) => {
 };
 document
   .querySelectorAll('[data-search]')
-  .forEach((b) => (b.onclick = () => searchPlace(b.dataset.search)));
+  .forEach((b) => (b.onclick = () => searchPlace(b.dataset.search, { focusResults: true })));
 document.querySelectorAll('[data-pick]').forEach(
   (b) =>
     (b.onclick = () => {
@@ -1385,18 +1439,54 @@ for (const key of ['origin', 'destination']) {
   $(key).oninput = () => {
     cancelPlaceSearch(key);
     state.points[key] = null;
+    placeFeedback(key, $(key).value.trim() ? '검색 결과에서 정확한 장소를 선택해 주세요.' : '');
     renderMarkers();
     clearTimeout(placeTimers[key]);
     placeTimers[key] = setTimeout(() => searchPlace(key, { silent: true }), 350);
   };
   $(key).onkeydown = (e) => {
-    if (e.key === 'Enter') {
+    const buttons = placeButtons(key);
+    if (e.key === 'ArrowDown' && buttons.length) {
       e.preventDefault();
+      highlightPlace(key, placeActive[key] + 1);
+    } else if (e.key === 'ArrowUp' && buttons.length) {
+      e.preventDefault();
+      highlightPlace(key, placeActive[key] < 0 ? buttons.length - 1 : placeActive[key] - 1);
+    } else if (e.key === 'Escape') {
+      cancelPlaceSearch(key);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (buttons.length && placeActive[key] >= 0) {
+        buttons[placeActive[key]].click();
+        return;
+      }
       clearTimeout(placeTimers[key]);
-      searchPlace(key);
+      searchPlace(key, { focusResults: true });
     }
   };
 }
+document.addEventListener('click', (event) => {
+  for (const key of ['origin', 'destination']) {
+    const box = $(key + 'Suggestions');
+    if (
+      event.target !== $(key) &&
+      !box.contains(event.target) &&
+      !event.target.closest(`[data-search="${key}"]`)
+    )
+      cancelPlaceSearch(key);
+  }
+});
+document.querySelectorAll('.modes [role="tab"], .main-tabs [role="tab"]').forEach((tab) => {
+  tab.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]:not(:disabled)')];
+    const next =
+      (tabs.indexOf(tab) + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    event.preventDefault();
+    tabs[next].focus();
+    tabs[next].click();
+  });
+});
 document.querySelectorAll('[data-clear]').forEach(
   (b) =>
     (b.onclick = () => {

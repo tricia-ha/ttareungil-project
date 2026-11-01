@@ -12,7 +12,10 @@ class Element {
   append(...items) { this.children.push(...items); }
   replaceChildren(...items) { this.children = items; }
   setAttribute(k, v) { this.attributes[k] = v; }
+  removeAttribute(k) { delete this.attributes[k]; }
   getAttribute(k) { return this.attributes[k]; }
+  contains(target) { return target === this || this.children.includes(target); }
+  closest() { return null; }
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   querySelectorAll(selector) {
     return this.children.filter(x => x instanceof Element).flatMap(x => [

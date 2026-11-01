@@ -33,6 +33,7 @@ function element(id) {
 }
 const context = {
   state: { image: { selected: true }, photoEditorOpen: true, draft: { kept: true } },
+  modeNames: { integrated: '통합', transit: '대중교통', bicycle: '따릉이' },
   $: element,
   node: (tag, cls, text) => ({ tag, cls, text }),
   setSheet: () => {},

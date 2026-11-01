@@ -380,6 +380,18 @@ summary {
   white-space: pre-line;
   line-height: 1.55;
 }
+#jobStatus.busy {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5faed;
+}
+#jobStatus.error {
+  padding: 10px 12px;
+  border: 1px solid #efc6bd;
+  border-radius: 12px;
+  background: #fff6f3;
+}
 .leaflet-container {
   font-family: inherit;
 }
