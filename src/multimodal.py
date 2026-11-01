@@ -344,7 +344,7 @@ class Router:
 
         # state: location, time, current vehicle trip. alighting is explicit.
         counter = itertools.count()
-        heap, completion_heap = [], []
+        heap, completion_heap, progress_heap = [], [], []
         best, records, required_used, bicycle_paths = {}, {}, {}, {}
         expanded_record_ids = set()
         platform_ready = {}
@@ -486,6 +486,25 @@ class Router:
             heapq.heappush(
                 heap, (priority, boardings, idx, node, t, trip, penalty, after_bike)
             )
+            bicycle_progress = single_bicycle_graph and path is not None
+            mixed_progress = (
+                retain_mixed
+                and used in (1, 2)
+                and leg
+                and leg.get("mode") not in ("wait", "alight")
+            )
+            if trip is None and (
+                # In a bicycle-only graph a completed rental only needs its
+                # return-station egress.  Let it try that egress before every
+                # other origin-side station expands, without removing any of
+                # those stations from the ordinary heap.
+                bicycle_progress
+                or mixed_progress
+            ):
+                heapq.heappush(
+                    progress_heap,
+                    (priority, boardings, idx, node, t, trip, penalty, after_bike),
+                )
             if retain_mixed and used == 3 and (leg is None or leg.get("mode") != "wait"):
                 # Mixed completion is a separate search objective. Once both
                 # modes have been used, finish that valid frontier promptly
@@ -605,9 +624,11 @@ class Router:
         prediction_count, termination_reason = 0, None
         skipped_predictions = 0
         batch_failures = 0
-        work = deque()
+        work, progress_work = deque(), deque()
         work_turn = False
+        progress_turn = True
         work_batches = 0
+        progress_work_batches = 0
         transit_frontiers = defaultdict(list)
         transit_edges_examined = 0
         reused_transit_expansions = 0
@@ -627,6 +648,7 @@ class Router:
         skipped_dead_end_predictions = unroutable_waits = 0
         seed_refreshed = False
         mixed_completion_priority_pops = 0
+        mode_progress_priority_pops = 0
 
         def known_dead_end(target):
             if not c.prune_known_dead_ends or target == destination:
@@ -863,7 +885,7 @@ class Router:
                 ),
             )
 
-        while heap or work or completion_heap:
+        while heap or work or progress_work or completion_heap or progress_heap:
             # New confirmed transfer walks can complete a timetable journey even
             # if time-expanded states have not reached its far end. Reserve a
             # bounded final scan, without buying walks or pruning mixed paths.
@@ -908,30 +930,47 @@ class Router:
             if (
                 bound is not None
                 and (not heap or heap[0][0] > bound + 1e-6)
-                and all(item[0] > bound + 1e-6 for item in work)
+                and all(
+                    item[0] > bound + 1e-6
+                    for queue in (work, progress_work)
+                    for item in queue
+                )
             ):
                 break
             # Round-robin unfinished expensive tasks, alternating with reached
             # states. Continuations are not reinserted at the original time in
             # the route heap (which would monopolize its minimum again).
-            if work and (work_turn or not heap) and not completion_heap:
-                item = work.popleft()
+            if (
+                (work or progress_work)
+                and (work_turn or not heap)
+                and not completion_heap
+            ):
+                use_progress = bool(progress_work) and (progress_turn or not work)
+                queue = progress_work if use_progress else work
+                item = queue.popleft()
                 bound, state_key, state_value, iterator = item
                 if best.get(state_key) == state_value:
                     try:
                         next(iterator)
-                        work.append(item)
+                        queue.append(item)
                         work_batches += 1
+                        progress_work_batches += int(use_progress)
                     except StopIteration:
                         pass
+                progress_turn = not use_progress
                 work_turn = False
                 continue
             work_turn = True
             if completion_heap:
                 item = heapq.heappop(completion_heap)
                 mixed_completion_priority_pops += 1
+            elif progress_heap and (progress_turn or not heap):
+                item = heapq.heappop(progress_heap)
+                mode_progress_priority_pops += 1
+                progress_turn = False
             else:
                 item = heapq.heappop(heap)
+                progress_turn = True
             priority, boards, idx, node, t, trip, penalty, after_bike = item
             if idx in expanded_record_ids:
                 continue
@@ -988,7 +1027,9 @@ class Router:
                 threshold = incumbent_bound()
                 if threshold is not None:
                     if (not heap or heap[0][0] > threshold + 1e-6) and all(
-                        item[0] > threshold + 1e-6 for item in work
+                        item[0] > threshold + 1e-6
+                        for queue in (work, progress_work)
+                        for item in queue
                     ):
                         break
                 continue
@@ -1145,8 +1186,11 @@ class Router:
             )
             state_value = (penalty, boards)
             if lazy is not None and self.network.walk_policy:
-                target = work.appendleft if retain_mixed and used == 3 else work.append
-                target(
+                progress_state = (
+                    single_bicycle_graph and bicycle_paths.get(idx) is not None
+                ) or (retain_mixed and used in (1, 2, 3))
+                target = progress_work if progress_state else work
+                target.append(
                     (
                         priority,
                         state_key,
@@ -1157,7 +1201,8 @@ class Router:
             if bikes[node] and not after_bike:
                 # Evaluate a reached rental point before buying more access
                 # walks. Its remaining batches rejoin normal round-robin work.
-                work.appendleft(
+                target = progress_work if retain_mixed and used in (1, 2, 3) else work
+                target.appendleft(
                     (
                         priority,
                         state_key,
@@ -1201,6 +1246,7 @@ class Router:
             mixed_routes_requested=retain_mixed,
             mixed_route_found=bool(mixed_results),
             mixed_completion_priority_pops=mixed_completion_priority_pops,
+            mode_progress_priority_pops=mode_progress_priority_pops,
             search_complete=not incomplete,
             budget_exhausted=truncated or skipped_predictions > 0 or connectors_missing,
             expanded_states=expanded + known_expanded,
@@ -1208,7 +1254,8 @@ class Router:
             known_route_expanded_states=known_expanded,
             timetable_seed_scans=seed_stats,
             deferred_work_batches=work_batches,
-            pending_work_items=len(work),
+            progress_work_batches=progress_work_batches,
+            pending_work_items=len(work) + len(progress_work),
             transit_edges_examined=transit_edges_examined,
             reused_transit_expansions=reused_transit_expansions,
             transit_roundtrip_pruning=roundtrip_pruning,

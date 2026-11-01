@@ -74,7 +74,11 @@ class ScheduledConfig:
     bike_expansion_batch_size: int = 2
     reuse_transit_suffixes: bool = True
     search_mode: str = "integrated"
-    bicycle_batch_size: int = 16
+    # Bicycle-only searches used to predict sixteen ODs before allowing a
+    # newly reached return station to finish its destination walk.  Keep the
+    # candidate set complete, but yield after a small quantum so useful paths
+    # can be completed while the remaining ODs stay queued.
+    bicycle_batch_size: int = 2
     bicycle_available: bool = True
 
     def validate(self):

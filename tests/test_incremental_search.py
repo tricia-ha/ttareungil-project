@@ -13,6 +13,70 @@ START = "2026-10-22T10:00:00+09:00"
 
 
 class IncrementalSearchTests(unittest.TestCase):
+    def test_bicycle_return_progress_is_not_starved_by_access_fanout(self):
+        sources = [f"A{i}" for i in range(24)]
+        nodes = {k: {} for k in ["O", "Z", "B"] + sources}
+        nodes.update({k: {"kind": "bike"} for k in ["B"] + sources})
+        net = Network(
+            nodes,
+            walks=[{"from": "O", "to": a, "minutes": 1} for a in sources]
+            + [{"from": "B", "to": "Z", "minutes": 1}],
+            bikes=[{"from": sources[0], "to": "B", "test_minutes": 1}],
+        )
+
+        result = Router(
+            net,
+            lambda e, t: {"minutes": e["test_minutes"], "p_empty": 0.0},
+            Config(
+                required_mode="bicycle",
+                top_k=1,
+                max_expansions=6,
+                horizon_minutes=10,
+                bike_expansion_batch_size=1,
+                search_algorithm="dijkstra",
+            ),
+        ).search("O", "Z", START)
+
+        self.assertEqual(result["routes"][0]["total_minutes"], 3)
+        self.assertGreater(result["mode_progress_priority_pops"], 0)
+
+    def test_partial_mixed_path_gets_a_fair_completion_turn(self):
+        distractors = [f"D{i}" for i in range(24)]
+        nodes = {k: {} for k in ["O", "A", "B", "S", "Z"] + distractors}
+        net = Network(
+            nodes,
+            walks=[{"from": "O", "to": "A", "minutes": 0.1}]
+            + [{"from": "O", "to": d, "minutes": 0.2} for d in distractors]
+            + [{"from": "B", "to": "S", "minutes": 0.1}],
+            bikes=[{"from": "A", "to": "B", "test_minutes": 1}],
+            transit=[
+                {
+                    "from": "S",
+                    "to": "Z",
+                    "mode": "bus",
+                    "trip_id": "mixed",
+                    "departure": "2026-10-22T10:03:00+09:00",
+                    "arrival": "2026-10-22T10:04:00+09:00",
+                }
+            ],
+        )
+
+        result = Router(
+            net,
+            lambda e, t: {"minutes": e["test_minutes"], "p_empty": 0.0},
+            Config(
+                top_k=1,
+                mixed_top_k=1,
+                max_expansions=9,
+                horizon_minutes=10,
+                bike_expansion_batch_size=1,
+                search_algorithm="dijkstra",
+            ),
+        ).search("O", "Z", START)
+
+        self.assertEqual(result["mixed_routes"][0]["total_minutes"], 4)
+        self.assertGreater(result["mode_progress_priority_pops"], 0)
+
     def test_follows_mixed_route_before_finishing_large_station_fanout(self):
         nodes = {
             k: {} for k in ["O", "A", "B", "S", "Z"] + [f"D{i}" for i in range(30)]
