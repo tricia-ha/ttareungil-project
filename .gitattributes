@@ -6,4 +6,6 @@ data/**/*.md diff
 data/transit/files/subway_coordinate_corrections.json diff
 data/transit/files/bus_coordinate_corrections.json diff
 data/inventory/station_location_updates.json diff
+data/transit/map_timetables/*.json diff
+data/transit/map_timetables/compiled/*/*.json diff
 models/**/*.md diff

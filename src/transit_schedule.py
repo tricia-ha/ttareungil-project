@@ -29,12 +29,17 @@ def read_csv(path):
 
 
 def clock_seconds(value):
-    """Preserve HHMM digits in TOPIS strings such as 0.0600 and 0.0030."""
+    """Read TOPIS day.HHMM without losing its explicit next-day offset."""
     value = clean(value)
-    if value.startswith("0."):
-        value = value[2:]
-        if len(value) != 4 or not value.isdigit():
-            raise ValueError("버스 시각은 0.HHMM 형식이어야 합니다.")
+    day_offset = 0
+    if "." in value:
+        day, digits = value.split(".", 1)
+        if day not in ("0", "1") or len(digits) != 4 or not digits.isdigit():
+            raise ValueError("버스 시각은 0.HHMM 또는 1.HHMM 형식이어야 합니다.")
+        day_offset = int(day) * 86400
+        value = digits
+        if day_offset and int(value[:2]) >= 24:
+            raise ValueError("익일 표기에 24시 이상을 중복 적용할 수 없습니다.")
     if ":" in value:
         parts = [int(p) for p in value.split(":")]
         if len(parts) == 2:
@@ -50,7 +55,7 @@ def clock_seconds(value):
         s = int(value[4:]) if len(value) == 6 else 0
     if not (0 <= h < 48 and 0 <= m < 60 and 0 <= s < 60):
         raise ValueError("시각 범위를 확인하세요.")
-    return h * 3600 + m * 60 + s
+    return day_offset + h * 3600 + m * 60 + s
 
 
 def service_seconds(value):
@@ -380,6 +385,26 @@ def _load_subway_groups(folder, signature, tags):
         )
     else:
         rows = payload["subway_rows"]
+    from collected_rail import collected_manifest, collected_rows
+
+    collected = collected_manifest(folder)
+    if collected and collected["active_lines"]:
+        active = set(collected["active_lines"])
+        original_rows = rows
+        snapshot_from = date.fromisoformat(collected["snapshot_from"])
+        previous_day = (snapshot_from - timedelta(days=1)).isoformat()
+        rows = chain(
+            (
+                dict(
+                    r,
+                    VALID_UNTIL=min(r.get("VALID_UNTIL") or previous_day, previous_day),
+                )
+                if r["LINE_NUM"] in active
+                else r
+                for r in original_rows
+            ),
+            collected_rows(collected, set(tags)),
+        )
     return _group_subway_rows(rows)
 
 
@@ -432,14 +457,31 @@ def build_timetable(
         sorted(dict(weekday="1", saturday="2", holiday="3")[kind] for kind in required)
     )
     sources = [folder / "prepared.json", folder / "extended_rail" / "normalized.csv"]
+    from collected_rail import collected_manifest, collected_table_paths
+    from map_schedule_collection import read_json
+
+    collected = collected_manifest(folder)
+    if collected:
+        sources.extend(
+            [
+                folder / "map_timetables/manifest.json",
+                collected["version_path"] / "stops.json",
+            ]
+        )
+        sources.extend(collected_table_paths(collected))
     if payload.get("subway_rows_file"):
         sources.append(folder / payload["subway_rows_file"])
     groups = _cached_subway_groups(str(folder.resolve()), file_signature(sources), tags)
     from transit_coordinates import corrected_subway_stops
 
+    subway_stops = corrected_subway_stops(payload["subway_stops"], folder)
+    if collected:
+        subway_stops = dict(
+            subway_stops, **read_json(collected["version_path"] / "stops.json")
+        )
     subway, subway_report = subway_edges(
         (),
-        corrected_subway_stops(payload["subway_stops"], folder),
+        subway_stops,
         departure,
         horizon_minutes,
         holiday_dates,
@@ -456,12 +498,35 @@ def build_timetable(
             "transit_type": "static_subway_and_reconstructed_bus",
             "bus_report": bus_report,
             "subway_report": subway_report,
+            "collected_timetable": (
+                {
+                    k: collected[k]
+                    for k in (
+                        "signature",
+                        "created_at",
+                        "active_lines",
+                        "collected_stations",
+                        "expected_stations",
+                        "usable_profiles",
+                    )
+                    if k in collected
+                }
+                if collected
+                else None
+            ),
             "timetable_review_due": review_due.isoformat(),
             "coverage_complete": False,
             "data_gaps": [
                 "일부 버스 노선은 정류장 좌표·순서 누락으로 제외",
                 "신분당·우이신설·신림 일부 종착역 도착 구간 미확보",
-                "모든 수도권 철도 노선을 포함하지 않음",
+                "공개 자료에 없는 운행·임시 시간표는 미포함",
+                *(
+                    ["에버라인 주말은 동일 열차 확인에 필요한 번호 미제공"]
+                    if collected
+                    and "에버라인" in collected.get("usable_profiles", {})
+                    and len(collected["usable_profiles"]["에버라인"]) < 3
+                    else []
+                ),
             ],
             "preparation_report": payload.get("report", {}),
         },

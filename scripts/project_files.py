@@ -1,6 +1,7 @@
 """Required local files for the optimization project."""
 
 from pathlib import Path
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 ETA_FILES = (
@@ -30,7 +31,8 @@ TRANSIT_FILES = (
 
 def required_paths():
     return (
-        [f"models/eta_v5_2_1/{p}" for p in ETA_FILES]
+        collected_timetable_paths()
+        + [f"models/eta_v5_2_1/{p}" for p in ETA_FILES]
         + [f"models/inventory_final/{p}" for p in INVENTORY_FILES]
         + [
             "data/inventory/station_crosswalk.csv",
@@ -44,6 +46,13 @@ def required_paths():
             "src/transit_seed.py",
             "src/transit_coordinates.py",
             "src/station_coordinates.py",
+            "src/map_schedule_collection.py",
+            "src/collected_rail.py",
+            "scripts/collect_map_timetables.py",
+            "scripts/check_timetable_fallback.py",
+            "시간표_수집.cmd",
+            "notebooks/03_시간표수집.ipynb",
+            "docs/TIMETABLE_COLLECTION.md",
             "examples/python_usage.py",
             "notebooks/01_기능실행.ipynb",
             "docs/USAGE.md",
@@ -155,3 +164,21 @@ def required_paths():
             for i in range(1, count + 1)
         ]
     )
+
+
+def collected_timetable_paths():
+    root = ROOT / "data/transit/map_timetables"
+    paths = [root / "manifest.json", root / "lanes.json.gz"]
+    if paths[0].exists():
+        manifest = json.loads(paths[0].read_text(encoding="utf-8"))
+        version = (root / manifest["version"]).resolve()
+        if not version.is_relative_to(root.resolve()):
+            raise ValueError("Invalid collected timetable version")
+        paths += [version / "snapshot.json", version / "stops.json"]
+        for tables in manifest["tables"].values():
+            for name in tables.values():
+                path = (version / name).resolve()
+                if not path.is_relative_to(version):
+                    raise ValueError("Invalid collected timetable table")
+                paths.append(path)
+    return [str(path.relative_to(ROOT)) for path in paths]

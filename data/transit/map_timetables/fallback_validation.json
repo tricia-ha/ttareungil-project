@@ -1,0 +1,126 @@
+{
+  "signature": "1490b5479c1df1de57f0",
+  "method": "existing_minute_matcher_masked_train_identity",
+  "results": [
+    {
+      "line": "신분당선",
+      "profile": "weekday",
+      "status": "evaluated",
+      "inferred_segments": 4575,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 34.33,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "신분당선",
+      "profile": "saturday",
+      "status": "evaluated",
+      "inferred_segments": 3680,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 34.61,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "신분당선",
+      "profile": "holiday",
+      "status": "evaluated",
+      "inferred_segments": 3680,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 34.61,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "우이신설선",
+      "profile": "weekday",
+      "status": "evaluated",
+      "inferred_segments": 5676,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 32.87,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "우이신설선",
+      "profile": "saturday",
+      "status": "evaluated",
+      "inferred_segments": 4664,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 31.78,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "우이신설선",
+      "profile": "holiday",
+      "status": "evaluated",
+      "inferred_segments": 4664,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 31.78,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "신림선",
+      "profile": "weekday",
+      "status": "evaluated",
+      "inferred_segments": 3406,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 30.0,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "신림선",
+      "profile": "saturday",
+      "status": "evaluated",
+      "inferred_segments": 2778,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 30.0,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "신림선",
+      "profile": "holiday",
+      "status": "evaluated",
+      "inferred_segments": 2778,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 30.0,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "에버라인",
+      "profile": "weekday",
+      "status": "evaluated",
+      "inferred_segments": 5327,
+      "wrong_train_pairs": 0,
+      "ambiguous_pairs": 0,
+      "nonadjacent_pairs": 0,
+      "travel_time_mae_seconds": 30.0,
+      "wrong_pair_rate": 0.0
+    },
+    {
+      "line": "에버라인",
+      "profile": "saturday",
+      "status": "no_identified_trains"
+    },
+    {
+      "line": "에버라인",
+      "profile": "holiday",
+      "status": "no_identified_trains"
+    }
+  ]
+}

@@ -26,3 +26,7 @@
 `preparation_report.json`에는 좌표 연결 범위, 결과 `network_metadata.bus_report`에는 누락 ID·제외 노선 예시가 남습니다. 큰 `network.json`은 `save_network=True`일 때만 저장합니다. 기존 API 수집기는 호환용이며 기본 노트북에서는 호출하지 않습니다. 서울시 인증키는 현재 따릉이 재고 조회에만 필요합니다.
 
 보완 좌표의 출처 해시는 `bus_coordinates_supplement.provenance.json`에 있습니다. 새 공식 노드 CSV에서 다시 추출할 때는 `python scripts/prepare_bus_supplement.py 원본CSV경로`를 사용합니다. 팀원 실행에는 이 원본 CSV나 연구 백업 폴더가 필요하지 않습니다.
+
+## 별도 수집 시간표
+
+`map_timetables/manifest.json`이 수집·검증한 시간표의 사용 버전을 가리킵니다. 평일·토요일·휴일별 파일을 사용하며 기존 운영사 전체 열차표는 유지합니다. 수집 실행과 미지원 구간은 [시간표 수집](../../docs/TIMETABLE_COLLECTION.md)을 확인합니다.
