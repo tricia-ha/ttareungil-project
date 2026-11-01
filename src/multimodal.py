@@ -6,7 +6,7 @@ Movement arrivals retain exact seconds. A grid is used only for explicit waits.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from route_identity import route_signature, walking_minutes
+from route_identity import route_signature, walking_minutes, distinct_routes
 from datetime import datetime
 from collections import defaultdict, deque
 from bisect import bisect_left
@@ -488,6 +488,9 @@ class Router:
 
         push(origin, start, None, 0.0, 0, None, None)
         results, mixed_results, failures, cache = list(known_routes), [], [], {}
+        representatives = {
+            route_signature(r["legs"]): r for r in distinct_routes(known_routes)
+        }
         last_update = None
         update_seconds = 0.0
 
@@ -538,9 +541,18 @@ class Router:
 
         def keep_route(pool, route, limit):
             signature = route_signature(route["legs"])
+            previous = representatives.get(signature)
+            if previous is not None and (
+                previous["total_minutes"],
+                walking_minutes(previous),
+            ) <= (route["total_minutes"], walking_minutes(route)):
+                route = previous
+            else:
+                representatives[signature] = route
             old = next(
                 (r for r in pool if route_signature(r["legs"]) == signature), None
             )
+
             def rank(r):
                 return (
                     r["score_minutes"],
@@ -548,9 +560,14 @@ class Router:
                     r["total_minutes"],
                     walking_minutes(r),
                 )
+
             if old is None:
                 pool.append(route)
-            elif rank(route) < rank(old):
+            elif (route["total_minutes"], walking_minutes(route), rank(route)) < (
+                old["total_minutes"],
+                walking_minutes(old),
+                rank(old),
+            ):
                 pool.remove(old)
                 pool.append(route)
             pool.sort(key=rank)
@@ -925,7 +942,6 @@ class Router:
                         legs.append(leg)
                     cur = parent
                 legs.reverse()
-                signature = route_signature(legs)
                 route = dict(
                     arrival=iso(t),
                     total_minutes=(t - start) / 60,
@@ -1132,21 +1148,15 @@ class Router:
         # Retain the known-route fallback even if later API work times out.
         # Merge by the same objective, not by discovery order; a newly found
         # better mixed route can still replace a first-pass route.
-        merged, seen = [], set()
-        for route in sorted(
-            results + known_routes,
+        results = sorted(
+            distinct_routes(list(representatives.values()) + known_routes),
             key=lambda r: (
                 r["score_minutes"],
                 r["transit_boardings"],
                 r["total_minutes"],
                 walking_minutes(r),
             ),
-        ):
-            signature = route_signature(route["legs"])
-            if signature not in seen:
-                seen.add(signature)
-                merged.append(route)
-        results = merged[: c.top_k]
+        )[: c.top_k]
         connectors_missing = bool(self.network.metadata.get("connector_limit_reached"))
         walking_errors = self.network.metadata.get("walking_api_errors", 0)
         incomplete = (

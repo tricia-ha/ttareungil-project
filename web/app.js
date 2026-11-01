@@ -540,7 +540,16 @@ function routeKey(route) {
       end = leg.to;
     } else if (leg.mode !== 'wait' && leg.mode !== 'alight') {
       flush();
-      tokens.push([leg.mode, leg.from, leg.to, leg.trip_id ?? null]);
+      let service = leg.trip_id ?? null;
+      if (leg.mode === 'bus' || leg.mode === 'subway') {
+        const key = ['route_id', 'route_name', 'trip_id'].find(
+          (key) => leg[key] !== null && leg[key] !== undefined && leg[key] !== '',
+        );
+        service = key ? [key, String(leg[key])] : null;
+      } else if (leg.mode === 'transit' && leg.route_option !== null && leg.route_option !== undefined) {
+        service = ['route_option', String(leg.route_option)];
+      }
+      tokens.push([leg.mode, leg.from, leg.to, service]);
     }
   }
   flush();
@@ -572,6 +581,9 @@ function routeDisplayKey(route) {
         leg.start,
         leg.arrival,
         leg.minutes,
+        leg.trip_id,
+        leg.departure,
+        leg.wait_minutes,
         leg.display_geometry || leg.geometry || null,
       ]),
     )

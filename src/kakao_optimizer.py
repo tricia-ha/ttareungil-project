@@ -506,7 +506,16 @@ def search(network, bike_provider, departure, config=None, progress=print):
 
 def map_html(result):
     """Leaflet output; coordinates are always GeoJSON [longitude,latitude]."""
-    data = json.dumps(result, ensure_ascii=False, allow_nan=False).replace(
+    from route_identity import distinct_routes
+
+    display = dict(
+        result,
+        routes=distinct_routes(
+            list(result.get("routes", [])) + list(result.get("mixed_routes", []))
+        ),
+        mixed_routes=[],
+    )
+    data = json.dumps(display, ensure_ascii=False, allow_nan=False).replace(
         "<", "\\u003c"
     )
     return (
@@ -524,9 +533,7 @@ document.title=modeNames[data.search_mode]||'따릉이 통합 경로';
 document.getElementById('caption').textContent=data.search_mode==='subway'?'지하철 시간표 + 도보':data.search_mode==='bicycle'?'따릉이 '+bikeBasis+' + 도보':'따릉이 '+bikeBasis+(data.timetable_file?' + 대중교통 시간표':' + 카카오 예상시간 · 미래 배차시간 미반영');
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
 let group=L.featureGroup().addTo(map);const colors={walk:'#777',bicycle:'#178943',bus:'#2475d5',subway:'#8a45c4'};
-const routeKey=r=>JSON.stringify(r.legs.filter(l=>!['wait','alight'].includes(l.mode)).map(l=>[l.mode,l.from,l.to,l.trip_id||null]));
-const displayRoutes=[...data.routes],seenRoutes=new Set(displayRoutes.map(routeKey));
-for(const r of data.mixed_routes||[]){const key=routeKey(r);if(!seenRoutes.has(key)){seenRoutes.add(key);displayRoutes.push(r)}}
+const displayRoutes=data.routes;
 function draw(i){group.clearLayers();const r=displayRoutes[i];let text=[];
 for(const l of r.legs){text.push(l.mode+' '+l.minutes.toFixed(1)+'분'+(l.geometry_status==='unavailable'?' (노선 형상 미확보)':l.geometry_status==='partial'?' (노선 형상 일부 누락)':''));
 const parts=l.mode==='transit'?l.steps:[l];for(const p of parts){const geom=p.geometry||p.display_geometry;const schematic=!p.geometry&&!!p.display_geometry;const transfer=schematic&&p.display_geometry_kind==='schematic_transfer';if(geom&&geom.coordinates&&(geom.type==='MultiLineString'?geom.coordinates.some(c=>c.length>1):geom.coordinates.length>1)){L.geoJSON({type:'Feature',geometry:geom,properties:{}},{style:{color:schematic?(transfer?'#9146b5':'#d47a19'):colors[p.mode]||'#444',weight:schematic?4:5,dashArray:schematic?'3 8':p.mode==='walk'?'5 7':null}}).bindTooltip(schematic?(transfer?'역내 환승 연결(개략·실내 통로 아님)':'형상 미확보: 역·정류장 연결 개략도'):(p.route_name||p.mode)).addTo(group);}}}
