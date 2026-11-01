@@ -73,6 +73,7 @@ class IntegratedPreservationTests(unittest.TestCase):
         self.assertEqual(after["routes"][0]["total_minutes"], 2.0)
         mixed = after["mixed_routes"][0]
         self.assertEqual(mixed["total_minutes"], 5.0)
+        self.assertGreater(after["mixed_completion_priority_pops"], 0)
         self.assertEqual(
             [l["mode"] for l in mixed["legs"] if l["mode"] not in ("alight", "wait")],
             ["walk", "subway", "walk", "bicycle", "walk", "subway"],
