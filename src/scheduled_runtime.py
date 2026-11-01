@@ -187,7 +187,16 @@ class KakaoWalking:
 
 
 def _seed_endpoint_walks(
-    nodes, stops, stations, walking, config, walks, diagnostics, transit, departure=None
+    nodes,
+    stops,
+    stations,
+    walking,
+    config,
+    walks,
+    diagnostics,
+    transit,
+    departure=None,
+    walk_policy=None,
 ):
     """Restore all cached access edges; reserve calls for reached-node work.
 
@@ -197,6 +206,7 @@ def _seed_endpoint_walks(
     from itertools import zip_longest
     from candidate_edges import DeadEndGuard
 
+    walk_policy = walk_policy or {"max_distance_m": config.max_connector_distance_m}
     guard = DeadEndGuard(
         Network(
             nodes=nodes,
@@ -205,7 +215,7 @@ def _seed_endpoint_walks(
             bike_policy={"available": True}
             if config.bicycle_available and stations
             else {},
-            walk_policy={"max_distance_m": config.max_connector_distance_m},
+            walk_policy=walk_policy,
         )
     )
 
@@ -379,9 +389,28 @@ def build_scheduled_network(
         config.max_connector_distance_m,
         config.max_bike_distance_m,
     )
+    walk_policy = {
+        "core_distance_m": core_walk_radius,
+        "max_distance_m": core_walk_radius,
+        "preferred_endpoint_radius_m": {
+            "origin": core_walk_radius,
+            "destination": core_walk_radius,
+        },
+        "target_neighbors": 4,
+        "strategy": "fixed",
+    }
     if config.complete_candidates and config.adaptive_connections:
         from dataclasses import replace
-        from candidate_edges import adaptive_radii
+        from candidate_edges import adaptive_radii, adaptive_walk_policy
+
+        walk_policy = adaptive_walk_policy(
+            origin,
+            destination,
+            timetable.nodes,
+            stations,
+            core_walk_radius,
+            config.max_access_walk_minutes,
+        )
 
         walk_radius, bike_radius = adaptive_radii(
             origin,
@@ -403,6 +432,13 @@ def build_scheduled_network(
             core_bike_radius_m=core_bike_radius,
             effective_bike_radius_m=bike_radius,
             adaptive_connections=True,
+            preferred_origin_walk_radius_m=walk_policy["preferred_endpoint_radius_m"][
+                "origin"
+            ],
+            preferred_destination_walk_radius_m=walk_policy[
+                "preferred_endpoint_radius_m"
+            ]["destination"],
+            walk_priority_strategy=walk_policy["strategy"],
         )
     if config.search_mode == "bicycle":
         # With no transit stops and no station-to-station walking, a valid
@@ -545,6 +581,7 @@ def build_scheduled_network(
             walking_diagnostics,
             timetable.transit,
             departure=departure,
+            walk_policy=walk_policy,
         )
         bike_policy = (
             {
@@ -567,7 +604,7 @@ def build_scheduled_network(
             walks=transfers,
             transit=timetable.transit,
             bike_policy=bike_policy,
-            walk_policy={"max_distance_m": config.max_connector_distance_m},
+            walk_policy=walk_policy,
             metadata=dict(
                 timetable.metadata,
                 **walking_diagnostics,
@@ -578,6 +615,7 @@ def build_scheduled_network(
                 connectors_lazy=True,
                 connector_limit_reached=connector_limit,
                 walking_query_policy="complete_transit_and_mixed_skeletons_then_balanced_endpoints",
+                adaptive_walk_policy=copy.deepcopy(walk_policy),
                 cached_endpoint_connections=cached_seeds,
                 new_endpoint_calls=paid_seeds,
                 bicycle_available=config.bicycle_available,

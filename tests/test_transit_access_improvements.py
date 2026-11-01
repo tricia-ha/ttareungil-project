@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from multimodal import Config, Network, Router, timestamp
 from rail_access import transfer_walks
 from transit_seed import timetable_seed
-from candidate_edges import adaptive_radii, LazyConnections
+from candidate_edges import adaptive_radii, adaptive_walk_policy, LazyConnections
 from bus_web_timetables import matrix, published_airport_network, collect
 import requests
 from scheduled_runtime import build_scheduled_network, ScheduledConfig
@@ -256,6 +256,91 @@ class AccessTests(unittest.TestCase):
         )
         self.assertEqual(old.bikes_from("bike:a"), [])
         self.assertEqual([e["to"] for e in new.bikes_from("bike:a")], ["bike:b"])
+
+    def test_walk_priority_radius_uses_od_length_and_endpoint_density(self):
+        origin = dict(latitude=37.5, longitude=127.0)
+        destination = dict(latitude=37.6, longitude=127.0)
+        nodes, stations = {}, []
+        for i in range(6):
+            nodes[f"dense:{i}"] = dict(
+                latitude=37.5004 + i * 0.0002,
+                longitude=127.0,
+            )
+            nodes[f"sparse:{i}"] = dict(
+                latitude=37.582 + i * 0.001,
+                longitude=127.0,
+            )
+            stations.extend(
+                [
+                    dict(
+                        station_id=f"d{i}",
+                        latitude=37.5004 + i * 0.0002,
+                        longitude=127.0002,
+                    ),
+                    dict(
+                        station_id=f"s{i}",
+                        latitude=37.582 + i * 0.001,
+                        longitude=127.0002,
+                    ),
+                ]
+            )
+        policy = adaptive_walk_policy(origin, destination, nodes, stations, 900, 30)
+        radii = policy["preferred_endpoint_radius_m"]
+        self.assertEqual(policy["max_distance_m"], 2400)
+        self.assertEqual(radii["origin"], 240)
+        self.assertGreater(radii["destination"], radii["origin"])
+        self.assertLessEqual(radii["destination"], policy["preferred_cap_m"])
+        self.assertEqual(policy["target_neighbors"], 6)
+
+        short = adaptive_walk_policy(
+            origin,
+            dict(latitude=37.51, longitude=127.0),
+            nodes,
+            stations,
+            900,
+            30,
+        )
+        self.assertEqual(short["preferred_cap_m"], 900)
+        self.assertEqual(short["max_distance_m"], 2400)
+
+    def test_walk_priority_keeps_outer_fallback_in_weighted_order(self):
+        nodes = {
+            "origin": dict(latitude=37.5, longitude=127.0, kind="endpoint"),
+            "destination": dict(latitude=37.55, longitude=127.0, kind="endpoint"),
+        }
+        for i, offset in enumerate((0.001, 0.002, 0.003, 0.004, 0.012, 0.014)):
+            nodes[f"stop:{i}"] = dict(
+                latitude=37.5, longitude=127.0 + offset, kind="stop"
+            )
+
+        class Walk:
+            def __init__(self):
+                self.calls = []
+
+            def __call__(self, a, b, start, end):
+                self.calls.append(end)
+                return dict(**{"from": start, "to": end}, minutes=1)
+
+        walk = Walk()
+        network = Network(
+            nodes=nodes,
+            transit=[
+                {"from": key, "to": "destination"}
+                for key in nodes
+                if key.startswith("stop:")
+            ],
+            walk_policy={
+                "core_distance_m": 900,
+                "priority_floor_m": 240,
+                "max_distance_m": 2400,
+                "preferred_endpoint_radius_m": {"origin": 400},
+                "target_neighbors": 4,
+            },
+        )
+        list(LazyConnections(network, walk).iter_walks_from("origin"))
+        self.assertIn("stop:4", walk.calls)
+        self.assertIn("stop:5", walk.calls)
+        self.assertLess(walk.calls.index("stop:4"), 4)
 
     def test_more_distant_rail_access_is_retained_without_new_api_limit(self):
         o = dict(latitude=37.5, longitude=127.0)

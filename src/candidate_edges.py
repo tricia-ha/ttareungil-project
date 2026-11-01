@@ -1,6 +1,7 @@
 """Lazy, radius-complete local connectors; no nearest-N station/OD pruning."""
 
 from collections import defaultdict, deque
+import heapq
 import math
 from multimodal_data import distance
 from station_coordinates import bicycle_coordinates
@@ -25,6 +26,87 @@ def adaptive_radii(
     access = max(walk_radius, max_access_walk_minutes * 80)
     bicycle = max(bike_radius, distance(origin, destination) + 2 * access)
     return access, bicycle
+
+
+def adaptive_walk_policy(
+    origin,
+    destination,
+    nodes,
+    stations,
+    core_radius,
+    max_access_walk_minutes,
+):
+    """Build a density- and OD-aware *priority* envelope for walking.
+
+    ``max_distance_m`` remains a fallback envelope so a previously valid long
+    access is not deleted.  ``preferred_endpoint_radius_m`` controls which
+    endpoint candidates are tried first.  Dense endpoints therefore stay near
+    the core, while sparse endpoints and longer ODs expand earlier.
+    """
+    core = float(core_radius)
+    maximum = max(core, float(max_access_walk_minutes) * 80.0)
+    priority_floor = min(core, 3 * 80.0)
+    od_distance = distance(origin, destination)
+    # Access walking has more opportunity to pay off on a longer OD.  This is
+    # only a priority cap; candidates up to ``maximum`` remain as a fallback.
+    preferred_cap = min(maximum, max(core, od_distance * 0.25))
+    target = 3 if od_distance < 3000 else 4 if od_distance < 10000 else 6
+
+    transit = [
+        value
+        for value in nodes.values()
+        if value.get("kind") != "endpoint"
+        and value.get("latitude") not in (None, "")
+        and value.get("longitude") not in (None, "")
+    ]
+    bicycles = [
+        {
+            "latitude": float(value["latitude"]),
+            "longitude": float(value["longitude"]),
+        }
+        for value in stations
+        if value.get("latitude") not in (None, "")
+        and value.get("longitude") not in (None, "")
+    ]
+
+    def endpoint_radius(point):
+        needed = priority_floor
+        distances_by_mode = {}
+        for name, values in (("transit", transit), ("bicycle", bicycles)):
+            distances = [distance(point, value) for value in values]
+            distances_by_mode[name] = distances
+            nearest = heapq.nsmallest(
+                target, (value for value in distances if value <= maximum)
+            )
+            if nearest:
+                kth = nearest[-1]
+                needed = max(needed, kth)
+        radius = min(preferred_cap, max(priority_floor, needed))
+        counts = {
+            name: sum(value <= radius for value in distances)
+            for name, distances in distances_by_mode.items()
+        }
+        return radius, counts
+
+    origin_radius, origin_counts = endpoint_radius(origin)
+    destination_radius, destination_counts = endpoint_radius(destination)
+    return {
+        "core_distance_m": core,
+        "priority_floor_m": priority_floor,
+        "max_distance_m": maximum,
+        "preferred_endpoint_radius_m": {
+            "origin": origin_radius,
+            "destination": destination_radius,
+        },
+        "target_neighbors": target,
+        "od_distance_m": od_distance,
+        "preferred_cap_m": preferred_cap,
+        "endpoint_counts": {
+            "origin": origin_counts,
+            "destination": destination_counts,
+        },
+        "strategy": "density_od_priority_with_max_fallback",
+    }
 
 
 class SpatialIndex:
@@ -186,6 +268,58 @@ class LazyConnections:
         )
         self._transfer_targets = {}
 
+    def _preferred_walk_radius(self, start, rows):
+        """Return the first-pass radius without deleting fallback candidates."""
+        policy = self.network.walk_policy
+        endpoints = policy.get("preferred_endpoint_radius_m", {})
+        if start in endpoints:
+            radius = float(endpoints[start])
+        else:
+            core = float(policy.get("core_distance_m", policy["max_distance_m"]))
+            floor = float(policy.get("priority_floor_m", core))
+            target = max(1, int(policy.get("target_neighbors", 4)))
+            groups = defaultdict(list)
+            source = self.network.nodes[start]
+            for d, end in rows:
+                if end in (start, "origin"):
+                    continue
+                value = self.network.nodes[end]
+                if source.get("kind") == value.get("kind") == "bike":
+                    continue
+                kind = "rail" if end.startswith("subway:") else value.get("kind")
+                groups[kind].append(d)
+            if groups:
+                per_group = max(1, target // 2)
+                radius = max(
+                    floor,
+                    *(
+                        values[min(per_group, len(values)) - 1]
+                        for values in groups.values()
+                    ),
+                )
+            else:
+                radius = floor
+        radius = min(float(policy["max_distance_m"]), radius)
+        stats = self.network.metadata.setdefault(
+            "adaptive_walk_priority",
+            {
+                "evaluated_nodes": 0,
+                "expanded_nodes": 0,
+                "min_radius_m": None,
+                "max_radius_m": 0,
+            },
+        )
+        stats["evaluated_nodes"] += 1
+        core = float(policy.get("core_distance_m", policy["max_distance_m"]))
+        stats["expanded_nodes"] += int(radius > core)
+        stats["min_radius_m"] = (
+            radius
+            if stats["min_radius_m"] is None
+            else min(stats["min_radius_m"], radius)
+        )
+        stats["max_radius_m"] = max(stats["max_radius_m"], radius)
+        return radius
+
     def _fair_transfer_order(self, rows, goal):
         groups = [defaultdict(deque) for _ in range(3)]
         radius = self.network.walk_policy.get("max_distance_m", 900)
@@ -299,9 +433,11 @@ class LazyConnections:
         cached_lookup = getattr(self.walking, "cached", None)
         if start not in self._walk_candidates:
             candidates = []
-            for d, end in self.walk_index.near(
+            nearby = self.walk_index.near(
                 source, self.network.walk_policy["max_distance_m"]
-            ):
+            )
+            preferred_radius = self._preferred_walk_radius(start, nearby)
+            for d, end in nearby:
                 if end in (start, "origin") or (start, end) in self._existing_walks:
                     continue
                 target = self.network.nodes[end]
@@ -321,23 +457,46 @@ class LazyConnections:
                         + 1
                     )
                     continue
-                candidates.append((not hit, end != "destination", d, end))
+                candidates.append(
+                    (not hit, end != "destination", d > preferred_radius, d, end)
+                )
             # Cached edges cost no calls; destination egress comes before local
             # exploration. All directed radius-valid candidates remain present.
             first, groups = [], defaultdict(deque)
-            for missed, not_goal, d, end in sorted(candidates):
+            for missed, not_goal, outside_preferred, d, end in sorted(candidates):
                 if not missed or not not_goal:
                     first.append((d, end))
                 else:
                     kind = self.network.nodes[end].get("kind")
                     group = "rail" if end.startswith("subway:") else kind
-                    groups[group].append((d, end))
-            queues = deque(groups.values())
-            while queues:
+                    groups[(outside_preferred, group)].append((d, end))
+            tiers = {
+                outside: deque(
+                    values
+                    for (is_outside, _), values in groups.items()
+                    if is_outside == outside
+                )
+                for outside in (False, True)
+            }
+
+            def take(outside):
+                queues = tiers[outside]
+                if not queues:
+                    return False
                 group = queues.popleft()
                 first.append(group.popleft())
                 if group:
                     queues.append(group)
+                return True
+
+            # Two locally promising calls for every fallback call keeps sparse
+            # access discoverable without letting distant candidates dominate.
+            while tiers[False] or tiers[True]:
+                took = take(False)
+                took = take(False) or took
+                took = take(True) or took
+                if not took:
+                    break
             self._walk_candidates[start] = iter(first)
         cursor = 0
         blocked_batch = 0
