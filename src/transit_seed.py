@@ -29,7 +29,7 @@ def timetable_seed(
     for edge in walks:
         walking[edge["from"]].append(edge)
     # Immutable predecessor chains keep earlier paths intact after improvements.
-    # label = (arrival, boardings, walking_minutes, parent_label, incoming_leg)
+    # label = (arrival, boardings, walking_minutes, parent_label, incoming_leg, platform_context)
     off, aboard, expanded_walks = {}, {}, {}
     expired = False
     examined = 0
@@ -65,7 +65,7 @@ def timetable_seed(
                 expanded_walks[key] = value
                 heapq.heappush(queue, (*rank(value), next(counter), key, value))
 
-        improve((node, used), label)
+        improve((node, used, label[5]), label)
         while queue:
             if time.monotonic() >= deadline:
                 expired = True
@@ -77,6 +77,8 @@ def timetable_seed(
                 continue
             for edge in walking.get(key[0], ()):
                 minutes = float(edge["minutes"])
+                if edge.get("platform_transfer") and not value[5]:
+                    minutes += float(edge.get("entry_fallback_seconds", 120)) / 60
                 arrival = value[0] + minutes * 60
                 leg = dict(
                     edge,
@@ -86,8 +88,19 @@ def timetable_seed(
                     minutes=minutes,
                 )
                 improve(
-                    (edge["to"], key[1]),
-                    (arrival, value[1], value[2] + minutes, value, leg),
+                    (
+                        edge["to"],
+                        key[1],
+                        2 if edge.get("platform_access_complete", False) else 0,
+                    ),
+                    (
+                        arrival,
+                        value[1],
+                        value[2] + minutes,
+                        value,
+                        leg,
+                        2 if edge.get("platform_access_complete", False) else 0,
+                    ),
                 )
             if proposed_walks is not None:
                 # Priority planning only: one unverified walk between vehicle
@@ -103,16 +116,28 @@ def timetable_seed(
                         minutes=minutes,
                     )
                     improve(
-                        (edge["to"], key[1]),
-                        (arrival, value[1], value[2] + minutes, value, leg),
+                        (edge["to"], key[1], False),
+                        (arrival, value[1], value[2] + minutes, value, leg, False),
                         expand=False,
                     )
 
-    walk_closure(origin, required_mode is None, (start, 0, 0.0, None, None))
+    walk_closure(origin, required_mode is None, (start, 0, 0.0, None, None, False))
     # rides values are already sorted by departure in Router's shared index.
     events = heapq.merge(*rides.values(), key=lambda row: row[0])
     for departure, arrival, edge in events:
-        target = off.get((destination, True))
+        target = min(
+            (
+                off[k]
+                for k in (
+                    (destination, True, 0),
+                    (destination, True, 1),
+                    (destination, True, 2),
+                )
+                if k in off
+            ),
+            key=rank,
+            default=None,
+        )
         # All remaining services depart no earlier than an already feasible
         # arrival. Positive movement times cannot improve that seed.
         if target is not None and departure >= target[0]:
@@ -130,16 +155,19 @@ def timetable_seed(
                 candidates.append((through, through[1]))
             # Reaching the destination ends an off-board journey. A vehicle
             # may still pass it without allowing alighting at that event.
-            board = (
-                off.get((edge["from"], used)) if edge["from"] != destination else None
-            )
-            if (
-                board is not None
-                and edge.get("pickup_allowed", True)
-                and board[0] + float(edge.get("boarding_seconds", 0))
-                <= departure + 1e-6
-            ):
-                candidates.append((board, board[1] + 1))
+            for ready in (0, 1, 2):
+                board = (
+                    off.get((edge["from"], used, ready))
+                    if edge["from"] != destination
+                    else None
+                )
+                delay = 0 if ready == 2 else float(edge.get("boarding_seconds", 0))
+                if (
+                    board is not None
+                    and edge.get("pickup_allowed", True)
+                    and board[0] + delay <= departure + 1e-6
+                ):
+                    candidates.append((board, board[1] + 1))
             if not candidates:
                 continue
             previous, boards = min(candidates, key=lambda v: (v[1], v[0][2]))
@@ -152,7 +180,7 @@ def timetable_seed(
                 wait_minutes=(departure - previous[0]) / 60,
                 minutes=(arrival - previous[0]) / 60,
             )
-            label = (arrival, boards, previous[2], previous, leg)
+            label = (arrival, boards, previous[2], previous, leg, False)
             key = (edge["to"], edge["trip_id"], now_used)
             if key not in aboard or rank(label) < rank(aboard[key]):
                 aboard[key] = label
@@ -165,9 +193,30 @@ def timetable_seed(
                     minutes=0,
                 )
                 walk_closure(
-                    edge["to"], now_used, (arrival, boards, label[2], label, alight)
+                    edge["to"],
+                    now_used,
+                    (
+                        arrival,
+                        boards,
+                        label[2],
+                        label,
+                        alight,
+                        1 if edge["mode"] == "subway" else 0,
+                    ),
                 )
-    target = off.get((destination, True))
+    target = min(
+        (
+            off[k]
+            for k in (
+                (destination, True, 0),
+                (destination, True, 1),
+                (destination, True, 2),
+            )
+            if k in off
+        ),
+        key=rank,
+        default=None,
+    )
     route = None
     if target is not None:
         legs, label = [], target

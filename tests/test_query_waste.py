@@ -64,7 +64,7 @@ class QueryWasteTests(unittest.TestCase):
         o, d, s, t = future_case()
         w = BudgetWalking(20)
         n = build_scheduled_network(
-            t, s, o, d, w, ScheduledConfig(bicycle_available=False, max_kakao_calls=20)
+            t, s, o, d, w, ScheduledConfig(adaptive_connections=False, bicycle_available=False, max_kakao_calls=20)
         )
         self.assertFalse(n.bike_policy)
         self.assertIn("bike:1", n.nodes)
@@ -86,7 +86,7 @@ class QueryWasteTests(unittest.TestCase):
         )
         w = BudgetWalking(20)
         n = build_scheduled_network(
-            t, stations, o, d, w, ScheduledConfig(bicycle_available=False)
+            t, stations, o, d, w, ScheduledConfig(adaptive_connections=False, bicycle_available=False)
         )
         r = Router(n, None, Config(), walking_provider=w).search(
             "origin", "destination", START
@@ -106,7 +106,7 @@ class QueryWasteTests(unittest.TestCase):
             o,
             d,
             w,
-            ScheduledConfig(search_mode="bicycle", bicycle_available=False),
+            ScheduledConfig(adaptive_connections=False, search_mode="bicycle", bicycle_available=False),
         )
         self.assertFalse(n.bike_policy)
         self.assertEqual(w.client.calls, 0)
@@ -115,7 +115,7 @@ class QueryWasteTests(unittest.TestCase):
         o, d, s, t = dead_end_case()
         w = BudgetWalking(20)
         n = build_scheduled_network(
-            t, s, o, d, w, ScheduledConfig(search_mode="transit")
+            t, s, o, d, w, ScheduledConfig(adaptive_connections=False, search_mode="transit")
         )
         self.assertNotIn(("origin", "D"), w.queries)
         r = Router(n, None, Config(required_mode="transit"), walking_provider=w).search(
@@ -130,7 +130,7 @@ class QueryWasteTests(unittest.TestCase):
         t.transit.append(ride("relay", "T", "relay-T"))
         w = BudgetWalking(20)
         n = build_scheduled_network(
-            t, s, o, d, w, ScheduledConfig(search_mode="transit")
+            t, s, o, d, w, ScheduledConfig(adaptive_connections=False, search_mode="transit")
         )
         self.assertFalse(DeadEndGuard(n).is_dead("D"))
         self.assertIn(("origin", "D"), w.queries)

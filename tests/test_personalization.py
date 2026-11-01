@@ -317,7 +317,7 @@ class RoutingPersonalizationTests(unittest.TestCase):
                     use_inventory=False,
                     personalization_id=token_arg,
                     personalization_path=personal_path,
-                    config=ScheduledConfig(
+                    config=ScheduledConfig(adaptive_connections=False,
                         top_k=1,
                         require_known_inventory=False,
                         max_empty_probability=None,

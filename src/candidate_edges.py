@@ -7,6 +7,26 @@ from station_coordinates import bicycle_coordinates
 from kakao_routes import CallLimit, KakaoError, WalkingDeadline, record_walking_error
 
 
+def adaptive_radii(
+    origin,
+    destination,
+    nodes,
+    stations,
+    walk_radius,
+    bike_radius,
+    max_access_walk_minutes,
+):
+    """Retain the original core; discover access within a walking-time policy.
+
+    The walking ceiling is an explicit user policy, not a path-time estimate.
+    Bicycle discovery spans the requested OD plus its two access envelopes.
+    Only actual walking responses and model ETAs become route costs.
+    """
+    access = max(walk_radius, max_access_walk_minutes * 80)
+    bicycle = max(bike_radius, distance(origin, destination) + 2 * access)
+    return access, bicycle
+
+
 class SpatialIndex:
     def __init__(self, nodes, cell_degrees=0.01):
         self.nodes, self.cell = nodes, cell_degrees
@@ -251,6 +271,16 @@ class LazyConnections:
                 )
                 if self.transfer_index is not None:
                     rows = self._fair_transfer_order(rows, goal)
+            core = self.network.bike_policy.get("core_distance_m")
+            if core is not None:
+                near = deque(e for e in rows if e["straight_distance_m"] <= core)
+                extended = deque(e for e in rows if e["straight_distance_m"] > core)
+                rows = []
+                while near or extended:
+                    if near:
+                        rows.append(near.popleft())
+                    if extended:
+                        rows.append(extended.popleft())
             self.bike_cache[start] = rows
         return self.bike_cache[start]
 
