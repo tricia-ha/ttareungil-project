@@ -24,6 +24,7 @@ TRANSIT_FILES = (
     "README.md",
     "transit_geometry.sqlite",
     "files/subway_coordinate_corrections.json",
+    "files/bus_coordinate_corrections.json",
 )
 
 
@@ -41,6 +42,7 @@ def required_paths():
             "src/road_startup_cache.py",
             "src/transit_seed.py",
             "src/transit_coordinates.py",
+            "src/station_coordinates.py",
             "examples/python_usage.py",
             "notebooks/01_기능실행.ipynb",
             "docs/USAGE.md",

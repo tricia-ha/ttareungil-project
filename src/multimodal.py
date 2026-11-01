@@ -1240,17 +1240,24 @@ class V521BikeProvider:
             weather_forecast=result.get("weather_forecast"),
         )
 
+    def _eta_request(self, edge, departure):
+        request = dict(
+            start_station_id=edge["eta_from"],
+            end_station_id=edge["eta_to"],
+            departure=departure,
+            bike_type=self.bike_type,
+            user_type=self.user_type,
+        )
+        for side, key in (("from", "start_coordinates"), ("to", "end_coordinates")):
+            if f"eta_{side}_latitude" in edge:
+                request[key] = dict(
+                    latitude=edge[f"eta_{side}_latitude"],
+                    longitude=edge[f"eta_{side}_longitude"],
+                )
+        return request
+
     def predict_eta_batch(self, edges, departure):
-        requests = [
-            dict(
-                start_station_id=e["eta_from"],
-                end_station_id=e["eta_to"],
-                departure=departure,
-                bike_type=self.bike_type,
-                user_type=self.user_type,
-            )
-            for e in edges
-        ]
+        requests = [self._eta_request(e, departure) for e in edges]
         if self.use_kma and hasattr(self.eta, "predict_with_kma_batch"):
             results = self.eta.predict_with_kma_batch(requests)
         elif not self.use_kma and hasattr(self.eta, "predict_batch"):
@@ -1263,13 +1270,7 @@ class V521BikeProvider:
 
     def predict_eta(self, edge, departure):
         """Predict travel time without binding it to one inventory snapshot."""
-        request = dict(
-            start_station_id=edge["eta_from"],
-            end_station_id=edge["eta_to"],
-            departure=departure,
-            bike_type=self.bike_type,
-            user_type=self.user_type,
-        )
+        request = self._eta_request(edge, departure)
         forecast_error = None
         if self.use_kma:
             try:

@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 
-def corrected_subway_stops(stops, folder):
-    path = Path(folder) / "files" / "subway_coordinate_corrections.json"
+def _corrected(stops, folder, filename):
+    path = Path(folder) / "files" / filename
     if not path.is_file():
         return stops
     output = dict(stops)
@@ -23,3 +23,11 @@ def corrected_subway_stops(stops, folder):
             current, **row["corrected"], coordinate_source=row["source"]
         )
     return output
+
+
+def corrected_subway_stops(stops, folder):
+    return _corrected(stops, folder, "subway_coordinate_corrections.json")
+
+
+def corrected_bus_stops(stops, folder):
+    return _corrected(stops, folder, "bus_coordinate_corrections.json")

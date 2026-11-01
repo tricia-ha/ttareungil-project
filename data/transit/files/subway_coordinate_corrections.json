@@ -14,7 +14,18 @@
         "longitude": 127.086224
       },
       "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
-      "reference_url": "http://place.map.kakao.com/21160539"
+      "reference_url": "http://place.map.kakao.com/21160539",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/217/home",
+        "checks": [
+          "exact line and station name",
+          "address agreement",
+          "adjacent station relation",
+          "map record comparison"
+        ],
+        "note": "Matching records may share source data; reviewed using physical location context."
+      }
     },
     {
       "station_key": "2:0245",
@@ -28,7 +39,18 @@
         "longitude": 127.047048
       },
       "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
-      "reference_url": "http://place.map.kakao.com/21160808"
+      "reference_url": "http://place.map.kakao.com/21160808",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/252/home",
+        "checks": [
+          "exact line and station name",
+          "address agreement",
+          "adjacent station relation",
+          "map record comparison"
+        ],
+        "note": "Matching records may share source data; reviewed using physical location context."
+      }
     },
     {
       "station_key": "2:0244",
@@ -42,7 +64,18 @@
         "longitude": 127.05087863
       },
       "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
-      "reference_url": "http://place.map.kakao.com/21160624"
+      "reference_url": "http://place.map.kakao.com/21160624",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/251/home",
+        "checks": [
+          "exact line and station name",
+          "address agreement",
+          "adjacent station relation",
+          "map record comparison"
+        ],
+        "note": "Matching records may share source data; reviewed using physical location context."
+      }
     },
     {
       "station_key": "5:2516",
@@ -56,7 +89,102 @@
         "longitude": 126.837633
       },
       "source": "national_rail_stations.xlsx: exact line and station name; independently checked against Kakao place",
-      "reference_url": "http://place.map.kakao.com/21160847"
+      "reference_url": "http://place.map.kakao.com/21160847",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/515/home",
+        "checks": [
+          "exact line and station name",
+          "address agreement",
+          "adjacent station relation",
+          "map record comparison"
+        ],
+        "note": "Matching records may share source data; reviewed using physical location context."
+      }
+    },
+    {
+      "station_key": "1:0150",
+      "name": "서울역",
+      "original": {
+        "latitude": 37.55315,
+        "longitude": 126.972533
+      },
+      "corrected": {
+        "latitude": 37.55585,
+        "longitude": 126.972103
+      },
+      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "reference_url": "http://place.map.kakao.com/27254967",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "address": "서울 중구 세종대로 지하 2",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/133/home",
+        "coordinate_basis": "national",
+        "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
+      }
+    },
+    {
+      "station_key": "5:2515",
+      "name": "마곡",
+      "original": {
+        "latitude": 37.562182,
+        "longitude": 126.82693
+      },
+      "corrected": {
+        "latitude": 37.56022863776301,
+        "longitude": 126.82469691791624
+      },
+      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "reference_url": "http://place.map.kakao.com/21160747",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "address": "서울 강서구 공항대로 지하 163",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/514/home",
+        "coordinate_basis": "map",
+        "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
+      }
+    },
+    {
+      "station_key": "6:2619",
+      "name": "디지털미디어시티",
+      "original": {
+        "latitude": 37.577005,
+        "longitude": 126.898643
+      },
+      "corrected": {
+        "latitude": 37.5760805,
+        "longitude": 126.901343
+      },
+      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "reference_url": "http://place.map.kakao.com/21160854",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "address": "서울 은평구 수색로 지하 175",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/618/home",
+        "coordinate_basis": "national",
+        "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
+      }
+    },
+    {
+      "station_key": "경의중앙선:양원",
+      "name": "양원역",
+      "original": {
+        "latitude": 36.963729,
+        "longitude": 129.091321
+      },
+      "corrected": {
+        "latitude": 37.6066060557557,
+        "longitude": 127.107946139148
+      },
+      "source": "Reviewed line-specific station identity, address, Kakao/Naver map location and neighboring railway alignment",
+      "reference_url": "http://place.map.kakao.com/21160860",
+      "evidence": {
+        "checked_on": "2026-10-30",
+        "address": "서울 중랑구 송림길 147",
+        "naver_url": "https://pts.map.naver.com/end-subway/ends/web/1314/home",
+        "coordinate_basis": "map",
+        "note": "Naver station text verifies line/address; a matching map record alone is not independent ground truth."
+      }
     }
   ]
 }

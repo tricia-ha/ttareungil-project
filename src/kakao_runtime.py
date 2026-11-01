@@ -13,6 +13,7 @@ from kakao_routes import KakaoClient, point
 from kakao_optimizer import KakaoConfig, build_network, search, save_json, map_html
 from multimodal import V521BikeProvider, timestamp
 from multimodal_cache import CachedBikeProvider
+from station_coordinates import different_coordinates
 from project_paths import (
     PROJECT_ROOT,
     ETA_MODEL_DIR,
@@ -57,6 +58,9 @@ def eligible_station_catalog(stations, mapping, inventory, snapshot):
             counts["unsupported_inventory"] += 1
             continue
         merged = dict(row)
+        if different_coordinates(row, live):
+            merged["eta_catalog_latitude"] = float(row["latitude"])
+            merged["eta_catalog_longitude"] = float(row["longitude"])
         merged.update(
             station_id=eta_id,
             station_name=live.get("station_name") or row.get("station_name"),

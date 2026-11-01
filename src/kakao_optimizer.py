@@ -11,6 +11,7 @@ import json
 import math
 from pathlib import Path
 import time
+from station_coordinates import bicycle_coordinates
 
 from kakao_routes import (
     KakaoError,
@@ -146,6 +147,13 @@ def build_network(
         sid = str(row["station_id"])
         if sid.endswith(".0"):
             sid = sid[:-2]
+        p.update(
+            {
+                k: row[k]
+                for k in ("eta_catalog_latitude", "eta_catalog_longitude")
+                if k in row
+            }
+        )
         available.append(
             dict(
                 p,
@@ -177,11 +185,15 @@ def build_network(
         for b in neighbors[: c.bike_neighbors]:
             if distance(nodes[a], nodes[b]) <= c.bike_radius_m:
                 edges.append(
-                    dict(
-                        mode="bicycle",
-                        **{"from": a, "to": b},
-                        eta_from=nodes[a]["station_id"],
-                        eta_to=nodes[b]["station_id"],
+                    bicycle_coordinates(
+                        dict(
+                            mode="bicycle",
+                            **{"from": a, "to": b},
+                            eta_from=nodes[a]["station_id"],
+                            eta_to=nodes[b]["station_id"],
+                        ),
+                        nodes[a],
+                        nodes[b],
                     )
                 )
     # Forward and reverse walks are separate API calls. Direction is not copied.

@@ -60,6 +60,9 @@ class ForecastBatchTests(unittest.TestCase):
             stations = Stations()
             weather_provider = Weather()
 
+            def _request_station(self, station_id, coordinates=None):
+                return self.stations.loc[station_id]
+
             def predict_batch(self, requests):
                 self.requests = requests
                 return [{"model": {}} for r in requests]

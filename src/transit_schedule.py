@@ -412,10 +412,12 @@ def build_timetable(
             "필요한 요일 시간표가 없습니다. 시간표 수집 셀을 다시 실행하세요."
         )
     if include_bus:
+        from transit_coordinates import corrected_bus_stops
+
         bus, bus_report = reconstruct_bus(
             read_csv(folder / "bus_raw.zip"),
             read_csv(folder / "bus_route_nodes.dat"),
-            payload["bus_stops"],
+            corrected_bus_stops(payload["bus_stops"], folder),
             departure,
             horizon_minutes,
             holiday_dates,
