@@ -3,12 +3,14 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
+import json
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from multimodal import Config, Network, Router
 from route_identity import distinct_routes, route_signature, walking_minutes
 from web_server import compact_routes
+from kakao_optimizer import map_html
 
 START = datetime(2026, 10, 30, 8, 0, tzinfo=timezone.utc)
 
@@ -46,6 +48,95 @@ def run(nodes, walks=(), transit=(), bikes=(), provider=None):
 
 
 class WalkingDuplicateTests(unittest.TestCase):
+    def test_same_line_different_departures_keep_only_fastest_arrival(self):
+        first = dict(ride("A", "B", 2, 6, "first"), route_id="L")
+        later = dict(ride("A", "B", 4, 7, "later"), route_id="L")
+        slow = dict(
+            total_minutes=8,
+            legs=[
+                walk("O", "A", 1),
+                {"mode": "wait", "from": "A", "to": "A", "minutes": 3},
+                later,
+                walk("B", "Z", 1),
+            ],
+        )
+        fast = dict(total_minutes=7, legs=[walk("O", "A", 1), first, walk("B", "Z", 1)])
+        self.assertEqual(route_signature(slow["legs"]), route_signature(fast["legs"]))
+        self.assertEqual(distinct_routes([slow, fast]), [fast])
+        self.assertEqual(distinct_routes([fast, slow]), [fast])
+        self.assertEqual(compact_routes(dict(routes=[slow, fast]))["routes"], [fast])
+        other = dict(
+            fast,
+            legs=[walk("O", "A", 1), dict(first, route_id="OTHER"), walk("B", "Z", 1)],
+        )
+        self.assertEqual(len(distinct_routes([slow, fast, other])), 2)
+        original = dict(routes=[slow, fast], mixed_routes=[other], nodes={})
+        html = map_html(original)
+        displayed, _ = json.JSONDecoder().raw_decode(html.split("const data=", 1)[1])
+        self.assertEqual(len(displayed["routes"]), 2)
+        self.assertEqual(displayed["routes"][0], fast)
+        self.assertEqual(original["routes"], [slow, fast])
+        changed_stop = dict(
+            fast,
+            legs=[walk("O", "C", 1), dict(first, **{"from": "C"}), walk("B", "Z", 1)],
+        )
+        self.assertNotEqual(
+            route_signature(fast["legs"]), route_signature(changed_stop["legs"])
+        )
+
+    def test_different_transfer_path_survives_without_overtaking(self):
+        def train(a, b, dep, arr, trip, line="L", mode="subway"):
+            return dict(ride(a, b, dep, arr, trip), route_id=line, mode=mode)
+
+        updates = []
+        net = Network(
+            nodes={k: {} for k in "OABCDEZ"},
+            walks=[walk("O", "A", 1), walk("C", "Z", 4), walk("E", "Z", 1)],
+            transit=[
+                train("A", "B", 2, 3, "first"),
+                train("B", "C", 3.5, 5, "first"),
+                train("A", "B", 4, 5, "later"),
+                train("B", "C", 5.5, 7, "later"),
+                train("A", "D", 4, 5, "other", "OTHER"),
+                train("D", "E", 5.5, 6, "bus", "BUS", "bus"),
+            ],
+        )
+        result = Router(
+            net,
+            None,
+            Config(top_k=3, max_seconds=2, horizon_minutes=15),
+            on_routes=updates.append,
+        ).search("O", "Z", START)
+        self.assertEqual([r["total_minutes"] for r in result["routes"]], [7, 9])
+        self.assertEqual(
+            {
+                leg["route_id"]
+                for leg in result["routes"][0]["legs"]
+                if leg["mode"] in {"subway", "bus"}
+            },
+            {"OTHER", "BUS"},
+        )
+        self.assertEqual(
+            {
+                leg["trip_id"]
+                for leg in result["routes"][1]["legs"]
+                if leg["mode"] == "subway"
+            },
+            {"first"},
+        )
+        for update in updates:
+            keys = [route_signature(r["legs"]) for r in update["routes"]]
+            self.assertEqual(len(keys), len(set(keys)))
+
+    def test_opaque_legacy_transit_options_are_kept_distinct(self):
+        a = [dict(mode="transit", **{"from": "O", "to": "Z"}, route_option="fast")]
+        b = [
+            dict(
+                mode="transit", **{"from": "O", "to": "Z"}, route_option="few_transfers"
+            )
+        ]
+        self.assertNotEqual(route_signature(a), route_signature(b))
+
     def test_same_train_and_walk_endpoints_share_one_identity(self):
         train = ride("A", "B", 2, 3, "T")
         direct = [walk("O", "A", 1), train, walk("B", "Z", 2)]

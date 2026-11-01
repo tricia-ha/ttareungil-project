@@ -209,3 +209,12 @@ assert.notEqual(context.routeDisplayKey(direct), context.routeDisplayKey(changed
   console.error(error);
   process.exitCode = 1;
 });
+
+// Waiting for the next vehicle does not create another path on the same line.
+const sameLine = (trip, minutes, line='L') => ({total_minutes:minutes, legs:[walking('O','S',1),{...train,route_id:line,trip_id:trip,departure:trip,wait_minutes:minutes-2},walking('T','Z',1)]});
+const earlyFast=sameLine('early',9), lateSlow=sameLine('late',12), otherLine=sameLine('other',10,'OTHER');
+assert.equal(context.routeKey(earlyFast),context.routeKey(lateSlow));
+assert.notEqual(context.routeKey(earlyFast),context.routeKey(otherLine));
+assert.equal(JSON.stringify(context.orderedRoutes({routes:[lateSlow,otherLine],mixed_routes:[earlyFast]})),JSON.stringify([earlyFast,otherLine]));
+assert.equal(JSON.stringify(context.orderedRoutes({routes:[earlyFast,lateSlow]})),JSON.stringify([earlyFast]));
+assert.notEqual(context.routeDisplayKey(earlyFast),context.routeDisplayKey(lateSlow));

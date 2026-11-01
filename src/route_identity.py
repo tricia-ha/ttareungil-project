@@ -1,4 +1,4 @@
-"""Compare itineraries independently of intermediate walking relay nodes."""
+"""Compare paths independently of walking relays and scheduled vehicle instances."""
 
 
 def route_signature(legs):
@@ -21,7 +21,21 @@ def route_signature(legs):
             end = leg["to"]
         elif mode not in {"wait", "alight"}:
             flush()
-            tokens.append((mode, leg["from"], leg["to"], leg.get("trip_id")))
+            service = leg.get("trip_id")
+            if mode in {"bus", "subway"}:
+                # Unknown services retain their vehicle ID: endpoints alone
+                # cannot establish that two buses belong to the same line.
+                service = next(
+                    (
+                        (key, str(leg[key]))
+                        for key in ("route_id", "route_name", "trip_id")
+                        if leg.get(key) not in (None, "")
+                    ),
+                    None,
+                )
+            elif mode == "transit" and leg.get("route_option") is not None:
+                service = ("route_option", str(leg["route_option"]))
+            tokens.append((mode, leg["from"], leg["to"], service))
     flush()
     return tuple(tokens)
 
