@@ -42,3 +42,5 @@ Python 연결은 `examples/python_usage.py`, 노트북은 `노트북_실행.cmd`
 `프로젝트_점검.cmd`로 실행 환경을 검사합니다. 압축 전에는 `프로젝트_점검.cmd --clean`으로 인증키·개인 DB·캐시·노트북 출력 포함 여부를 검사합니다. 설치 후의 `.venv`, `.env`, 개인 자료는 압축에서 제외합니다. 다른 PC에서는 `.venv`를 복사하지 않고 다시 설치합니다.
 
 [웹·휴대폰 사용법](docs/WEB.md) · [Python 사용법](docs/USAGE.md) · [사진 등록](docs/SCREENSHOT_IMPORT.md) · [개인화](docs/PERSONALIZATION.md) · [검증·제한](docs/VALIDATION.md) · [시설 좌표 점검](docs/COORDINATES.md) · [시간표 수집](docs/TIMETABLE_COLLECTION.md)
+
+공개 버스 출발표 갱신은 `버스시간표_수집.cmd` 또는 `notebooks/04_버스시간표수집.ipynb`에서 실행합니다. 저장된 시간표와 가공된 구간 운행 통계는 바로 사용할 수 있습니다. 수집 범위·추정 부분은 [시간표 수집](docs/TIMETABLE_COLLECTION.md)에 구분했습니다.

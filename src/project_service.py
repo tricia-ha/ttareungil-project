@@ -4,7 +4,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
-import hashlib, io, json, secrets, time, uuid
+import hashlib
+import io
+import json
+import secrets
+import time
+import uuid
 import os
 import threading
 from web_capacity import LockedModel
@@ -54,6 +59,8 @@ class RouteQuery(Input):
     max_seconds: float = Field(30, gt=0, le=600)
     max_kakao_calls: int = Field(80, gt=0, le=200)
     max_empty_probability: float | None = Field(0.1, ge=0, le=1)
+    adaptive_connections: bool = True
+    max_access_walk_minutes: float = Field(30, gt=0, le=180)
 
 
 class ProfileQuery(Input):
@@ -323,7 +330,7 @@ class ProjectService:
 
     def preview(self, q):
         with self.store() as store:
-            owner = store._require(q.profile_id)
+            store._require(q.profile_id)
         path = resolve_project_path(q.image_path)
         if not path.is_file() or path.stat().st_size > 12 * 1024 * 1024:
             raise ValueError("12MB 이내 PNG/JPEG 파일을 지정해 주세요.")
@@ -353,8 +360,11 @@ class ProjectService:
                 ):
                     raise ValueError("PNG/JPEG, 최대 2천만 화소만 지원합니다.")
                 image = ImageOps.exif_transpose(source)
-                l, t, r, b = crop
-                if not (0 <= l < r <= image.width and 0 <= t < b <= image.height):
+                left, top, right, bottom = crop
+                if not (
+                    0 <= left < right <= image.width
+                    and 0 <= top < bottom <= image.height
+                ):
                     raise ValueError(
                         "crop은 이미지 범위 내 [왼쪽, 위, 오른쪽, 아래]여야 합니다."
                     )
@@ -530,6 +540,8 @@ class ProjectService:
             top_k=q.top_k,
             max_seconds=q.max_seconds,
             max_kakao_calls=q.max_kakao_calls,
+            adaptive_connections=q.adaptive_connections,
+            max_access_walk_minutes=q.max_access_walk_minutes,
             bike_quantile="p50",
             require_known_inventory=q.use_inventory and uses_bike,
             max_empty_probability=q.max_empty_probability
@@ -537,7 +549,7 @@ class ProjectService:
             else None,
         )
         if uses_bike and self.eta_service is None:
-            notify_progress(on_progress, 'model')
+            notify_progress(on_progress, "model")
         model = self.shared_model() if uses_bike else None
         return run_scheduled_optimization(
             q.origin.model_dump(),

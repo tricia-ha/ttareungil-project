@@ -60,6 +60,8 @@ class ScheduledConfig:
     )
     max_connector_distance_m: float = 900
     max_bike_distance_m: float = 7000
+    adaptive_connections: bool = True
+    max_access_walk_minutes: float = 30
     max_kakao_calls: int = 80
     kakao_daily_limit: int = 1000
     require_known_inventory: bool = True
@@ -76,6 +78,8 @@ class ScheduledConfig:
     bicycle_available: bool = True
 
     def validate(self):
+        if not isinstance(self.adaptive_connections, bool):
+            raise ValueError("adaptive_connections는 bool이어야 합니다.")
         if not isinstance(self.bicycle_available, bool):
             raise ValueError("bicycle_available는 bool이어야 합니다.")
         if not isinstance(self.bicycle_batch_size, int) or self.bicycle_batch_size <= 0:
@@ -105,6 +109,7 @@ class ScheduledConfig:
             self.max_transfer_walks,
             self.max_connector_distance_m,
             self.max_bike_distance_m,
+            self.max_access_walk_minutes,
             self.max_kakao_calls,
             self.kakao_daily_limit,
         )
@@ -364,6 +369,35 @@ def build_scheduled_network(
         if config.search_mode in ("subway", "transit"):
             stations = []
     origin_access = destination_access = None
+    core_walk_radius, core_bike_radius = (
+        config.max_connector_distance_m,
+        config.max_bike_distance_m,
+    )
+    if config.complete_candidates and config.adaptive_connections:
+        from dataclasses import replace
+        from candidate_edges import adaptive_radii
+
+        walk_radius, bike_radius = adaptive_radii(
+            origin,
+            destination,
+            timetable.nodes,
+            stations,
+            core_walk_radius,
+            core_bike_radius,
+            config.max_access_walk_minutes,
+        )
+        config = replace(
+            config,
+            max_connector_distance_m=walk_radius,
+            max_bike_distance_m=bike_radius,
+        )
+        walking_diagnostics.update(
+            core_walk_radius_m=core_walk_radius,
+            effective_walk_radius_m=walk_radius,
+            core_bike_radius_m=core_bike_radius,
+            effective_bike_radius_m=bike_radius,
+            adaptive_connections=True,
+        )
     if config.search_mode == "bicycle":
         # With no transit stops and no station-to-station walking, a valid
         # cycling-only journey rents near origin and returns near destination.
@@ -491,30 +525,10 @@ def build_scheduled_network(
     if config.complete_candidates:
         # Every supported station and directed OD remains available within the
         # configured radii. APIs/ETAs are evaluated only at reached nodes.
-        from extended_rail import name as rail_station_name
-        from collections import defaultdict
+        from rail_access import transfer_walks
+        from project_paths import TRANSIT_DATA_DIR
 
-        complexes = defaultdict(list)
-        for key, value in stops.items():
-            if key.startswith("subway:"):
-                complexes[rail_station_name(value.get("name", ""))].append(key)
-        transfers = []
-        for name, platforms in complexes.items():
-            if not name:
-                continue
-            for a in platforms:
-                for b in platforms:
-                    separation = distance(nodes[a], nodes[b])
-                    if a != b and separation <= 700:
-                        transfers.append(
-                            {
-                                "from": a,
-                                "to": b,
-                                "minutes": 3.0 + separation / 80.0,
-                                "source": "rail_interchange_estimate",
-                                "geometry": None,
-                            }
-                        )
+        transfers = transfer_walks(nodes, timetable.transit, TRANSIT_DATA_DIR)
         connector_limit, cached_seeds, paid_seeds = _seed_endpoint_walks(
             nodes,
             stops,
@@ -527,7 +541,10 @@ def build_scheduled_network(
             departure=departure,
         )
         bike_policy = (
-            {"max_distance_m": config.max_bike_distance_m}
+            {
+                "max_distance_m": config.max_bike_distance_m,
+                "core_distance_m": core_bike_radius,
+            }
             if config.bicycle_available
             and config.search_mode not in ("subway", "transit")
             else {}

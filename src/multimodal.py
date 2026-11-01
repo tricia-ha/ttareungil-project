@@ -345,6 +345,7 @@ class Router:
         # state: location, time, current vehicle trip. alighting is explicit.
         counter = itertools.count()
         heap, best, records, required_used, bicycle_paths = [], {}, {}, {}, {}
+        platform_ready = {}
         transit_anchors = {}
         walking_anchors = {}
         walking_roundtrip_replacements = 0
@@ -373,7 +374,16 @@ class Router:
             walk_anchors = walking_anchors.get(parent, {})
             if leg and leg["mode"] not in {"walk", "wait", "alight"}:
                 walk_anchors = {}
-            walk_key = (node, after_bike)
+            ready = (
+                platform_ready.get(parent, False)
+                if leg and leg["mode"] == "wait"
+                else 2
+                if leg and leg.get("platform_access_complete", False)
+                else 1
+                if leg and leg.get("platform_arrival", False)
+                else 0
+            )
+            walk_key = (node, after_bike, ready)
             previous_walk = walk_anchors.get(walk_key)
             if (
                 leg
@@ -410,6 +420,7 @@ class Router:
                 and earlier
                 and earlier[1] < t - 1e-6
                 and not earlier[4]
+                and platform_ready.get(earlier[0], 0) == ready
             ):
                 # Preserve this EXACT later action time, including inventory
                 # changes between minute-grid waits, without the pointless ride.
@@ -448,13 +459,14 @@ class Router:
             path = bicycle_paths.get(parent)
             if single_bicycle_graph and leg and leg["mode"] == "bicycle":
                 path = (leg["from"], leg["to"])
-            key = (node, round(t, 6), trip, after_bike, used, path)
+            key = (node, round(t, 6), trip, after_bike, used, path, ready)
             value = (penalty, boardings)
             if key in best and best[key] <= value:
                 return
             best[key] = value
             idx = next(counter)
             records[idx] = (parent, leg)
+            platform_ready[idx] = ready
             required_used[idx] = used
             if trip is None:
                 if walk_key not in walk_anchors:
@@ -529,12 +541,13 @@ class Router:
             old = next(
                 (r for r in pool if route_signature(r["legs"]) == signature), None
             )
-            rank = lambda r: (
-                r["score_minutes"],
-                r["transit_boardings"],
-                r["total_minutes"],
-                walking_minutes(r),
-            )
+            def rank(r):
+                return (
+                    r["score_minutes"],
+                    r["transit_boardings"],
+                    r["total_minutes"],
+                    walking_minutes(r),
+                )
             if old is None:
                 pool.append(route)
             elif rank(route) < rank(old):
@@ -598,6 +611,10 @@ class Router:
 
         def emit(edge, minutes, cycling, meta, increment, t, boards, idx, penalty):
             minutes = float(minutes)
+            if edge.get("platform_transfer") and not platform_ready.get(idx, 0):
+                extra = float(edge.get("entry_fallback_seconds", 120)) / 60
+                minutes += extra
+                edge = dict(edge, station_entry_minutes=extra)
             if not math.isfinite(minutes) or minutes <= 0:
                 raise ValueError("이동시간은 양수여야 합니다.")
             arr = t + minutes * 60
@@ -885,7 +902,15 @@ class Router:
             )
             used = required_used[idx]
             if best.get(
-                (node, round(t, 6), trip, after_bike, used, bicycle_paths.get(idx))
+                (
+                    node,
+                    round(t, 6),
+                    trip,
+                    after_bike,
+                    used,
+                    bicycle_paths.get(idx),
+                    platform_ready.get(idx, False),
+                )
             ) != (penalty, boards):
                 continue
             expanded += 1
@@ -905,7 +930,7 @@ class Router:
                     arrival=iso(t),
                     total_minutes=(t - start) / 60,
                     score_minutes=score / 60,
-                    bike_rentals=sum(l["mode"] == "bicycle" for l in legs),
+                    bike_rentals=sum(leg["mode"] == "bicycle" for leg in legs),
                     transit_boardings=boards,
                     legs=legs,
                 )
@@ -940,7 +965,9 @@ class Router:
                 schedule = trip_rides.get((node, trip), ())
                 departures = trip_times.get((node, trip), ())
             index = bisect_left(departures, t - 1e-6)
-            frontier = transit_frontiers[(node, trip, used)]
+            frontier = transit_frontiers[
+                (node, trip, used, platform_ready.get(idx, False))
+            ]
             # An earlier arrival with an equal/better (risk penalty, boarding
             # count) already submitted every event this state could board.
             # Skip only duplicate transit submissions, not this state's walks,
@@ -966,7 +993,12 @@ class Router:
                     continue
                 if trip is None and not edge.get("pickup_allowed", True):
                     continue
-                if trip is None and dep < t + float(edge.get("boarding_seconds", 0)):
+                board_delay = (
+                    0
+                    if platform_ready.get(idx, False) == 2
+                    else float(edge.get("boarding_seconds", 0))
+                )
+                if trip is None and dep < t + board_delay:
                     continue
                 leg = dict(
                     edge,
@@ -1016,6 +1048,7 @@ class Router:
                         start=iso(arr),
                         arrival=iso(arr),
                         minutes=0,
+                        platform_arrival=edge["mode"] == "subway",
                     )
                     # Record the vehicle edge first, then the off-board state.
                     ride_idx = next(counter)
@@ -1073,6 +1106,7 @@ class Router:
                 after_bike,
                 used,
                 bicycle_paths.get(idx),
+                platform_ready.get(idx, False),
             )
             state_value = (penalty, boards)
             if lazy is not None and self.network.walk_policy:

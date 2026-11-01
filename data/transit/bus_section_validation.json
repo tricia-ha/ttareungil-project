@@ -1,0 +1,15 @@
+{
+  "training_dates": [
+    "20261012",
+    "20261013",
+    "20261014",
+    "20261015"
+  ],
+  "test_date": "20261016",
+  "evaluated_section_hours": 418307,
+  "covered_section_hours": 417732,
+  "baseline_mae_seconds": 37.183597214486014,
+  "historical_mae_seconds": 14.989715687282308,
+  "reduction_percent": 59.687290068206195,
+  "limitation": "Hourly section aggregates; not whole-journey or individual passenger errors."
+}

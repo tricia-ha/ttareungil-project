@@ -103,6 +103,8 @@ def reconstruct_bus(
     horizon_minutes=180,
     holiday_dates=None,
     distance_mode="segment",
+    published_dispatches=None,
+    section_times=None,
 ):
     """One trip = one dispatch, with ordered stops and a shared vehicle identity.
 
@@ -119,6 +121,7 @@ def reconstruct_bus(
     edges, nodes, report = [], {}, Counter()
     missing_stop_ids = set()
     excluded_routes = []
+    published_dispatches = published_dispatches or {}
     for route in routes:
         rid = route["노선ID"]
         if route.get("운행여부") not in ("", None, "1"):
@@ -177,15 +180,41 @@ def reconstruct_bus(
             report["invalid_runtime_or_distance"] += 1
             continue
         used = False
+        history_profiles, history_bound = None, runtime
+        if section_times:
+            from bus_section_times import route_profiles
+
+            scale = max(
+                1,
+                published_dispatches.get(rid, {}).get("runtime_seconds", runtime)
+                / runtime,
+            )
+            history_profiles, history_bound = route_profiles(
+                section_times, rid, ids, [v * scale for v in offsets]
+            )
         for day in days:
             kind = day_type(day, holiday_dates)
+            posted = published_dispatches.get(rid)
+            posted = (
+                posted if posted and day.isoformat() >= posted["valid_from"] else None
+            )
+            if posted and kind not in posted:
+                continue  # The verified city source explicitly operates Mon-Fri.
             suffix = {"weekday": "", "saturday": "(토요일)", "holiday": "(공휴일)"}[
                 kind
             ]
             try:
-                headway = float(route["배차" + suffix]) * 60
-                first = clock_seconds(route["첫차시간" + suffix])
-                last = clock_seconds(route["막차시간" + suffix])
+                headway = float(route["배차" + suffix]) * 60 if not posted else 60
+                first = (
+                    clock_seconds(route["첫차시간" + suffix])
+                    if not posted
+                    else posted[kind][0]
+                )
+                last = (
+                    clock_seconds(route["막차시간" + suffix])
+                    if not posted
+                    else posted[kind][-1]
+                )
                 if not math.isfinite(headway) or not 30 <= headway <= 6 * 3600:
                     raise ValueError()
                 if last < first:
@@ -194,11 +223,29 @@ def reconstruct_bus(
                 report["invalid_day_parameters"] += 1
                 continue
             midnight = datetime.combine(day, datetime.min.time(), KST)
+            effective_runtime = posted["runtime_seconds"] if posted else runtime
+            use_history = (
+                history_profiles is not None
+                and day.isoformat() >= section_times["valid_from"]
+            )
+            day_offsets = (
+                [round(value * effective_runtime / runtime) for value in offsets]
+                if posted
+                else offsets
+            )
             # Generate only dispatches capable of intersecting the query window.
             lo = max(
                 0,
                 math.ceil(
-                    ((start - midnight).total_seconds() - runtime - first) / headway
+                    (
+                        (start - midnight).total_seconds()
+                        - max(
+                            effective_runtime,
+                            history_bound if use_history else effective_runtime,
+                        )
+                        - first
+                    )
+                    / headway
                 ),
             )
             hi = min(
@@ -206,12 +253,24 @@ def reconstruct_bus(
                 math.floor(((finish - midnight).total_seconds() - first) / headway),
             )
             # Do not invent an extra last departure if it is off the headway grid.
-            for index in range(lo, hi + 1):
-                dispatch = first + index * headway
+            dispatches = (
+                enumerate(posted[kind])
+                if posted
+                else ((i, first + i * headway) for i in range(lo, hi + 1))
+            )
+            for index, dispatch in dispatches:
                 trip = f"bus:{day.isoformat()}:{rid}:{index}"
+                observed_sections = 0
+                trip_times = day_offsets
+                if use_history:
+                    from bus_section_times import trip_offsets
+
+                    trip_times, observed_sections = trip_offsets(
+                        history_profiles, day, dispatch, day_offsets, holiday_dates
+                    )
                 for i, (a, b) in enumerate(zip(ids, ids[1:])):
-                    dep = midnight + timedelta(seconds=dispatch + offsets[i])
-                    arr = midnight + timedelta(seconds=dispatch + offsets[i + 1])
+                    dep = midnight + timedelta(seconds=dispatch + trip_times[i])
+                    arr = midnight + timedelta(seconds=dispatch + trip_times[i + 1])
                     if dep < start or arr > finish:
                         continue
                     edges.append(
@@ -226,6 +285,16 @@ def reconstruct_bus(
                             "route_name": route.get("노선명", rid),
                             "stop_sequence": i,
                             "boarding_seconds": 15,
+                            "dispatch_source": "published_web_departure"
+                            if posted
+                            else "headway_reconstruction",
+                            "historical_sections": observed_sections,
+                            "trip_sections": len(ids) - 1,
+                            "timetable_method": "historical_sections_with_distance_fallback"
+                            if observed_sections
+                            else "published_origin_estimated_stop_times"
+                            if posted
+                            else "headway_distance_reconstruction",
                         }
                     )
                     nodes["bus:" + a] = dict(stops[a], kind="stop", transit_mode="bus")
@@ -439,14 +508,49 @@ def build_timetable(
     if include_bus:
         from transit_coordinates import corrected_bus_stops
 
-        bus, bus_report = reconstruct_bus(
+        routes, sequence_rows = (
             read_csv(folder / "bus_raw.zip"),
             read_csv(folder / "bus_route_nodes.dat"),
-            corrected_bus_stops(payload["bus_stops"], folder),
+        )
+        sequences = defaultdict(list)
+        for row in sequence_rows:
+            sequences[row["노선ID"]].append(row)
+        from bus_web_timetables import mapped_city_dispatches, published_airport_network
+        from bus_section_times import load as load_section_times
+
+        posted, posted_report = mapped_city_dispatches(
+            folder, payload, routes, sequences
+        )
+        bus_stops = corrected_bus_stops(payload["bus_stops"], folder)
+        bus, bus_report = reconstruct_bus(
+            routes,
+            sequence_rows,
+            bus_stops,
             departure,
             horizon_minutes,
             holiday_dates,
             payload.get("distance_mode", "segment"),
+            posted,
+            load_section_times(folder),
+        )
+        posted_bus, airport_report = published_airport_network(
+            folder,
+            dict(payload, bus_stops=bus_stops),
+            routes,
+            sequences,
+            departure,
+            horizon_minutes,
+            holiday_dates,
+        )
+        bus.nodes.update(posted_bus.nodes)
+        bus.transit.extend(posted_bus.transit)
+        bus_report["reconstructed_edges"] = bus_report["edges"]
+        bus_report["edges"] = len(bus.transit)
+        bus_report["routes_with_edges"] = len({e["route_id"] for e in bus.transit})
+        bus_report.update(
+            published_city=posted_report,
+            published_airport=airport_report,
+            published_airport_edges=len(posted_bus.transit),
         )
     else:
         bus, bus_report = (
@@ -495,7 +599,7 @@ def build_timetable(
         metadata={
             "valid_departure": departure,
             "valid_horizon_minutes": horizon_minutes,
-            "transit_type": "static_subway_and_reconstructed_bus",
+            "transit_type": "static_subway_and_mixed_source_bus",
             "bus_report": bus_report,
             "subway_report": subway_report,
             "collected_timetable": (
@@ -517,6 +621,7 @@ def build_timetable(
             "timetable_review_due": review_due.isoformat(),
             "coverage_complete": False,
             "data_gaps": [
+                "일반 버스 다수는 배차간격 기반 출발 추정; 구간별 운행 통계가 실제 출발 시간표를 뜻하지 않음",
                 "일부 버스 노선은 정류장 좌표·순서 누락으로 제외",
                 "신분당·우이신설·신림 일부 종착역 도착 구간 미확보",
                 "공개 자료에 없는 운행·임시 시간표는 미포함",

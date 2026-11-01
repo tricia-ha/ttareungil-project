@@ -20,7 +20,7 @@ class Search30Tests(unittest.TestCase):
         from project_service import RouteQuery
 
         self.assertEqual(Config().max_seconds, 30)
-        self.assertEqual(ScheduledConfig().max_seconds, 30)
+        self.assertEqual(ScheduledConfig(adaptive_connections=False, ).max_seconds, 30)
         self.assertEqual(RouteQuery.model_fields["max_seconds"].default, 30)
 
     def component(self, escape=False):
@@ -37,7 +37,7 @@ class Search30Tests(unittest.TestCase):
             o,
             d,
             walking,
-            ScheduledConfig(search_mode="transit", max_kakao_calls=20),
+            ScheduledConfig(adaptive_connections=False, search_mode="transit", max_kakao_calls=20),
         )
         return n, walking
 

@@ -103,7 +103,7 @@ class SearchModeTests(unittest.TestCase):
             self.origin,
             self.destination,
             self.walk,
-            ScheduledConfig(search_mode="bicycle"),
+            ScheduledConfig(search_mode="bicycle", adaptive_connections=False),
         )
         self.assertEqual(integrated.transit, self.rides)
         self.assertEqual({e["mode"] for e in rail.transit}, {"subway"})
