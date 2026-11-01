@@ -999,6 +999,15 @@ async function refreshRides() {
 async function accountRequest(path) {
   const username = $('username').value.trim(),
     password = $('password').value;
+  if (path === '/api/account' && !$('signupSafety').checked) {
+    status(
+      'personalStatus',
+      '가입 전 개인정보·비밀번호 안내를 확인해 주세요.',
+      true,
+    );
+    $('signupSafety').focus();
+    return;
+  }
   if (!username || password.length < 8) {
     status('personalStatus', '아이디와 8자 이상의 비밀번호를 입력해 주세요.', true);
     return;

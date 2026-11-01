@@ -5,6 +5,12 @@ const fs = require('node:fs'),
   vm = require('node:vm'),
   assert = require('node:assert/strict');
 const source = fs.readFileSync(path.join(__dirname, '../web/app.js'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '../web/index.html'), 'utf8');
+assert.match(html, /사진으로 보는 이용내역 등록 방법/);
+assert.match(html, /history-guide\.svg/);
+assert.match(html, /이름·학번·전화번호/);
+assert.match(html, /이름·생년월일·전화번호/);
+assert.match(source, /signupSafety/);
 function sourcePosition(marker) {
   const pattern = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/=/g, '\\s*=\\s*');
   const found = source.match(new RegExp(pattern));

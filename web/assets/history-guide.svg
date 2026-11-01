@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" role="img" aria-labelledby="title desc">
+  <title id="title">따릉이 이용내역 등록 방법</title>
+  <desc id="desc">대여반납이력 열기, 이용내역 한 건 자르기, 읽은 값 확인 후 등록의 세 단계</desc>
+  <rect width="720" height="360" rx="24" fill="#f7fdee"/>
+  <g font-family="Apple SD Gothic Neo, Malgun Gothic, sans-serif" fill="#17301a">
+    <g transform="translate(24 24)">
+      <rect width="204" height="312" rx="22" fill="#fff" stroke="#d6edb8" stroke-width="2"/>
+      <circle cx="26" cy="28" r="14" fill="#81f104"/><text x="26" y="33" text-anchor="middle" font-size="13" font-weight="800">1</text>
+      <text x="50" y="33" font-size="15" font-weight="800">이용내역 열기</text>
+      <rect x="18" y="54" width="168" height="226" rx="14" fill="#f5f7f3"/>
+      <text x="102" y="78" text-anchor="middle" font-size="13" font-weight="800">대여반납이력</text>
+      <rect x="30" y="94" width="144" height="166" rx="10" fill="#fff" stroke="#dfe7da"/>
+      <text x="42" y="117" font-size="12" font-weight="800">자전거 번호 58397</text>
+      <circle cx="44" cy="143" r="6" fill="#bfc9bc"/><text x="57" y="147" font-size="10">4485 · 잠실나루역</text>
+      <circle cx="44" cy="174" r="6" fill="#45c875"/><text x="57" y="178" font-size="10">1278 · 송파구청</text>
+      <path d="M40 194h122" stroke="#dfe7da"/>
+      <text x="42" y="216" font-size="11" font-weight="700">이용시간</text><text x="158" y="216" text-anchor="end" font-size="12" font-weight="800">2분</text>
+      <text x="42" y="238" font-size="11" font-weight="700">이용거리</text><text x="158" y="238" text-anchor="end" font-size="12" font-weight="800">0.37km</text>
+      <text x="102" y="300" text-anchor="middle" font-size="11" fill="#5c7656">필요한 값이 모두 보이게</text>
+    </g>
+    <path d="M242 180h24" stroke="#4cc40a" stroke-width="4" stroke-linecap="round"/><path d="m260 171 10 9-10 9" fill="none" stroke="#4cc40a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="translate(258 24)">
+      <rect width="204" height="312" rx="22" fill="#fff" stroke="#d6edb8" stroke-width="2"/>
+      <circle cx="26" cy="28" r="14" fill="#81f104"/><text x="26" y="33" text-anchor="middle" font-size="13" font-weight="800">2</text>
+      <text x="50" y="33" font-size="15" font-weight="800">한 건만 자르기</text>
+      <rect x="18" y="54" width="168" height="226" rx="14" fill="#dfe7da"/>
+      <rect x="30" y="72" width="144" height="52" rx="8" fill="#17301a" opacity=".48"/>
+      <rect x="30" y="124" width="144" height="112" rx="8" fill="#fff" stroke="#81f104" stroke-width="3"/>
+      <text x="42" y="147" font-size="11" font-weight="800">자전거 번호 58397</text>
+      <text x="42" y="172" font-size="10">4485 → 1278</text>
+      <text x="42" y="196" font-size="10">이용시간 2분</text>
+      <text x="42" y="218" font-size="10">이용거리 0.37km</text>
+      <rect x="30" y="236" width="144" height="26" rx="8" fill="#17301a" opacity=".48"/>
+      <path d="M30 124h144M30 236h144" stroke="#81f104" stroke-width="3"/>
+      <text x="102" y="300" text-anchor="middle" font-size="11" fill="#5c7656">다른 기록은 범위 밖으로</text>
+    </g>
+    <path d="M476 180h24" stroke="#4cc40a" stroke-width="4" stroke-linecap="round"/><path d="m494 171 10 9-10 9" fill="none" stroke="#4cc40a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="translate(492 24)">
+      <rect width="204" height="312" rx="22" fill="#fff" stroke="#d6edb8" stroke-width="2"/>
+      <circle cx="26" cy="28" r="14" fill="#81f104"/><text x="26" y="33" text-anchor="middle" font-size="13" font-weight="800">3</text>
+      <text x="50" y="33" font-size="15" font-weight="800">확인하고 등록</text>
+      <rect x="18" y="54" width="168" height="226" rx="14" fill="#f5f7f3"/>
+      <text x="32" y="82" font-size="11" font-weight="800">읽은 이용정보</text>
+      <rect x="30" y="96" width="144" height="32" rx="8" fill="#fff" stroke="#d6edb8"/><text x="40" y="117" font-size="10">출발 4485 · 잠실나루역</text>
+      <rect x="30" y="136" width="144" height="32" rx="8" fill="#fff" stroke="#d6edb8"/><text x="40" y="157" font-size="10">도착 1278 · 송파구청</text>
+      <rect x="30" y="176" width="68" height="32" rx="8" fill="#fff" stroke="#d6edb8"/><text x="40" y="197" font-size="10">2분</text>
+      <rect x="106" y="176" width="68" height="32" rx="8" fill="#fff" stroke="#d6edb8"/><text x="116" y="197" font-size="10">0.37km</text>
+      <circle cx="42" cy="226" r="9" fill="#4cc40a"/><path d="m37 226 4 4 7-8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="58" y="230" font-size="10">원본과 확인했습니다</text>
+      <rect x="30" y="244" width="144" height="26" rx="10" fill="#81f104"/><text x="102" y="262" text-anchor="middle" font-size="11" font-weight="800">내 기록에 등록</text>
+      <text x="102" y="300" text-anchor="middle" font-size="11" fill="#5c7656">틀린 값은 직접 수정</text>
+    </g>
+  </g>
+</svg>
