@@ -1161,6 +1161,11 @@ def _run_scheduled_optimization(
             if on_routes is None:
                 return
             from transit_geometry import attach_transit_geometry
+            from walk_consolidation import consolidate_result
+
+            snapshot = consolidate_result(
+                snapshot, network.nodes, walking=walking, allow_new=False
+            )
 
             ids = {
                 leg[key]
@@ -1199,6 +1204,11 @@ def _run_scheduled_optimization(
             walking_provider=walking,
             on_routes=publish if on_routes is not None else None,
         ).search("origin", "destination", departure)
+        from walk_consolidation import consolidate_result
+
+        result = consolidate_result(
+            result, network.nodes, walking=walking, allow_new=True
+        )
         result["nodes"] = network.nodes
         notify_progress(on_progress, "results")
         from transit_geometry import attach_transit_geometry
