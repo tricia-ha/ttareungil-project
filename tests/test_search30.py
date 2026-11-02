@@ -17,12 +17,12 @@ from kakao_routes import CallLimit
 
 
 class Search30Tests(unittest.TestCase):
-    def test_default_search_has_no_wall_clock_limit(self):
+    def test_default_search_limit_is_sixty_seconds(self):
         from project_service import RouteQuery
 
-        self.assertIsNone(Config().max_seconds)
-        self.assertIsNone(ScheduledConfig(adaptive_connections=False).max_seconds)
-        self.assertIsNone(RouteQuery.model_fields["max_seconds"].default)
+        self.assertEqual(Config().max_seconds, 60)
+        self.assertEqual(ScheduledConfig(adaptive_connections=False).max_seconds, 60)
+        self.assertEqual(RouteQuery.model_fields["max_seconds"].default, 60)
 
     def test_default_web_call_budget_is_thirty(self):
         from project_service import RouteQuery
@@ -40,7 +40,7 @@ class Search30Tests(unittest.TestCase):
         )
         clock = iter(range(0, 100000, 100))
         with patch("multimodal.time.monotonic", side_effect=lambda: next(clock)):
-            result = Router(network, None, Config(top_k=1)).search(
+            result = Router(network, None, Config(top_k=1, max_seconds=None)).search(
                 "origin", "destination", "2026-11-02T10:00:00+09:00"
             )
         self.assertEqual(result["status"], "ok")

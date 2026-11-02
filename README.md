@@ -21,6 +21,8 @@ Windows x64·Python 3.11~3.13을 사용합니다.
 
 Python 연결은 `examples/python_usage.py`, 노트북은 `노트북_실행.cmd`에서 시작합니다.
 
+OSM 도보망은 최초 한 번 사용하는 Python 환경에서 `python scripts/build_osm_walking.py --rebuild-cached`로 준비합니다. 포함된 공개 자료로 생성하므로 다운로드·카카오 호출은 없습니다. 이후 서버를 재시작합니다. 도보망이 없으면 기존 카카오 조회 방식으로 동작합니다. [도보망과 카카오 보완](docs/OSM_WALKING.md) · [반복 비교 결과](docs/WALKING_ITERATIONS.md)
+
 ## 폴더
 
 | 폴더 | 내용 |

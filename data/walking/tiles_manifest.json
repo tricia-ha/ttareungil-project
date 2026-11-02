@@ -1,0 +1,139 @@
+{
+  "source": "OpenStreetMap contributors / Overpass",
+  "license_url": "https://www.openstreetmap.org/copyright",
+  "collected_on": "2026-11-02",
+  "tiles": [
+    {
+      "file": "tiles/1f6873603a8bd56e.json.gz",
+      "bytes": 1562002,
+      "sha256": "387298bd28ceb6748f8d2685a47bacd56626009322537351b54c675a97728f1d",
+      "bounds_south_west_north_east": [
+        37.41,
+        127.09,
+        37.53,
+        127.22
+      ]
+    },
+    {
+      "file": "tiles/3ff729e0f247797b.json.gz",
+      "bytes": 1931537,
+      "sha256": "5f2db9de61708bb0168eb01788f60d173ed708656324fe9514d1e85c0785c899",
+      "bounds_south_west_north_east": [
+        37.41,
+        126.87,
+        37.53,
+        127.0
+      ]
+    },
+    {
+      "file": "tiles/73b987e44ca258bf.json.gz",
+      "bytes": 1461504,
+      "sha256": "f9098b5b2bc621d98fae2ab697cf1f35c4a55f1611037774f43269beec1ca191",
+      "bounds_south_west_north_east": [
+        37.41,
+        126.76,
+        37.53,
+        126.89
+      ]
+    },
+    {
+      "file": "tiles/7f8ae35110178ac4.json.gz",
+      "bytes": 1116405,
+      "sha256": "da0282bceb546a5efd592ce2cc9c3f65dc43da4776358e4b8f04d054d03c542e",
+      "bounds_south_west_north_east": [
+        37.61,
+        127.09,
+        37.73,
+        127.22
+      ]
+    },
+    {
+      "file": "tiles/9173435a68e81e8c.json.gz",
+      "bytes": 2109282,
+      "sha256": "8fb8bd9a660c9d75328653fac1a4387aa6bc63d47e3773a83589846b1da5c25c",
+      "bounds_south_west_north_east": [
+        37.51,
+        127.09,
+        37.63,
+        127.22
+      ]
+    },
+    {
+      "file": "tiles/9caa13e043dc3480.json.gz",
+      "bytes": 3093829,
+      "sha256": "56188aa574edcbdee69b8a418af8c6d7f95ef9dd4ed51b9143d25311f5b58201",
+      "bounds_south_west_north_east": [
+        37.51,
+        126.87,
+        37.63,
+        127.0
+      ]
+    },
+    {
+      "file": "tiles/af0be847aa417075.json.gz",
+      "bytes": 1591512,
+      "sha256": "44b151db8676369dac538c658de4517411bc1abca6f01ed510f2b95d55edf7b2",
+      "bounds_south_west_north_east": [
+        37.61,
+        126.98,
+        37.73,
+        127.11
+      ]
+    },
+    {
+      "file": "tiles/ba18e26375423740.json.gz",
+      "bytes": 1422681,
+      "sha256": "bb3f565d4544b8d4c5be849a2845125b7e3b6341a54344713552178326f9e69c",
+      "bounds_south_west_north_east": [
+        37.61,
+        126.76,
+        37.73,
+        126.89
+      ]
+    },
+    {
+      "file": "tiles/dac6988c81de6c1e.json.gz",
+      "bytes": 1046111,
+      "sha256": "0b2644533fcab6c75fd6b45e02bcc2acaf6967a9ea27dc975061d4ad05eaec8a",
+      "bounds_south_west_north_east": [
+        37.61,
+        126.87,
+        37.73,
+        127.0
+      ]
+    },
+    {
+      "file": "tiles/e834f5052157b973.json.gz",
+      "bytes": 1615954,
+      "sha256": "c8ad3f87009b3329d26a0244ec7e0267f389e02a54fda2b01e2411b7940c1bb7",
+      "bounds_south_west_north_east": [
+        37.41,
+        126.98,
+        37.53,
+        127.11
+      ]
+    },
+    {
+      "file": "tiles/eb292971b28e2e08.json.gz",
+      "bytes": 3273264,
+      "sha256": "a0dd7a440955210a3d7472ac478f35cfb16e6e56367602d7c783d85db7723a0f",
+      "bounds_south_west_north_east": [
+        37.51,
+        126.98,
+        37.63,
+        127.11
+      ]
+    },
+    {
+      "file": "tiles/f0f355f61b31acaa.json.gz",
+      "bytes": 1446684,
+      "sha256": "06985c5b240b7e1e1d2d0acceb1e3c4779614cafb8ece00cf17b2a0565a6f3ba",
+      "bounds_south_west_north_east": [
+        37.51,
+        126.76,
+        37.63,
+        126.89
+      ]
+    }
+  ]
+}

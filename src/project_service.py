@@ -1,7 +1,7 @@
 """Python service for routing, screenshot records and per-ID personalization."""
 
 from __future__ import annotations
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Literal
 import hashlib
@@ -56,7 +56,7 @@ class RouteQuery(Input):
     user_type: str = "domestic"
     horizon_minutes: int = Field(180, gt=0, le=360)
     top_k: int = Field(3, ge=1, le=5)
-    max_seconds: float | None = Field(None, gt=0, le=600)
+    max_seconds: float | None = Field(60, gt=0, le=600)
     max_kakao_calls: int = Field(30, gt=0, le=200)
     max_empty_probability: float | None = Field(0.1, ge=0, le=1)
     adaptive_connections: bool = True
@@ -206,6 +206,7 @@ class ProjectService:
         profile_id=None,
         on_routes=None,
         on_progress=None,
+        cancel_check=None,
         **options,
     ):
         """Return routes/legs/times/geometry and search diagnostics as a Python dict."""
@@ -223,6 +224,7 @@ class ProjectService:
                 RouteQuery.model_validate(query),
                 on_routes=on_routes,
                 on_progress=on_progress,
+                cancel_check=cancel_check,
             )
         return self._execute(query)
 
@@ -507,16 +509,16 @@ class ProjectService:
             historical_weather=weather,
         )
 
-    def route(self, q, on_routes=None, on_progress=None):
+    def route(self, q, on_routes=None, on_progress=None, cancel_check=None):
         from scheduled_runtime import ScheduledConfig, run_scheduled_optimization
         from route_progress import notify_progress
 
-        when = None if q.departure == "auto" else q.departure
+        when = datetime.now(timezone.utc).isoformat() if q.departure == "auto" else q.departure
         if when is not None:
             parsed = datetime.fromisoformat(when)
-            if parsed.utcoffset() is None or parsed <= datetime.now(timezone.utc):
+            if parsed.utcoffset() is None or parsed < datetime.now(timezone.utc) - timedelta(minutes=15):
                 raise ValueError(
-                    "departure는 시간대가 포함된 미래 시각 또는 auto여야 합니다."
+                    "departure는 시간대가 포함된 시각이어야 하며, 검색 시점은 최근 15분 이내여야 합니다."
                 )
         uses_bike = q.search_mode not in ("subway", "transit")
         if not os.getenv("KAKAO_REST_API_KEY", "").strip():
@@ -539,6 +541,7 @@ class ProjectService:
             horizon_minutes=q.horizon_minutes,
             top_k=q.top_k,
             max_seconds=q.max_seconds,
+            cancel_check=cancel_check,
             max_kakao_calls=q.max_kakao_calls,
             adaptive_connections=q.adaptive_connections,
             max_access_walk_minutes=q.max_access_walk_minutes,

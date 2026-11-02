@@ -82,7 +82,9 @@ class CoordinateCorrectionTests(unittest.TestCase):
                 name="글래드라이브강남호텔", latitude=37.5081, longitude=127.037
             )
         }
-        self.assertEqual(corrected_bus_stops(updated, root / "data/transit"), updated)
+        fixed = corrected_bus_stops(updated, root / "data/transit")
+        self.assertEqual(fixed["122000716"], updated["122000716"])
+        self.assertTrue(fixed["113000505"]["virtual"])
 
     def test_platform_fix_does_not_collapse_other_lines(self):
         root = Path(__file__).resolve().parents[1]

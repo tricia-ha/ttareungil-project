@@ -82,11 +82,13 @@ class Config:
     # None means that the graph/search budgets, rather than wall-clock time,
     # decide when the search is finished.  A positive value remains available
     # for CLI experiments and explicit bounded requests.
-    max_seconds: float | None = None
+    max_seconds: float | None = 60
+    cancel_check: object = None
     risk_penalty_minutes: float = 0
     unknown_risk_penalty_minutes: float = 0
     max_empty_probability: float | None = None
     require_known_inventory: bool = False
+    allow_future_unknown_inventory: bool = False
     top_k: int = 3
     max_bike_predictions: int | None = None
     search_algorithm: str = "astar"
@@ -293,7 +295,9 @@ class Router:
         deadline = None if c.max_seconds is None else begun + c.max_seconds
 
         def time_exhausted():
-            return deadline is not None and time.monotonic() >= deadline
+            return (c.cancel_check is not None and c.cancel_check()) or (
+                deadline is not None and time.monotonic() >= deadline
+            )
 
         if self.walking_provider is not None and hasattr(
             self.walking_provider, "set_deadline"
@@ -748,7 +752,8 @@ class Router:
                             self.bike_provider.precheck_inventory(edge, iso(t)) or {}
                         )
                         risk = preliminary.get("p_empty")
-                        if risk is None and c.require_known_inventory:
+                        future_unknown = (c.allow_future_unknown_inventory and preliminary.get("inventory_status") == "outside_60min_horizon")
+                        if risk is None and c.require_known_inventory and not future_unknown:
                             continue
                         if (
                             risk is not None
@@ -823,7 +828,8 @@ class Router:
                         continue
                     risk = meta.get("p_empty")
                     if risk is None:
-                        if c.require_known_inventory:
+                        future_unknown = (c.allow_future_unknown_inventory and meta.get("inventory_status") == "outside_60min_horizon")
+                        if c.require_known_inventory and not future_unknown:
                             continue
                         increment = c.unknown_risk_penalty_minutes
                     else:
@@ -934,7 +940,7 @@ class Router:
                 break
             if time_exhausted():
                 truncated = True
-                termination_reason = "max_seconds"
+                termination_reason = "cancelled" if c.cancel_check and c.cancel_check() else "max_seconds"
                 break
             bound = incumbent_bound()
             if (

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 import json
 import os
@@ -43,7 +43,8 @@ from project_paths import (
 class ScheduledConfig:
     horizon_minutes: int = 180
     top_k: int = 3
-    max_seconds: float | None = None
+    max_seconds: float | None = 60
+    cancel_check: object = None
     step_seconds: int = 60
     max_expansions: int = 100000
     max_station_candidates: int = (
@@ -167,6 +168,8 @@ class KakaoWalking:
         self.client.deadline = deadline
 
     def __call__(self, a, b, start, end):
+        if getattr(self, "cancel_check", None) and self.cancel_check():
+            raise CallLimit("경로 탐색을 중단했습니다.")
         payload, fetched = self.client.get("walk", a, b)
         edge = walking_edge(payload, fetched, start, end)
         if edge is not None and self.link_cache is not None:
@@ -852,7 +855,11 @@ def _save(path, value):
 def run_scheduled_optimization(
     origin, destination, departure=None, gtfs_path=None, **options
 ):
-    """Warm the model before choosing an automatic departure; always release it."""
+    """Keep the request departure fixed while preparing models and searching."""
+    if departure is None:
+        departure = datetime.now(timezone.utc).isoformat()
+    if timestamp(departure) < (datetime.now(timezone.utc) - timedelta(days=1)).timestamp():
+        raise ValueError("출발시각이 이미 지났습니다. 최근 검색 시각 또는 미래 시각을 사용하세요.")
     load_project_env()
     if gtfs_path is not None:
         options["gtfs_path"] = gtfs_path
@@ -872,13 +879,6 @@ def run_scheduled_optimization(
         and not (os.getenv("KMA_API_KEY") or os.getenv("KMA_AUTH_KEY"))
     ):
         raise ValueError("기상청 API 키가 필요합니다. 또는 use_kma=False를 명시하세요.")
-    if (
-        departure is not None
-        and timestamp(departure) <= datetime.now(timezone.utc).timestamp()
-    ):
-        raise ValueError(
-            "출발시각이 이미 지났습니다. 미래 시각 또는 None(자동 출발)을 사용하세요."
-        )
     if transit_only or options.get("eta_service") is not None:
         return _run_scheduled_optimization(origin, destination, departure, **options)
     from eta_service import BicycleETAService
@@ -928,7 +928,7 @@ def _run_scheduled_optimization(
         from multimodal_data import KST
 
         departure = (
-            (datetime.now(KST) + timedelta(minutes=5))
+            datetime.now(KST)
             .replace(microsecond=0)
             .isoformat()
         )
@@ -1036,14 +1036,6 @@ def _run_scheduled_optimization(
         )
         as_of = datetime.now(timezone.utc).isoformat()
         validate_snapshot(payload, as_of)
-        if c.require_known_inventory:
-            c = replace(
-                c,
-                bicycle_available=(
-                    c.bicycle_available
-                    and timestamp(departure) <= timestamp(as_of) + 3600
-                ),
-            )
     else:
         coverage = {
             "catalog": len(stations),
@@ -1058,7 +1050,7 @@ def _run_scheduled_optimization(
         c.kakao_daily_limit,
         progress=progress,
     )
-    owned_service = cached = link_cache = None
+    owned_service = cached = link_cache = offline_walking = None
     try:
         if hasattr(client, "get_cached"):
             from walking_link_cache import WalkingLinkCache
@@ -1073,7 +1065,15 @@ def _run_scheduled_optimization(
             ):
                 link_cache.remember_result(previous)
         walking = KakaoWalking(client, link_cache)
+        walking.cancel_check = c.cancel_check
         notify_progress(on_progress, "network")
+        graph_path = PROJECT_ROOT / "data" / "walking" / "seoul_walk.sqlite"
+        if graph_path.is_file():
+            from hybrid_walking import HybridWalking
+
+            offline_walking = HybridWalking(walking, graph_path, RUNTIME_CACHE_DIR / "osm_walks.sqlite")
+            offline_walking.cancel_check = c.cancel_check
+            walking = offline_walking
         network = build_scheduled_network(
             timetable, stations, origin, destination, walking, c, departure=departure
         )
@@ -1136,26 +1136,20 @@ def _run_scheduled_optimization(
             reuse_transit_suffixes=c.reuse_transit_suffixes,
             max_expansions=c.max_expansions,
             max_seconds=c.max_seconds,
+            cancel_check=c.cancel_check,
             top_k=c.top_k,
             max_bike_predictions=c.max_bike_predictions,
             search_algorithm=c.search_algorithm,
             require_known_inventory=c.require_known_inventory,
+            allow_future_unknown_inventory=True,
             max_empty_probability=c.max_empty_probability,
-            latest_bicycle_departure=(
-                datetime.fromisoformat(as_of) + timedelta(minutes=60)
-            ).isoformat()
-            if inventory is not None and c.require_known_inventory
-            else None,
+            latest_bicycle_departure=None,
         )
         router_config.required_mode = {
             "subway": "subway",
             "transit": "transit",
             "bicycle": "bicycle",
         }.get(c.search_mode)
-        if timestamp(departure) <= datetime.now(timezone.utc).timestamp():
-            raise ValueError(
-                "준비 중 출발시각이 지났습니다. 최신 출발시각으로 다시 실행하세요. 성공한 조회 캐시는 유지됩니다."
-            )
 
         def publish(snapshot):
             if on_routes is None:
@@ -1207,7 +1201,8 @@ def _run_scheduled_optimization(
         from walk_consolidation import consolidate_result
 
         result = consolidate_result(
-            result, network.nodes, walking=walking, allow_new=True
+            result, network.nodes, walking=walking,
+            allow_new=not (c.cancel_check and c.cancel_check())
         )
         result["nodes"] = network.nodes
         notify_progress(on_progress, "results")
@@ -1253,8 +1248,12 @@ def _run_scheduled_optimization(
             [
                 "시간표 기준이며 실제 지연·운휴·조기 도착은 반영하지 않음",
                 "설정한 도보·따릉이 거리와 실제 확보한 시간표 범위 내 탐색",
-                "재고는 관측 기준 60분 이내에만 평가하며, 이후 따릉이 후보는 제외됨",
+                "재고는 관측 기준 60분 이내에만 평가하며, 이후 따릉이 구간은 재고 미확인",
             ]
+        )
+        result["walking_sources"] = (
+            dict(offline_walking.counts, osm_graph_ready=offline_walking.graph is not None)
+            if offline_walking else {"osm_graph_ready": False}
         )
         _save(output / "result.json", result)
         from kakao_optimizer import map_html
@@ -1267,6 +1266,8 @@ def _run_scheduled_optimization(
             )
         return result
     finally:
+        if offline_walking is not None:
+            offline_walking.close()
         if link_cache is not None:
             link_cache.close()
         if cached is not None:

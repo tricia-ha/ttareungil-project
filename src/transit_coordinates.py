@@ -30,4 +30,10 @@ def corrected_subway_stops(stops, folder):
 
 
 def corrected_bus_stops(stops, folder):
-    return _corrected(stops, folder, "bus_coordinate_corrections.json")
+    output = _corrected(stops, folder, "bus_coordinate_corrections.json")
+    additions = Path(folder) / "files" / "bus_stop_additions.json"
+    if additions.is_file():
+        output = dict(output)
+        for key, value in json.loads(additions.read_text(encoding="utf-8")).items():
+            output.setdefault(key, value)
+    return output

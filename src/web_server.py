@@ -94,6 +94,7 @@ def compact_routes(result):
         "bicycle_time_quantile",
         "search_mode",
         "geometry_summary",
+        "walking_sources",
     )
     value = {key: result[key] for key in keep if key in result}
     for key in ("routes", "mixed_routes"):
@@ -126,7 +127,7 @@ class RouteInput(Input):
     use_kma: StrictBool = True
     use_inventory: StrictBool = True
     personalize: StrictBool = True
-    max_seconds: float | None = Field(None, gt=0, le=600)
+    max_seconds: float | None = Field(60, gt=0, le=600)
 
 
 class LoginInput(Input):
@@ -291,7 +292,7 @@ class Backend:
     def snapshot(self, job):
         value = {
             k: v for k, v in job.items()
-            if k not in ('owner', 'created', 'stage_started', 'finished')
+            if k not in ('owner', 'created', 'stage_started', 'finished', 'cancel_event')
         }
         if job.get('progress'):
             now = job.get('finished', time.monotonic())
@@ -303,6 +304,8 @@ class Backend:
         return value
 
     def publish(self, job_id, result):
+        if self.jobs[job_id].get("cancel_event", threading.Event()).is_set():
+            raise RuntimeError("경로 탐색을 중단했습니다.")
         if 'progress_stage' in result:
             with self.lock:
                 job = self.jobs[job_id]
@@ -324,6 +327,8 @@ class Backend:
                 else job["kind"]
             )
             with self.capacity.slot(resource_kind):
+                if job.get("status") == "cancelled":
+                    return
                 with self.lock:
                     self.jobs[job_id]["status"] = "running"
                     self._progress(self.jobs[job_id], 'starting')
@@ -333,11 +338,15 @@ class Backend:
             # Validate JSON before publishing; no NaN or arbitrary Python values.
             json.dumps(result, ensure_ascii=False, allow_nan=False)
             with self.lock:
+                if self.jobs[job_id].get("status") == "cancelled":
+                    return
                 self.jobs[job_id].update(status="done", result=result)
                 self.jobs[job_id].pop("partial_result", None)
         except Exception as exc:
             with self.lock:
                 job = self.jobs[job_id]
+                if job.get("status") == "cancelled":
+                    return
                 partial = job.get("partial_result")
                 if job["kind"] == "route" and partial and partial.get("routes"):
                     partial.update(
@@ -736,11 +745,19 @@ def create_app(service_factory=None, *, testing=False):
         backend.throttle(("route", session.token), 6)
         backend.throttle(("route_ip", request.client.host), 20)
         q = RouteInput.model_validate(await read_json(request))
+        if q.departure == "auto":
+            from datetime import datetime, timezone
+
+            q = q.model_copy(update={"departure": datetime.now(timezone.utc).isoformat()})
         if q.mode not in ("integrated", "transit", "bicycle"):
             raise ValueError("경로 종류를 확인해 주세요.")
         profile = session.profile_id if q.personalize else None
 
+        cancel_event = threading.Event()
+
         def work(on_update):
+            if cancel_event.is_set():
+                raise RuntimeError("경로 탐색을 중단했습니다.")
             refresh = time.monotonic() - backend.last_inventory_refresh >= 60
             result = backend.service.find_routes(
                 q.origin.model_dump(exclude={"address"}),
@@ -752,6 +769,7 @@ def create_app(service_factory=None, *, testing=False):
                 use_inventory=q.use_inventory,
                 refresh_inventory=refresh,
                 max_seconds=q.max_seconds,
+                cancel_check=cancel_event.is_set,
                 max_kakao_calls=min(
                     80, max(1, int(os.getenv("WEB_MAX_KAKAO_CALLS", "30")))
                 ),
@@ -762,7 +780,7 @@ def create_app(service_factory=None, *, testing=False):
                 backend.last_inventory_refresh = time.monotonic()
             return compact_routes(result)
 
-        return backend.submit(
+        submitted = backend.submit(
             session,
             "route",
             work,
@@ -770,6 +788,9 @@ def create_app(service_factory=None, *, testing=False):
             model_required=q.mode != "transit",
             route_query=q.model_dump(mode="json"),
         )
+        with backend.lock:
+            backend.jobs[submitted["job_id"]]["cancel_event"] = cancel_event
+        return submitted
 
     @app.get("/api/routes/current")
     def current_route(request: Request):
@@ -851,6 +872,19 @@ def create_app(service_factory=None, *, testing=False):
             if not value or value["owner"] != backend.principal(session):
                 raise HTTPException(404, "작업을 찾을 수 없습니다.")
             return backend.snapshot(value)
+
+    @app.post("/api/jobs/{job_id}/cancel")
+    def cancel_job(job_id: str, request: Request):
+        backend = state(request)
+        session = backend.session(request)
+        with backend.lock:
+            value = backend.jobs.get(job_id)
+            if not value or value["owner"] != backend.principal(session):
+                raise HTTPException(404, "작업을 찾을 수 없습니다.")
+            if value["kind"] == "route" and value["status"] in ("queued", "running"):
+                value["cancel_event"].set()
+                value.update(status="cancelled", finished=time.monotonic())
+            return {"status": value["status"]}
 
     @app.get("/")
     def index():

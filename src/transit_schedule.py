@@ -108,7 +108,7 @@ def reconstruct_bus(
 ):
     """One trip = one dispatch, with ordered stops and a shared vehicle identity.
 
-    Missing coordinates invalidate the route, rather than jumping over stops.
+    Missing coordinates suppress only adjacent links, without jumping stops.
     Runtime is the supplied whole-route runtime (minutes); segment durations are
     proportional to link lengths. This includes the source's stop-time allowance.
     """
@@ -151,7 +151,6 @@ def reconstruct_bus(
                         "missing_stops": [s for s in ids if s not in stops],
                     }
                 )
-            continue
         try:
             runtime = float(route["운행소요시간"]) * 60
             if not math.isfinite(runtime) or not 60 <= runtime <= 12 * 3600:
@@ -167,9 +166,13 @@ def reconstruct_bus(
                     v
                     if math.isfinite(v) and v > 0
                     else max(1, distance(stops[a], stops[b]))
+                    if a in stops and b in stops
+                    else float("nan")
                     for v, a, b in zip(lengths, ids, ids[1:])
                 ]
             total = sum(lengths)
+            if not math.isfinite(total) or total <= 0:
+                raise ValueError()
             offsets, running = [0], 0
             for value in lengths:
                 running += value
@@ -269,6 +272,12 @@ def reconstruct_bus(
                         history_profiles, day, dispatch, day_offsets, holiday_dates
                     )
                 for i, (a, b) in enumerate(zip(ids, ids[1:])):
+                    # Preserve original stop indices and time offsets. A missing
+                    # location breaks only its adjacent links, never the route.
+                    if a not in stops or b not in stops:
+                        continue
+                    if stops[a].get("virtual") or stops[b].get("virtual"):
+                        continue
                     dep = midnight + timedelta(seconds=dispatch + trip_times[i])
                     arr = midnight + timedelta(seconds=dispatch + trip_times[i + 1])
                     if dep < start or arr > finish:
@@ -302,10 +311,11 @@ def reconstruct_bus(
                     used = True
         report["routes_with_edges" if used else "routes_outside_window"] += 1
     report["edges"] = len(edges)
+    report["routes_with_coordinate_gaps"] = report.get("missing_coordinates", 0)
     return Network(nodes=nodes, transit=edges), dict(
         report,
         missing_stop_ids=sorted(missing_stop_ids),
-        excluded_route_examples=excluded_routes,
+        coordinate_gap_route_examples=excluded_routes,
     )
 
 

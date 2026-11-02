@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "extra_rules": ["complex_walk"],
+  "protected_rule": "major_road",
+  "experiment_seed": 20261103,
+  "selection": "Chosen from rounds 1-2 and checked without modification in round 3",
+  "reference": "docs/WALKING_ITERATIONS.md",
+  "condition": "At least six direction changes exceeding 60 degrees in the OSM polyline",
+  "limitations": "Small geographic sample. Kakao is a comparison reference, not measured ground-truth walking time."
+}

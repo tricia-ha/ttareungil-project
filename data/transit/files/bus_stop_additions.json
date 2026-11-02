@@ -1,0 +1,11 @@
+{
+  "113000505": {
+    "name": "홍대입구역(가상)",
+    "latitude": 37.5552260552,
+    "longitude": 126.9218643721,
+    "virtual": true,
+    "coordinate_source": "Exact stop ID 113000505, static Seoul route stop listing; virtual timing point, not a boarding stop",
+    "reference_url": "https://theholygrail.kr/transport/bus/routes/seoul/seoul/n-123000013",
+    "reviewed_on": "2026-11-02"
+  }
+}

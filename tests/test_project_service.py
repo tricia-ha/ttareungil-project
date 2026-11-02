@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime, timezone
 import copy, json, os, sys, tempfile, unittest
 from unittest.mock import patch
 
@@ -287,7 +288,9 @@ class ProjectServiceTests(unittest.TestCase):
         ):
             self.assertEqual(self.service._execute(q), {"routes": []})
         opts = run.call_args.kwargs
-        self.assertIsNone(run.call_args.args[2])
+        departure = datetime.fromisoformat(run.call_args.args[2])
+        self.assertIsNotNone(departure.utcoffset())
+        self.assertLess(abs((datetime.now(timezone.utc)-departure).total_seconds()), 60)
         self.assertTrue(opts["config"].complete_candidates)
         self.assertEqual(opts["config"].bike_quantile, "p50")
         self.assertEqual(opts["personalization_id"], self.id)

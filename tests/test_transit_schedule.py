@@ -123,6 +123,27 @@ class TimetableTests(unittest.TestCase):
         self.assertFalse(n.transit)
         self.assertEqual(report["missing_coordinates"], 1)
 
+    def test_coordinate_gap_preserves_other_segments_and_their_original_times(self):
+        seq = [
+            {"노선ID": "R", "노드ID": s, "정류장순번": str(i + 1), "링크거리누계": "100"}
+            for i, s in enumerate("ABCDE")
+        ]
+        stops = {s: dict(name=s, latitude=37.5, longitude=127.0) for s in "ABCDE"}
+        args = ([self.route], seq, stops, "2026-10-17T00:00:00+09:00", 45)
+        full, _ = reconstruct_bus(*args, holiday_dates=set())
+        partial, _ = reconstruct_bus(
+            args[0], seq, {s: v for s, v in stops.items() if s != "C"},
+            args[3], 45, holiday_dates=set(),
+        )
+        expected = [e for e in full.transit if e["from"] != "bus:C" and e["to"] != "bus:C"]
+        self.assertTrue(expected)
+        self.assertEqual(partial.transit, expected)
+        self.assertEqual({(e["from"], e["to"]) for e in partial.transit},
+                         {("bus:A", "bus:B"), ("bus:D", "bus:E")})
+        stops["C"]["virtual"] = True
+        virtual, _ = reconstruct_bus(*args, holiday_dates=set())
+        self.assertEqual(virtual.transit, expected)
+
     def test_saturday_headway(self):
         n, _ = reconstruct_bus(
             [self.route],

@@ -367,7 +367,7 @@ class ReviewRegressions(unittest.TestCase):
                 use_kma=False,
             )
 
-    def test_automatic_departure_is_resolved_after_model_ready(self):
+    def test_automatic_departure_is_fixed_before_preparation(self):
         from scheduled_runtime import run_scheduled_optimization
 
         service = object()
@@ -384,7 +384,7 @@ class ReviewRegressions(unittest.TestCase):
                 ),
                 {"ok": True},
             )
-        self.assertIsNone(run.call_args.args[2])
+        self.assertIsNotNone(datetime.fromisoformat(run.call_args.args[2]).tzinfo)
         self.assertIs(run.call_args.kwargs["eta_service"], service)
 
     def test_automatic_request_warms_and_closes_model_before_inner_run(self):
@@ -402,7 +402,7 @@ class ReviewRegressions(unittest.TestCase):
 
         def inner(*args, **kwargs):
             self.assertEqual(events, ["ready"])
-            self.assertIsNone(args[2])
+            self.assertIsNotNone(datetime.fromisoformat(args[2]).tzinfo)
             return {"ok": True}
 
         with (

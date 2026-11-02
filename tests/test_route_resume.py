@@ -84,6 +84,19 @@ class RouteResumeTests(unittest.TestCase):
         self.finish(job_id)
         self.assertEqual(len(FakeService.calls), 1)
 
+    def test_cancelled_job_cannot_publish_late_result(self):
+        job_id = self.start()
+        response = self.client.post("/api/jobs/" + job_id + "/cancel")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "cancelled")
+        event = self.app.state.backend.jobs[job_id]["cancel_event"]
+        self.assertTrue(event.is_set())
+        self.release.set()
+        time.sleep(0.05)
+        job = self.client.get("/api/jobs/" + job_id).json()
+        self.assertEqual(job["status"], "cancelled")
+        self.assertNotIn("cancel_event", job)
+
     def test_completed_result_is_recoverable_without_a_new_search(self):
         job_id = self.start()
         completed = self.finish(job_id)

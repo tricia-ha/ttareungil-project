@@ -287,10 +287,12 @@ function showView(name) {
   $('sheet').scrollTo({ top: 0 });
 }
 $('backToSearch').onclick = () => {
+  cancelRouteSearch();
   showView('search');
   if (innerWidth <= 800) setSheet('mid');
 };
 function showPanel(personal) {
+  if (personal) cancelRouteSearch();
   $('personalPanel').hidden = !personal;
   $('routesPanel').hidden = personal;
   $('navRoutes').classList.toggle('active', !personal);
@@ -317,9 +319,16 @@ function busy(on) {
   ])
     $(id).disabled = on;
 }
+function cancelRouteSearch() {
+  if (!state.routeRunning) return;
+  state.routeCancelled = true;
+  if (state.activeJob) api('/api/jobs/' + state.activeJob + '/cancel', jsonRequest('POST', {})).catch(() => {});
+  status('jobStatus', '경로 탐색을 중단했습니다.');
+}
 async function runJob(path, options, target, working, onPartial = null, existingJob = null) {
   if (state.activeJob || state.jobPending) throw new Error('진행 중인 작업이 끝난 뒤 다시 시도해 주세요.');
   state.jobPending = true;
+  if (target === 'jobStatus') { state.routeRunning = true; state.routeCancelled = false; }
   busy(true);
   if (target === 'jobStatus') $('searchButton').textContent = '경로 찾는 중…';
   let id;
@@ -327,11 +336,16 @@ async function runJob(path, options, target, working, onPartial = null, existing
     const value = existingJob || await api(path, options);
     id = value.job_id;
     state.activeJob = id;
+    if (state.routeCancelled && target === 'jobStatus') {
+      await api('/api/jobs/' + id + '/cancel', jsonRequest('POST', {}));
+      throw new Error('경로 탐색을 중단했습니다.');
+    }
     status(target, '요청을 접수했습니다. PC 자원에 여유가 생기면 탐색을 시작합니다.', false, true);
     const began = Date.now();
     let revision = 0;
     let snapshot = existingJob;
     for (;;) {
+      if (target === 'jobStatus' && state.routeCancelled) throw new Error('경로 탐색을 중단했습니다.');
       let j;
       if (snapshot) {
         j = snapshot;
@@ -345,6 +359,7 @@ async function runJob(path, options, target, working, onPartial = null, existing
           throw e;
         }
       }
+      if (j.status === 'cancelled' || (target === 'jobStatus' && state.routeCancelled)) throw new Error('경로 탐색을 중단했습니다.');
       if (onPartial && j.partial_result && j.revision > revision) {
         revision = j.revision;
         onPartial(j.partial_result);
@@ -371,6 +386,7 @@ async function runJob(path, options, target, working, onPartial = null, existing
   } finally {
     state.activeJob = null;
     state.jobPending = false;
+    if (target === 'jobStatus') state.routeRunning = false;
     busy(false);
     if (target === 'jobStatus') $('searchButton').textContent = modeNames[state.mode] + ' 경로 찾기 ↗';
   }
@@ -428,7 +444,7 @@ $('routeForm').onsubmit = async (e) => {
     return;
   }
   if (rider.active) stopGuide();
-  let departure = 'auto';
+  let departure = new Date().toISOString();
   if ($('departureMode').value === 'scheduled') {
     if (!$('departure').value) return notify('출발 날짜와 시각을 입력해 주세요.');
     departure = $('departure').value + ':00+09:00';
@@ -736,6 +752,8 @@ function showRoutes(base, { reveal = true } = {}) {
   );
   $('resultCount').textContent = all.length + '개';
   const notices = [];
+  if (all.some((route) => (route.legs || []).some((leg) => leg.source === 'osm_walk' || (leg.combined_sources || []).includes('osm_walk'))))
+    notices.push('일부 도보 구간은 OSM 보행로 기반 추정시간입니다. 카카오로 확인된 구간은 카카오 값을 우선 적용합니다.');
   if (result.status === 'searching')
     notices.push('찾은 경로부터 표시합니다. 더 짧은 경로를 계속 확인하고 있습니다.');
   if (result.status === 'partial')
@@ -775,6 +793,9 @@ function showRoutes(base, { reveal = true } = {}) {
     tags.append(node('span', 'pill', categoryNames[routeCategory(route)]));
     top.append(total, tags);
     button.append(top);
+    if ((route.legs || []).some((leg) => leg.mode === 'bicycle' && leg.details?.inventory_status === 'outside_60min_horizon')) {
+      button.append(node('p', 'hint', '재고 미확인 · 1시간 이후 대여 구간이 포함되어 있습니다. 이용 전 재고를 다시 확인해 주세요.'));
+    }
     const strip = node('div', 'mode-strip');
     const legs = displayLegs(route);
     for (const leg of legs.filter((l) => l.mode !== 'wait'))
@@ -803,6 +824,9 @@ function showRoutes(base, { reveal = true } = {}) {
       const li = node('li');
       li.append(node('span', 'leg-time', clock(leg.start)));
       const middle = node('div');
+      if (leg.mode === 'bicycle' && leg.details?.inventory_status === 'outside_60min_horizon') {
+        middle.append(node('p', 'hint', '재고 미확인 · 이용 전 재확인 필요'));
+      }
       middle.append(
         node(
           'strong',

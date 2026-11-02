@@ -14,6 +14,7 @@ archive/
 dist/
 .ruff_cache/
 .pytest_cache/
+.tmp-tests/
 *.log
 *.sqlite
 *.sqlite-wal
