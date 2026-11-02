@@ -56,8 +56,8 @@ class RouteQuery(Input):
     user_type: str = "domestic"
     horizon_minutes: int = Field(180, gt=0, le=360)
     top_k: int = Field(3, ge=1, le=5)
-    max_seconds: float = Field(30, gt=0, le=600)
-    max_kakao_calls: int = Field(80, gt=0, le=200)
+    max_seconds: float | None = Field(None, gt=0, le=600)
+    max_kakao_calls: int = Field(30, gt=0, le=200)
     max_empty_probability: float | None = Field(0.1, ge=0, le=1)
     adaptive_connections: bool = True
     max_access_walk_minutes: float = Field(30, gt=0, le=180)

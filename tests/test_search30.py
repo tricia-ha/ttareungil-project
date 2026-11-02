@@ -2,6 +2,7 @@
 
 import sys, unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path[:0] = [
     str(Path(__file__).resolve().parents[1] / "src"),
@@ -11,17 +12,40 @@ from test_query_waste import point, ride, dead_end_case
 from test_walking_budget import BudgetWalking
 from candidate_edges import LazyConnections, DeadEndGuard
 from scheduled_runtime import ScheduledConfig, build_scheduled_network
-from multimodal import Config, Network
+from multimodal import Config, Network, Router
 from kakao_routes import CallLimit
 
 
 class Search30Tests(unittest.TestCase):
-    def test_default_time_is_thirty_seconds(self):
+    def test_default_search_has_no_wall_clock_limit(self):
         from project_service import RouteQuery
 
-        self.assertEqual(Config().max_seconds, 30)
-        self.assertEqual(ScheduledConfig(adaptive_connections=False, ).max_seconds, 30)
-        self.assertEqual(RouteQuery.model_fields["max_seconds"].default, 30)
+        self.assertIsNone(Config().max_seconds)
+        self.assertIsNone(ScheduledConfig(adaptive_connections=False).max_seconds)
+        self.assertIsNone(RouteQuery.model_fields["max_seconds"].default)
+
+    def test_default_web_call_budget_is_thirty(self):
+        from project_service import RouteQuery
+
+        self.assertEqual(ScheduledConfig().max_kakao_calls, 30)
+        self.assertEqual(RouteQuery.model_fields["max_kakao_calls"].default, 30)
+
+    def test_unlimited_search_ignores_elapsed_wall_clock(self):
+        network = Network(
+            nodes={
+                "origin": point(37.5),
+                "destination": point(37.501),
+            },
+            walks=[{"from": "origin", "to": "destination", "minutes": 3}],
+        )
+        clock = iter(range(0, 100000, 100))
+        with patch("multimodal.time.monotonic", side_effect=lambda: next(clock)):
+            result = Router(network, None, Config(top_k=1)).search(
+                "origin", "destination", "2026-11-02T10:00:00+09:00"
+            )
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["routes"][0]["total_minutes"], 3)
+        self.assertNotEqual(result["termination_reason"], "max_seconds")
 
     def component(self, escape=False):
         o, d, s, t = dead_end_case()

@@ -43,7 +43,7 @@ from project_paths import (
 class ScheduledConfig:
     horizon_minutes: int = 180
     top_k: int = 3
-    max_seconds: int = 30
+    max_seconds: float | None = None
     step_seconds: int = 60
     max_expansions: int = 100000
     max_station_candidates: int = (
@@ -62,7 +62,7 @@ class ScheduledConfig:
     max_bike_distance_m: float = 7000
     adaptive_connections: bool = True
     max_access_walk_minutes: float = 30
-    max_kakao_calls: int = 80
+    max_kakao_calls: int = 30
     kakao_daily_limit: int = 1000
     require_known_inventory: bool = True
     max_empty_probability: float | None = 0.1
@@ -100,7 +100,6 @@ class ScheduledConfig:
         positive = (
             self.horizon_minutes,
             self.top_k,
-            self.max_seconds,
             self.step_seconds,
             self.max_expansions,
             self.max_station_candidates,
@@ -119,6 +118,8 @@ class ScheduledConfig:
         )
         if any(float(v) <= 0 for v in positive):
             raise ValueError("시간표 최적화 설정값은 양수여야 합니다.")
+        if self.max_seconds is not None and float(self.max_seconds) <= 0:
+            raise ValueError("탐색시간 한도는 None 또는 양수여야 합니다.")
         if (
             self.max_empty_probability is not None
             and not 0 <= self.max_empty_probability <= 1

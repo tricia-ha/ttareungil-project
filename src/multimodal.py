@@ -79,7 +79,10 @@ class Config:
     horizon_minutes: float = 180
     step_seconds: int = 60
     max_expansions: int = 100000
-    max_seconds: float = 30
+    # None means that the graph/search budgets, rather than wall-clock time,
+    # decide when the search is finished.  A positive value remains available
+    # for CLI experiments and explicit bounded requests.
+    max_seconds: float | None = None
     risk_penalty_minutes: float = 0
     unknown_risk_penalty_minutes: float = 0
     max_empty_probability: float | None = None
@@ -197,7 +200,7 @@ class Router:
         if (
             c.step_seconds <= 0
             or c.horizon_minutes <= 0
-            or c.max_seconds <= 0
+            or (c.max_seconds is not None and c.max_seconds <= 0)
             or c.max_expansions <= 0
             or c.top_k <= 0
             or not isinstance(c.bike_expansion_batch_size, int)
@@ -287,10 +290,15 @@ class Router:
         # optional connector calls can consume the query budget. No extra model
         # inference or walking API calls are made by this bounded first pass.
         begun = time.monotonic()
+        deadline = None if c.max_seconds is None else begun + c.max_seconds
+
+        def time_exhausted():
+            return deadline is not None and time.monotonic() >= deadline
+
         if self.walking_provider is not None and hasattr(
             self.walking_provider, "set_deadline"
         ):
-            self.walking_provider.set_deadline(begun + c.max_seconds)
+            self.walking_provider.set_deadline(deadline)
         known_routes, known_expanded = [], 0
         known_roundtrip_pruned = known_roundtrip_waits = 0
         known_walking_replacements = 0
@@ -306,9 +314,12 @@ class Router:
                 transit=self.network.transit,
                 metadata=self.network.metadata,
             )
+            known_seconds = (
+                2.0 if c.max_seconds is None else min(2.0, c.max_seconds * 0.2)
+            )
             known_config = replace(
                 c,
-                max_seconds=min(2.0, c.max_seconds * 0.2),
+                max_seconds=known_seconds,
                 max_expansions=min(5000, max(1, c.max_expansions // 5)),
             )
             known_result = Router(
@@ -333,10 +344,7 @@ class Router:
                     end,
                     dt.tzinfo,
                     c.required_mode,
-                    min(
-                        begun + c.max_seconds,
-                        time.monotonic() + min(2.0, c.max_seconds * 0.2),
-                    ),
+                    time.monotonic() + known_seconds,
                 )
                 seed_stats.append(stats)
                 if seed is not None:
@@ -526,7 +534,7 @@ class Router:
         update_seconds = 0.0
 
         def publish_routes():
-            nonlocal last_update, begun, update_seconds
+            nonlocal last_update, begun, deadline, update_seconds
             if self.on_routes is None or not (results or mixed_results):
                 return
             identity = tuple(
@@ -563,10 +571,12 @@ class Router:
                 duration = time.monotonic() - update_started
                 update_seconds += duration
                 begun += duration
+                if deadline is not None:
+                    deadline += duration
                 if self.walking_provider is not None and hasattr(
                     self.walking_provider, "set_deadline"
                 ):
-                    self.walking_provider.set_deadline(begun + c.max_seconds)
+                    self.walking_provider.set_deadline(deadline)
 
         publish_routes()
 
@@ -685,7 +695,7 @@ class Router:
 
         def walk_work(node, t, boards, idx, penalty):
             for edge in lazy.iter_walks_from(
-                node, lambda: time.monotonic() - begun >= c.max_seconds
+                node, time_exhausted
             ):
                 if edge is not None:
                     emit(edge, edge["minutes"], False, {}, 0.0, t, boards, idx, penalty)
@@ -771,7 +781,7 @@ class Router:
                             else prefetched
                         )
                 for edge in eligible:
-                    if time.monotonic() - begun >= c.max_seconds:
+                    if time_exhausted():
                         yield  # Keep unfinished work visible to the outer timeout check.
                         return
                     key = (edge["from"], edge["to"], t)
@@ -895,8 +905,8 @@ class Router:
                 and not results
                 and not seed_refreshed
                 and self.network.transit
-                and time.monotonic() - begun
-                >= c.max_seconds - min(2.0, c.max_seconds * 0.15)
+                and deadline is not None
+                and time.monotonic() >= deadline - min(2.0, c.max_seconds * 0.15)
             ):
                 seed_refreshed = True
                 from transit_seed import timetable_seed
@@ -911,7 +921,7 @@ class Router:
                     end,
                     dt.tzinfo,
                     c.required_mode,
-                    begun + c.max_seconds,
+                    deadline,
                 )
                 seed_stats.append(stats)
                 if seed is not None:
@@ -922,7 +932,7 @@ class Router:
                 truncated = True
                 termination_reason = "max_expansions"
                 break
-            if time.monotonic() - begun >= c.max_seconds:
+            if time_exhausted():
                 truncated = True
                 termination_reason = "max_seconds"
                 break
@@ -1210,7 +1220,38 @@ class Router:
                         bike_work(node, t, boards, idx, penalty, bikes[node]),
                     )
                 )
-        # Retain the known-route fallback even if later API work times out.
+        # With no wall-clock deadline, all reachable work above is exhausted.
+        # Refresh the cheap timetable fallback once more because lazy connector
+        # calls may have confirmed useful walks after the initial seed scan.
+        if (
+            lazy is not None
+            and c.required_mode != "bicycle"
+            and not results
+            and not seed_refreshed
+            and self.network.transit
+            and not time_exhausted()
+        ):
+            from transit_seed import timetable_seed
+
+            seed, stats = timetable_seed(
+                self.network.walks
+                + [e for rows in lazy.walk_cache.values() for e in rows],
+                rides,
+                origin,
+                destination,
+                start,
+                end,
+                dt.tzinfo,
+                c.required_mode,
+                deadline if deadline is not None else float("inf"),
+            )
+            seed_stats.append(stats)
+            seed_refreshed = True
+            if seed is not None:
+                known_routes.append(seed)
+                keep_route(results, seed, c.top_k)
+
+        # Retain the known-route fallback even if later API work is incomplete.
         # Merge by the same objective, not by discovery order; a newly found
         # better mixed route can still replace a first-pass route.
         results = sorted(
