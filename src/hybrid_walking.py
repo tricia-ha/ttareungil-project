@@ -34,7 +34,7 @@ class WalkGraph:
                 else "1"
             )
             edges = con.execute(
-                f"select u,v,meters,seconds,{uncertainty} from edges"
+                f"select u,v,meters,seconds,{uncertainty} from edges order by u,v"
             ).fetchall()
             self.tiles = [
                 json.loads(r[0]) for r in con.execute("select bounds from tiles")
@@ -47,6 +47,11 @@ class WalkGraph:
         nodes = [r for r in nodes if r[0] in connected]
         if not nodes or not edges:
             raise ValueError("Empty pedestrian graph")
+        semantic = hashlib.sha256(b'pedestrian-transfer-graph-v1')
+        semantic.update(np.asarray(nodes, dtype='<f8').tobytes())
+        semantic.update(np.asarray(edges, dtype='<f8').tobytes())
+        semantic.update(json.dumps(sorted(self.tiles)).encode())
+        self.content_signature = semantic.hexdigest()
         ids = {r[0]: i for i, r in enumerate(nodes)}
         self.xy = np.array([(r[1], r[2]) for r in nodes], dtype=float)
         self.scale = np.array([111320 * math.cos(math.radians(37.57)), 111320])
@@ -125,15 +130,18 @@ class WalkGraph:
                     return None
                 path.append(parent)
             path.reverse()
-            length = float(ds + de) + sum(
-                float(self.meters[u, v]) for u, v in zip(path, path[1:])
-            )
+            # Batch sparse lookups, but retain Python summation order so path
+            # distances and verification decisions match the scalar version.
+            if len(path) > 1:
+                starts = np.asarray(path[:-1], dtype=np.intp)
+                ends = np.asarray(path[1:], dtype=np.intp)
+                costs = np.asarray(self.meters[starts, ends]).reshape(-1).tolist()
+                flags = np.asarray(self.uncertain[starts, ends]).reshape(-1).astype(bool).tolist()
+            else:
+                costs, flags = [], []
+            length = float(ds + de) + sum(costs)
             straight = distance(a, b)
-            major_meters = sum(
-                float(self.meters[u, v])
-                for u, v in zip(path, path[1:])
-                if self.uncertain[u, v]
-            )
+            major_meters = sum(value for value, flag in zip(costs, flags) if flag)
             # Large detours and large snaps require authoritative verification.
             if length > max(600, straight * 3) or max(ds, de) > 25:
                 return None
@@ -153,7 +161,7 @@ class WalkGraph:
                 graph_version=self.signature,
                 major_road_fraction=major_meters / max(1, length),
                 needs_kakao_verification=(
-                    any(self.uncertain[u, v] for u, v in zip(path, path[1:]))
+                    any(flags)
                 ),
             )
 
@@ -187,11 +195,15 @@ class HybridWalking:
         self.client = kakao.client
         self.cancel_check = None
         policy = Path(graph_path).parent / "verification_policy.json"
+        if not policy.is_file() and Path(graph_path).parent.name == 'shared_walking':
+            from project_paths import PROJECT_ROOT
+            policy = PROJECT_ROOT / 'data/walking/verification_policy.json'
         self.extra_rules = (
             json.loads(policy.read_text(encoding="utf-8")).get("extra_rules", [])
             if policy.is_file()
             else []
         )
+        Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(cache_path, timeout=30)
         self.db.execute("pragma journal_mode=WAL")
         self.db.execute("pragma synchronous=NORMAL")
@@ -225,7 +237,7 @@ class HybridWalking:
             ).encode()
         ).hexdigest()
 
-    def _osm(self, a, b, start, end):
+    def _osm(self, a, b, start, end, *, compute=True):
         if self.graph is None:
             return None
         key = self._key(a, b)
@@ -236,6 +248,15 @@ class HybridWalking:
             value = json.loads(row[0])
             value.update({"from": start, "to": end})
             return value
+        links = getattr(self.kakao, 'link_cache', None)
+        if links is not None:
+            shared = links.shared.get('osm', a, b, start, end,
+                                      graph_identity=self.graph.content_signature)
+            if shared is not None:
+                shared['graph_version'] = self.graph.signature
+                return shared
+        if not compute:
+            return None
         value = self.graph.route(a, b, start, end)
         if value:
             with self.db:
@@ -262,7 +283,26 @@ class HybridWalking:
                 (key, osm["minutes"], kakao["minutes"], ratio, time.time()),
             )
 
+    def peek(self, a, b, start, end):
+        """Cheap priority lookup: cached data only, no new graph search/HTTP."""
+        hit, authoritative = self.kakao.cached(a, b, start, end)
+        if hit:
+            # Comparisons/diagnostic writes belong to an actual resolution,
+            # not to the hundreds of optional priority probes around a stop.
+            self.counts['kakao_overrides'] += 1
+            return True, authoritative
+        offline = self._osm(a, b, start, end, compute=False)
+        if offline:
+            from walking_quality import reasons
+            if not reasons(a, b, start, end, offline, self.extra_rules):
+                self.counts['osm_hits'] += 1
+                return True, offline
+        return False, None
+
     def cached(self, a, b, start, end):
+        return self._cached(a, b, start, end, compute_osm=True)
+
+    def _cached(self, a, b, start, end, *, compute_osm):
         hit, authoritative = self.kakao.cached(a, b, start, end)
         if hit:
             self.counts["kakao_overrides"] += 1
@@ -273,7 +313,7 @@ class HybridWalking:
                 if row:
                     self._compare(a, b, json.loads(row[0]), authoritative)
             return True, authoritative
-        offline = self._osm(a, b, start, end)
+        offline = self._osm(a, b, start, end, compute=compute_osm)
         if offline:
             from walking_quality import reasons
 

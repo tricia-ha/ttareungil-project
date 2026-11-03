@@ -97,12 +97,55 @@ ctx.L = { marker: layer, circle: layer, polyline: layer, divIcon: x => x };
   assert.equal(state.currentRoute, null);
   assert.equal(el('routeCards').children.length, 0);
   assert.equal(el('goBar').hidden, true);
-  await el('routeForm').onsubmit({ preventDefault() {} });
-  assert.equal(requests.length, 1, 'Repeated submit cannot create duplicate jobs');
+  assert.equal(el('searchButton').disabled, false, 'Search stays clickable for cancellation');
+  assert.match(el('searchButton').textContent, /검색 중단/);
   accept({ ok: true, json: async () => ({ job_id: 'test-job' }) });
   await pending;
   assert.equal(state.currentRoute.total_minutes, 10);
   assert.equal(JSON.parse(requests[0][1].body).mode, 'integrated');
+
+  // A second click before the job ID arrives cancels that job after acceptance.
+  const cancelRequests = []; let acceptCancelled;
+  ctx.fetch = async (url, options) => {
+    cancelRequests.push([url, options]);
+    if (url === '/api/routes') return new Promise(resolve => { acceptCancelled = resolve; });
+    return { ok: true, json: async () => ({ status: 'cancelled' }) };
+  };
+  const cancelled = el('routeForm').onsubmit({ preventDefault() {} });
+  await el('routeForm').onsubmit({ preventDefault() {} });
+  await el('routeForm').onsubmit({ preventDefault() {} });
+  assert.equal(cancelRequests.length, 1, 'Repeated stop clicks cannot create or cancel duplicate jobs');
+  assert.equal(el('searchButton').disabled, true, 'Stop clicks are disabled while cancellation finishes');
+  acceptCancelled({ ok: true, json: async () => ({ job_id: 'cancel-before-accept' }) });
+  await cancelled;
+  assert.equal(cancelRequests.filter(([url]) => url.endsWith('/cancel')).length, 1);
+  assert.equal(cancelRequests[1][0], '/api/jobs/cancel-before-accept/cancel');
+  assert.equal(state.routeRunning, false);
+  assert.equal(state.activeJob, null);
+  assert.equal(el('searchButton').disabled, false);
+  assert.match(el('searchButton').textContent, /경로 찾기/);
+  assert.equal(el('jobStatus').className, 'status', 'Cancellation is not displayed as an error');
+
+  // Results remain usable when cancelling an active search; a late response is ignored.
+  let latePoll; const activeRequests = [];
+  ctx.fetch = async url => {
+    activeRequests.push(url);
+    if (url.endsWith('/cancel')) return { ok: true, json: async () => ({ status: 'cancelled' }) };
+    return new Promise(resolve => { latePoll = resolve; });
+  };
+  const active = ctx.runJob(null, null, 'jobStatus', '탐색 중', partial => ctx.showRoutes(partial), {
+    job_id: 'active-stop', status: 'running', revision: 1, partial_result: base,
+  });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(el('resultNav').hidden, false);
+  assert.equal(el('stopRouteSearch').hidden, false, 'Stop is reachable after partial results appear');
+  el('stopRouteSearch').onclick();
+  latePoll({ ok: true, json: async () => ({ status: 'done', result: { routes: [] } }) });
+  await assert.rejects(active, /경로 탐색을 중단/);
+  assert.equal(activeRequests.filter(url => url.endsWith('/cancel')).length, 1);
+  assert.equal(state.currentRoute.total_minutes, 10, 'Cancelling preserves the displayed partial route');
+  assert.equal(el('stopRouteSearch').hidden, true);
+
   for (const mode of ['transit', 'bicycle']) {
     const button = modeButtons.find(button => button.dataset.mode === mode);
     button.onclick();
@@ -162,5 +205,5 @@ ctx.L = { marker: layer, circle: layer, polyline: layer, divIcon: x => x };
   await lock;
   assert.equal(released, 1, 'Late screen-lock requests must release after navigation stops');
   assert.equal(rider.wake, null);
-  console.log('Web update checks passed: filters, preserved routes, empty results, duplicate jobs, GPS lifecycle and wake locks.');
+  console.log('Web update checks passed: filters, preserved routes, cancellation before/after acceptance, late responses, GPS lifecycle and wake locks.');
 })().catch(e => { console.error(e); process.exitCode = 1; });

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone, timedelta
 import json
 import os
@@ -43,7 +43,8 @@ from project_paths import (
 class ScheduledConfig:
     horizon_minutes: int = 180
     top_k: int = 3
-    max_seconds: float | None = 60
+    max_seconds: float | None = 150
+    adaptive_budgets: bool = True
     cancel_check: object = None
     step_seconds: int = 60
     max_expansions: int = 100000
@@ -63,7 +64,7 @@ class ScheduledConfig:
     max_bike_distance_m: float = 7000
     adaptive_connections: bool = True
     max_access_walk_minutes: float = 30
-    max_kakao_calls: int = 30
+    max_kakao_calls: int = 45
     kakao_daily_limit: int = 1000
     require_known_inventory: bool = True
     max_empty_probability: float | None = 0.1
@@ -83,6 +84,8 @@ class ScheduledConfig:
     bicycle_available: bool = True
 
     def validate(self):
+        if not isinstance(self.adaptive_budgets, bool):
+            raise ValueError('adaptive_budgets는 bool이어야 합니다.')
         if not isinstance(self.adaptive_connections, bool):
             raise ValueError("adaptive_connections는 bool이어야 합니다.")
         if not isinstance(self.bicycle_available, bool):
@@ -183,6 +186,10 @@ class KakaoWalking:
             return False, None
         payload = lookup("walk", a, b)
         if payload is None:
+            if self.link_cache is not None:
+                shared = self.link_cache.shared_edge(start, end, a, b)
+                if shared is not None:
+                    return True, shared
             return False, None
         edge = walking_edge(*payload, start, end)
         if edge is not None and self.link_cache is not None:
@@ -1043,6 +1050,17 @@ def _run_scheduled_optimization(
             "inventory_filter_applied": False,
         }
 
+    budget = None
+    if c.adaptive_budgets:
+        from search_budget import workload, select_budget
+
+        budget = select_budget(workload(
+            timetable.nodes, stations, origin, destination, len(timetable.transit),
+            max(c.max_connector_distance_m, c.max_access_walk_minutes * 80)
+            if c.adaptive_connections else c.max_connector_distance_m,
+            c.search_mode,
+        ), c.search_mode, call_ceiling=c.max_kakao_calls, time_ceiling=c.max_seconds)
+        c = replace(c, max_seconds=budget['max_seconds'], max_kakao_calls=budget['max_kakao_calls'])
     client = KakaoClient(
         RUNTIME_CACHE_DIR / "scheduled_kakao_walk.sqlite",
         api_key,
@@ -1055,7 +1073,8 @@ def _run_scheduled_optimization(
         if hasattr(client, "get_cached"):
             from walking_link_cache import WalkingLinkCache
 
-            link_cache = WalkingLinkCache(RUNTIME_CACHE_DIR / "walking_links.sqlite")
+            link_cache = WalkingLinkCache(RUNTIME_CACHE_DIR / "walking_links.sqlite",
+                                          reference=PROJECT_ROOT / 'data/reference')
             for previous in (
                 output / "result.json",
                 RUNTIME_OUTPUT_DIR / "scheduled" / "result.json",
@@ -1068,6 +1087,11 @@ def _run_scheduled_optimization(
         walking.cancel_check = c.cancel_check
         notify_progress(on_progress, "network")
         graph_path = PROJECT_ROOT / "data" / "walking" / "seoul_walk.sqlite"
+        if not graph_path.is_file():
+            from portable_transfers import prepare as prepare_walking
+            shared_graph = prepare_walking(PROJECT_ROOT / 'data/reference')
+            if shared_graph is not None:
+                graph_path = shared_graph
         if graph_path.is_file():
             from hybrid_walking import HybridWalking
 
@@ -1077,6 +1101,8 @@ def _run_scheduled_optimization(
         network = build_scheduled_network(
             timetable, stations, origin, destination, walking, c, departure=departure
         )
+        if budget is not None:
+            network.metadata['search_budget'] = budget
         network.metadata["restored_walk_connections"] = (
             link_cache.restore(network, client) if link_cache else 0
         )
@@ -1175,6 +1201,7 @@ def _run_scheduled_optimization(
                 search_mode=c.search_mode,
                 personalization=copy.deepcopy(personalization),
                 api_usage=client.stats(),
+                search_budget=budget,
                 inventory_connected=inventory is not None,
                 weather_requested=use_kma,
                 bicycle_time_quantile=c.bike_quantile
@@ -1251,6 +1278,7 @@ def _run_scheduled_optimization(
                 "재고는 관측 기준 60분 이내에만 평가하며, 이후 따릉이 구간은 재고 미확인",
             ]
         )
+        result['search_budget'] = budget
         result["walking_sources"] = (
             dict(offline_walking.counts, osm_graph_ready=offline_walking.graph is not None)
             if offline_walking else {"osm_graph_ready": False}

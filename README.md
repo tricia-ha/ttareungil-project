@@ -45,4 +45,10 @@ OSM 도보망은 최초 한 번 사용하는 Python 환경에서 `python scripts
 
 [웹·휴대폰 사용법](docs/WEB.md) · [Python 사용법](docs/USAGE.md) · [사진 등록](docs/SCREENSHOT_IMPORT.md) · [개인화](docs/PERSONALIZATION.md) · [검증·제한](docs/VALIDATION.md) · [시설 좌표 점검](docs/COORDINATES.md) · [시간표 수집](docs/TIMETABLE_COLLECTION.md)
 
+[경로 탐색 비교 실험과 개선 결과](docs/SEARCH_EXPERIMENTS_20261102.md)
+
+[여섯 출발·도착지의 통합 탐색 비교](docs/INTEGRATED_BENCHMARK_20261103.md)
+
+역·정류장·대여소 사이의 공유 환승 자료는 Git에 포함되어 첫 검색 때 자동으로 적용됩니다. 다른 PC로 `bicycle_local`을 복사할 필요가 없습니다. 코드를 갱신한 뒤 서버를 재시작하고, 각 PC의 API 인증키는 `.env`에 별도로 설정합니다. [환승 자료와 갱신 기준](docs/SHARED_TRANSFERS.md)
+
 공개 버스 출발표 갱신은 `버스시간표_수집.cmd` 또는 `notebooks/04_버스시간표수집.ipynb`에서 실행합니다. 저장된 시간표와 가공된 구간 운행 통계는 바로 사용할 수 있습니다. 수집 범위·추정 부분은 [시간표 수집](docs/TIMETABLE_COLLECTION.md)에 구분했습니다.

@@ -304,7 +304,10 @@ function showPanel(personal) {
 }
 function busy(on) {
   on = on || state.initializing;
-  $('searchButton').disabled = on;
+  $('searchButton').disabled = on && (!state.routeRunning || state.routeCancelled);
+  $('stopRouteSearch').hidden = !state.routeRunning;
+  $('stopRouteSearch').disabled = !!state.routeCancelled;
+  $('stopRouteSearch').textContent = state.routeCancelled ? '중단 중…' : '검색 중단';
   $('recognizeButton').disabled = on;
   $('confirmButton').disabled = on;
   document.querySelectorAll('[data-mode]').forEach((b) => (b.disabled = on));
@@ -320,17 +323,20 @@ function busy(on) {
     $(id).disabled = on;
 }
 function cancelRouteSearch() {
-  if (!state.routeRunning) return;
+  if (!state.routeRunning || state.routeCancelled) return;
   state.routeCancelled = true;
   if (state.activeJob) api('/api/jobs/' + state.activeJob + '/cancel', jsonRequest('POST', {})).catch(() => {});
+  $('searchButton').textContent = '중단 중…';
+  busy(true);
   status('jobStatus', '경로 탐색을 중단했습니다.');
 }
+$('stopRouteSearch').onclick = cancelRouteSearch;
 async function runJob(path, options, target, working, onPartial = null, existingJob = null) {
   if (state.activeJob || state.jobPending) throw new Error('진행 중인 작업이 끝난 뒤 다시 시도해 주세요.');
   state.jobPending = true;
   if (target === 'jobStatus') { state.routeRunning = true; state.routeCancelled = false; }
   busy(true);
-  if (target === 'jobStatus') $('searchButton').textContent = '경로 찾는 중…';
+  if (target === 'jobStatus') $('searchButton').textContent = '검색 중단 ■';
   let id;
   try {
     const value = existingJob || await api(path, options);
@@ -395,6 +401,10 @@ function routeProgressText(job, fallback) {
   const progress = job.progress;
   if (!progress?.message) return fallback;
   const lines = [progress.message];
+  if (job.partial_result?.search_budget) {
+    const budget = job.partial_result.search_budget;
+    lines.push(`이번 탐색 한도: ${budget.max_seconds}초 · 새 도보 조회 ${budget.max_kakao_calls}회`);
+  }
   if (job.partial_result?.routes?.length) {
     lines.push(`${orderedRoutes(job.partial_result).length}개 경로를 찾았습니다. 확보한 경로는 먼저 확인할 수 있습니다.`);
   }
@@ -432,6 +442,10 @@ function clearRouteDisplay(message) {
 }
 $('routeForm').onsubmit = async (e) => {
   e.preventDefault();
+  if (state.routeRunning) {
+    cancelRouteSearch();
+    return;
+  }
   if (state.initializing || state.activeJob || state.jobPending) {
     notify('기존 탐색을 확인 중입니다. 완료 후 다시 검색해 주세요.');
     return;
@@ -486,7 +500,7 @@ $('routeForm').onsubmit = async (e) => {
     showRoutes(result, { reveal: !received });
     if (!received) setSheet('full');
   } catch (error) {
-    status('jobStatus', error.message, true);
+    status('jobStatus', error.message, !state.routeCancelled);
   }
 };
 async function resumeRoute(job) {
@@ -718,7 +732,7 @@ async function searchMore(mode) {
     state.searched.add(mode);
     showRoutes(state.base, { reveal: false });
   } catch (e) {
-    status('jobStatus', e.message, true);
+    status('jobStatus', e.message, !state.routeCancelled);
   }
 }
 function emptyState() {
@@ -860,6 +874,8 @@ function showRoutes(base, { reveal = true } = {}) {
     `종료 상태: ${result.termination_reason || result.status}`,
     `새 도보 API 호출: ${result.api_usage?.new_api_calls ?? 0}회`,
   ];
+  if (result.search_budget)
+    lines.push(`이번 탐색 한도: ${result.search_budget.max_seconds}초 · 새 도보 조회 ${result.search_budget.max_kakao_calls}회 (후보 규모에 따라 자동 설정)`);
   for (const text of [...lines, ...(result.data_gaps || [])])
     diagnostics.append(node('p', '', text));
   if (routes[selected] && routeDisplayKey(routes[selected]) !== state.displayedRouteKey)

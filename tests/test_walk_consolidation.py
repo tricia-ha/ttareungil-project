@@ -38,8 +38,20 @@ def test_ordinary_consecutive_walks_are_one_display_leg_without_new_call():
     value, stats = consolidate_route(
         route(
             [
-                walk("origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3),
-                walk("A", "destination", "2026-11-02T10:03:00+09:00", "2026-11-02T10:10:00+09:00", 7),
+                walk(
+                    "origin",
+                    "A",
+                    "2026-11-02T10:00:00+09:00",
+                    "2026-11-02T10:03:00+09:00",
+                    3,
+                ),
+                walk(
+                    "A",
+                    "destination",
+                    "2026-11-02T10:03:00+09:00",
+                    "2026-11-02T10:10:00+09:00",
+                    7,
+                ),
             ]
         ),
         NODES,
@@ -58,7 +70,13 @@ def test_published_platform_transfer_stays_separate():
     value, stats = consolidate_route(
         route(
             [
-                walk("origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3),
+                walk(
+                    "origin",
+                    "A",
+                    "2026-11-02T10:00:00+09:00",
+                    "2026-11-02T10:03:00+09:00",
+                    3,
+                ),
                 walk(
                     "A",
                     "destination",
@@ -96,8 +114,20 @@ def test_cached_shorter_destination_walk_replaces_relay_and_updates_eta():
     value, stats = consolidate_route(
         route(
             [
-                walk("origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3),
-                walk("A", "destination", "2026-11-02T10:03:00+09:00", "2026-11-02T10:10:00+09:00", 7),
+                walk(
+                    "origin",
+                    "A",
+                    "2026-11-02T10:00:00+09:00",
+                    "2026-11-02T10:03:00+09:00",
+                    3,
+                ),
+                walk(
+                    "A",
+                    "destination",
+                    "2026-11-02T10:03:00+09:00",
+                    "2026-11-02T10:10:00+09:00",
+                    7,
+                ),
             ]
         ),
         NODES,
@@ -113,10 +143,17 @@ def test_cached_shorter_destination_walk_replaces_relay_and_updates_eta():
 def test_shorter_direct_walk_before_vehicle_preserves_evaluated_departure_time():
     class Walking:
         def cached(self, a, b, start, end):
-            return True, {"from": start, "to": end, "minutes": 4, "source": "kakao_walk"}
+            return True, {
+                "from": start,
+                "to": end,
+                "minutes": 4,
+                "source": "kakao_walk",
+            }
 
     legs = [
-        walk("origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3),
+        walk(
+            "origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3
+        ),
         walk("A", "B", "2026-11-02T10:03:00+09:00", "2026-11-02T10:08:00+09:00", 5),
         {
             "mode": "bicycle",
@@ -137,8 +174,20 @@ def test_walk_roundtrip_becomes_wait_not_movement():
     value, _ = consolidate_route(
         route(
             [
-                walk("origin", "A", "2026-11-02T10:00:00+09:00", "2026-11-02T10:03:00+09:00", 3),
-                walk("A", "origin", "2026-11-02T10:03:00+09:00", "2026-11-02T10:10:00+09:00", 7),
+                walk(
+                    "origin",
+                    "A",
+                    "2026-11-02T10:00:00+09:00",
+                    "2026-11-02T10:03:00+09:00",
+                    3,
+                ),
+                walk(
+                    "A",
+                    "origin",
+                    "2026-11-02T10:03:00+09:00",
+                    "2026-11-02T10:10:00+09:00",
+                    7,
+                ),
             ]
         ),
         NODES,

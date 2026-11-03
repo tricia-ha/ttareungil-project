@@ -1,0 +1,26 @@
+{
+  "method": "10th/90th percentiles of saved local workload estimates; log interpolation; no accuracy guarantee",
+  "source": "anonymized aggregate of saved route diagnostics",
+  "profiles": {
+    "all": {
+      "samples": 91,
+      "low_workload": 42336,
+      "high_workload": 120069460544
+    },
+    "integrated": {
+      "samples": 66,
+      "low_workload": 20355136360,
+      "high_workload": 124160105713
+    },
+    "bicycle": {
+      "samples": 19,
+      "low_workload": 20944,
+      "high_workload": 4150248
+    },
+    "transit": {
+      "samples": 6,
+      "low_workload": 25024012050,
+      "high_workload": 51717740979
+    }
+  }
+}

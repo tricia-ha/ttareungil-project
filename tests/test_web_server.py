@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 from contextlib import closing
-import copy, json, os, re, sys, tempfile, time, unittest
+import copy, json, os, re, sys, tempfile, threading, time, unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -110,6 +110,31 @@ class WebTests(unittest.TestCase):
             },
             mode=mode,
         )
+
+    def test_cancel_route_signals_running_search(self):
+        started, stopped, release = (threading.Event() for _ in range(3))
+
+        def search(service, origin, destination, **options):
+            started.set()
+            while not options['cancel_check']() and not release.wait(0.005):
+                pass
+            if options['cancel_check']():
+                stopped.set()
+            return {'routes': [], 'search_complete': False}
+
+        with patch.object(FakeService, 'find_routes', search):
+            try:
+                response = self.client.post('/api/routes', json=self.query())
+                self.assertEqual(response.status_code, 202, response.text)
+                job = response.json()['job_id']
+                self.assertTrue(started.wait(2), 'The search must be running before stopping')
+                response = self.client.post('/api/jobs/' + job + '/cancel', json={})
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json()['status'], 'cancelled')
+                self.assertTrue(stopped.wait(2), 'The server search must receive cancellation')
+                self.assertEqual(self.client.get('/api/jobs/' + job).json()['status'], 'cancelled')
+            finally:
+                release.set()
 
     def test_ui_static_files_and_no_private_file_serving(self):
         for path in ["/", "/app.js", "/app.css", "/base.css", "/assets/logo.png"]:

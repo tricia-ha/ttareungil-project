@@ -17,18 +17,20 @@ from kakao_routes import CallLimit
 
 
 class Search30Tests(unittest.TestCase):
-    def test_default_search_limit_is_sixty_seconds(self):
+    def test_service_defaults_enable_adaptive_time_with_150_second_ceiling(self):
         from project_service import RouteQuery
 
         self.assertEqual(Config().max_seconds, 60)
-        self.assertEqual(ScheduledConfig(adaptive_connections=False).max_seconds, 60)
-        self.assertEqual(RouteQuery.model_fields["max_seconds"].default, 60)
+        self.assertEqual(ScheduledConfig(adaptive_connections=False).max_seconds, 150)
+        self.assertTrue(ScheduledConfig().adaptive_budgets)
+        self.assertEqual(RouteQuery.model_fields["max_seconds"].default, 150)
+        self.assertTrue(RouteQuery.model_fields['adaptive_budgets'].default)
 
-    def test_default_web_call_budget_is_thirty(self):
+    def test_default_service_call_ceiling_is_45(self):
         from project_service import RouteQuery
 
-        self.assertEqual(ScheduledConfig().max_kakao_calls, 30)
-        self.assertEqual(RouteQuery.model_fields["max_kakao_calls"].default, 30)
+        self.assertEqual(ScheduledConfig().max_kakao_calls, 45)
+        self.assertEqual(RouteQuery.model_fields["max_kakao_calls"].default, 45)
 
     def test_unlimited_search_ignores_elapsed_wall_clock(self):
         network = Network(

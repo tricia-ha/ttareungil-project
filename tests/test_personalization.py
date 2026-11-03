@@ -329,6 +329,9 @@ class RoutingPersonalizationTests(unittest.TestCase):
             with (
                 patch.object(runtime, "STATION_CATALOG", catalog),
                 patch.object(runtime, "RUNTIME_CACHE_DIR", path / "cache"),
+                # This fake-network test must not discover the installed Seoul
+                # OSM graph and acquire new walking links between its runs.
+                patch.object(runtime, "PROJECT_ROOT", path),
                 patch.object(runtime, "KakaoClient", Client),
                 patch.object(runtime, "_artifact_identity", return_value=[]),
                 patch("transit_geometry.attach_transit_geometry"),

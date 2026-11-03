@@ -55,6 +55,15 @@ def test_uncovered_or_distant_snap_is_not_a_straight_line(graph_path):
     )
 
 
+def test_same_road_node_has_finite_access_without_sparse_index_errors(graph_path):
+    graph = WalkGraph(graph_path)
+    edge = graph.route(point(37.5), point(37.500001), 'A', 'B')
+    assert edge is not None and edge['minutes'] > 0
+    assert 0 < edge['distance_m'] < 1
+    assert edge['major_road_fraction'] == 0
+    assert not edge['needs_kakao_verification']
+
+
 class Kakao:
     def __init__(self):
         self.edge = None
@@ -74,7 +83,7 @@ class Kakao:
 
 def test_offline_cost_is_persistent_and_kakao_override_wins(graph_path, tmp_path):
     kakao = Kakao()
-    cache = tmp_path / "cache.sqlite"
+    cache = tmp_path / "new-environment" / "cache.sqlite"
     walking = HybridWalking(kakao, graph_path, cache)
     hit, edge = walking.cached(point(37.5), point(37.502), "A", "B")
     assert hit and edge["source"] == "osm_walk"
@@ -95,6 +104,28 @@ def test_failed_offline_route_can_fall_back_without_fabrication(graph_path, tmp_
     walking = HybridWalking(kakao, graph_path, tmp_path / "cache.sqlite")
     assert walking(point(37.502), point(37.5), "B", "A") is None
     assert kakao.calls == 1
+    walking.close()
+
+
+def test_priority_peek_never_computes_a_missing_route(graph_path, tmp_path, monkeypatch):
+    walking = HybridWalking(Kakao(), graph_path, tmp_path / 'peek.sqlite')
+    original = walking.graph.route
+    calls = []
+
+    def route(*args):
+        calls.append(args)
+        return original(*args)
+
+    monkeypatch.setattr(walking.graph, 'route', route)
+    a, b = point(37.5), point(37.502)
+    assert walking.peek(a, b, 'A', 'B') == (False, None)
+    assert not calls
+    hit, edge = walking.cached(a, b, 'A', 'B')
+    assert hit and len(calls) == 1
+    assert walking.peek(a, b, 'A', 'B') == (True, edge)
+    assert len(calls) == 1
+    walking.kakao.edge = dict(edge, minutes=8, source='kakao_walk')
+    assert walking.peek(a, b, 'A', 'B')[1]['minutes'] == 8
     walking.close()
 
 

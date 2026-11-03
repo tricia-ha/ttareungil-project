@@ -11,3 +11,5 @@ data/transit/map_timetables/compiled/*/*.json diff
 models/**/*.md diff
 data/transit/files/bus_stop_additions.json diff merge
 data/walking/*.json diff merge
+
+data/reference/*.json diff

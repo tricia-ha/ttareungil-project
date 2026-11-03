@@ -431,6 +431,7 @@ class LazyConnections:
         source = self.network.nodes[start]
         rows = self.walk_cache.setdefault(start, [])
         cached_lookup = getattr(self.walking, "cached", None)
+        priority_lookup = getattr(self.walking, 'peek', cached_lookup)
         if start not in self._walk_candidates:
             candidates = []
             nearby = self.walk_index.near(
@@ -444,9 +445,9 @@ class LazyConnections:
                 if source.get("kind") == target.get("kind") == "bike":
                     continue
                 hit = False
-                if cached_lookup is not None:
+                if priority_lookup is not None:
                     try:
-                        hit, edge = cached_lookup(source, target, start, end)
+                        hit, edge = priority_lookup(source, target, start, end)
                     except KakaoError as exc:
                         record_walking_error(self.network.metadata, exc, start, end)
                     if hit:

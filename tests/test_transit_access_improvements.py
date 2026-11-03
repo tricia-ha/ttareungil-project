@@ -376,7 +376,7 @@ class AccessTests(unittest.TestCase):
         )
         self.assertEqual(old.metadata["endpoint_candidate_count"], 0)
         self.assertGreater(new.metadata["endpoint_candidate_count"], 0)
-        self.assertEqual(ScheduledConfig().max_seconds, 60)
+        self.assertEqual(ScheduledConfig().max_seconds, 150)
 
     def test_bus_matrix_keeps_direction_groups_separate_and_rejects_bad_rows(self):
         html = '<table class="table"><thead><tr><th>순번</th><th>A</th><th>T1 도착</th><th>T2 도착</th><th>T2 출발</th><th>T1 출발</th></tr></thead><tbody><tr><td>1</td><td>08:00</td><td>09:00</td><td>09:20</td><td>05:00</td><td>05:20</td></tr></tbody></table>'

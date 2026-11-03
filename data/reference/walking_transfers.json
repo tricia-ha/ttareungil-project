@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "sha256": "14a5fb709704c82d6e73801af5f46356da13ef7469ec0d58530493b18fb02268",
+  "uncompressed_bytes": 296218624,
+  "graph_identity": "6a28658c08b2b6d5c4d637e296bec3ace55fa7dba6dcd783dd7448d0112497cd",
+  "records": {
+    "kakao": 919,
+    "osm": 37554
+  },
+  "created_at": "2026-11-03T02:48:30.465850+00:00",
+  "privacy": "public facilities only; no accounts, user endpoints, weather, stock or API usage"
+}

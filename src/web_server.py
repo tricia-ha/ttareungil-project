@@ -95,6 +95,8 @@ def compact_routes(result):
         "search_mode",
         "geometry_summary",
         "walking_sources",
+        "search_budget",
+        "search_strategy",
     )
     value = {key: result[key] for key in keep if key in result}
     for key in ("routes", "mixed_routes"):
@@ -127,7 +129,7 @@ class RouteInput(Input):
     use_kma: StrictBool = True
     use_inventory: StrictBool = True
     personalize: StrictBool = True
-    max_seconds: float | None = Field(60, gt=0, le=600)
+    max_seconds: float | None = Field(150, gt=0, le=150)
 
 
 class LoginInput(Input):
@@ -771,7 +773,7 @@ def create_app(service_factory=None, *, testing=False):
                 max_seconds=q.max_seconds,
                 cancel_check=cancel_event.is_set,
                 max_kakao_calls=min(
-                    80, max(1, int(os.getenv("WEB_MAX_KAKAO_CALLS", "30")))
+                    45, max(15, int(os.getenv("WEB_MAX_KAKAO_CALLS", "45")))
                 ),
                 on_routes=lambda value: on_update(compact_routes(value)),
                 on_progress=lambda stage: on_update({'progress_stage': stage}),

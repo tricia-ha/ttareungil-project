@@ -307,6 +307,9 @@ class Router:
         known_roundtrip_pruned = known_roundtrip_waits = 0
         known_walking_replacements = 0
         seed_stats = []
+        # Real-network experiments needed ~2s for a complete CSA pass. Give
+        # dense queries bounded headroom, within the existing overall deadline.
+        seed_seconds = 5.0 if c.max_seconds is None else max(2.0, min(5.0, c.max_seconds * 0.05))
         if (
             lazy is not None
             and c.required_mode != "bicycle"
@@ -348,7 +351,7 @@ class Router:
                     end,
                     dt.tzinfo,
                     c.required_mode,
-                    time.monotonic() + known_seconds,
+                    min(deadline if deadline is not None else float('inf'), time.monotonic() + seed_seconds),
                 )
                 seed_stats.append(stats)
                 if seed is not None:
@@ -908,11 +911,11 @@ class Router:
             if (
                 lazy is not None
                 and c.required_mode != "bicycle"
-                and not results
+                and (not results or any(lazy.walk_cache.values()) or any(not s.get('complete', False) for s in seed_stats))
                 and not seed_refreshed
                 and self.network.transit
                 and deadline is not None
-                and time.monotonic() >= deadline - min(2.0, c.max_seconds * 0.15)
+                and time.monotonic() >= deadline - min(seed_seconds, c.max_seconds * 0.15)
             ):
                 seed_refreshed = True
                 from transit_seed import timetable_seed
@@ -1232,7 +1235,7 @@ class Router:
         if (
             lazy is not None
             and c.required_mode != "bicycle"
-            and not results
+            and (not results or any(lazy.walk_cache.values()) or any(not s.get('complete', False) for s in seed_stats))
             and not seed_refreshed
             and self.network.transit
             and not time_exhausted()
@@ -1249,7 +1252,7 @@ class Router:
                 end,
                 dt.tzinfo,
                 c.required_mode,
-                deadline if deadline is not None else float("inf"),
+                min(deadline if deadline is not None else float('inf'), time.monotonic() + seed_seconds),
             )
             seed_stats.append(stats)
             seed_refreshed = True
@@ -1284,7 +1287,7 @@ class Router:
             termination_reason = "connector_limit"
         if skipped_predictions and termination_reason is None:
             termination_reason = "bike_prediction_limit"
-        return dict(
+        response = dict(
             status="partial" if incomplete else ("ok" if results else "no_route"),
             required_mode=c.required_mode,
             bicycle_time_quantile=getattr(self.bike_provider, "eta_quantile", None),
@@ -1324,6 +1327,7 @@ class Router:
             termination_reason=termination_reason,
             bike_predictions=prediction_count,
             search_algorithm=c.search_algorithm,
+            search_strategy='connection_scan_seed_and_lazy_multimodal' if lazy is not None else c.search_algorithm,
             heuristic_mode="zero_admissible_lazy_graph"
             if lazy is not None
             else "static_relaxation",
@@ -1353,6 +1357,10 @@ class Router:
             ],
             step_seconds=c.step_seconds,
         )
+        # The recursive function otherwise retains the finished search records
+        # until cyclic garbage collection runs during a later query.
+        del push
+        return response
 
 
 class V521BikeProvider:

@@ -1,0 +1,556 @@
+{
+  "departure": "2026-11-02T12:06:46.177857+00:00",
+  "inventory_as_of": "2026-11-02T12:07:19.648070+00:00",
+  "forecast_issue": "2026-11-02T20:00:00+09:00",
+  "repeats_per_method": 2,
+  "cases": [
+    {
+      "id": "hongik_konkuk",
+      "label": "홍익대학교 → 건국대학교",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 126035485024,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 564,
+        "destination_candidates": 423,
+        "origin_bicycle_candidates": 95,
+        "destination_bicycle_candidates": 102,
+        "complexity_score": 1.0,
+        "max_kakao_calls": 45,
+        "max_seconds": 150,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 45,
+      "baseline": {
+        "seconds_mean": 164.22665089998918,
+        "seconds_min": 162.56271649998962,
+        "seconds_max": 165.89058529998874,
+        "first_mean": 37.83191884998814,
+        "best_minutes": [
+          87.71370238463084,
+          102.98320744037628
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          102.98320744037628,
+          102.98320744037628
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 4.057136450355756,
+        "cleanup_seconds_mean": 3.0577613500063308,
+        "collected_objects": [
+          104159,
+          104103
+        ],
+        "seconds_with_cleanup_mean": 167.2844122499955,
+        "terminations": {
+          "max_seconds": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 114.28025220001291,
+        "seconds_min": 112.30450860000565,
+        "seconds_max": 116.25599580002017,
+        "first_mean": 14.458203500020318,
+        "best_minutes": [
+          63.81370238463084,
+          63.81370238463084
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          102.98320744037628,
+          102.98320744037628
+        ],
+        "new_predictions": [
+          6,
+          6
+        ],
+        "cyclic_gc_seconds_mean": 14.781790999812074,
+        "cleanup_seconds_mean": 2.9174362499907147,
+        "collected_objects": [
+          25,
+          0
+        ],
+        "seconds_with_cleanup_mean": 117.19768845000362,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": 30.41308973072382,
+      "eta_regression": false,
+      "mixed_regression": false
+    },
+    {
+      "id": "gimpo_haneul",
+      "label": "김포공항역 → 하늘공원 입구",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 39513457480,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 251,
+        "destination_candidates": 297,
+        "origin_bicycle_candidates": 67,
+        "destination_bicycle_candidates": 69,
+        "complexity_score": 0.3668,
+        "max_kakao_calls": 26,
+        "max_seconds": 74,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 26,
+      "baseline": {
+        "seconds_mean": 85.83393399999477,
+        "seconds_min": 82.6923836999922,
+        "seconds_max": 88.97548429999733,
+        "first_mean": 13.660892450003303,
+        "best_minutes": [
+          54.38036905129751,
+          54.38036905129751
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          54.831918835639954,
+          54.831918835639954
+        ],
+        "new_predictions": [
+          80,
+          126
+        ],
+        "cyclic_gc_seconds_mean": 4.971396850509336,
+        "cleanup_seconds_mean": 3.912366100004874,
+        "collected_objects": [
+          138868,
+          139875
+        ],
+        "seconds_with_cleanup_mean": 89.74630009999964,
+        "terminations": {
+          "max_seconds": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 86.01121445001627,
+        "seconds_min": 84.28925280002295,
+        "seconds_max": 87.73317610000959,
+        "first_mean": 13.706435799991596,
+        "best_minutes": [
+          54.38036905129751,
+          54.38036905129751
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          54.831918835639954,
+          54.831918835639954
+        ],
+        "new_predictions": [
+          288,
+          358
+        ],
+        "cyclic_gc_seconds_mean": 4.733345200642361,
+        "cleanup_seconds_mean": 3.63050884999393,
+        "collected_objects": [
+          25,
+          0
+        ],
+        "seconds_with_cleanup_mean": 89.6417233000102,
+        "terminations": {
+          "max_seconds": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": -0.20653888475099524,
+      "eta_regression": false,
+      "mixed_regression": false
+    },
+    {
+      "id": "nokcheon_seoultech",
+      "label": "녹천역 → 서울과학기술대학교",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 150817771635,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 658,
+        "destination_candidates": 434,
+        "origin_bicycle_candidates": 134,
+        "destination_bicycle_candidates": 86,
+        "complexity_score": 1.0,
+        "max_kakao_calls": 45,
+        "max_seconds": 150,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 45,
+      "baseline": {
+        "seconds_mean": 46.3078264999931,
+        "seconds_min": 46.24888830000418,
+        "seconds_max": 46.366764699982014,
+        "first_mean": 12.968817949993536,
+        "best_minutes": [
+          34.18356081644694,
+          34.18356081644694
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          48.56370238463084,
+          48.56370238463084
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 9.567567150705145,
+        "cleanup_seconds_mean": 4.947275799990166,
+        "collected_objects": [
+          734664,
+          741421
+        ],
+        "seconds_with_cleanup_mean": 51.255102299983264,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 49.19854354999552,
+        "seconds_min": 47.067368099989835,
+        "seconds_max": 51.329719000001205,
+        "first_mean": 14.268352150000283,
+        "best_minutes": [
+          34.18356081644694,
+          34.18356081644694
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          48.56370238463084,
+          48.56370238463084
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 10.278779450905859,
+        "cleanup_seconds_mean": 2.931762850013911,
+        "collected_objects": [
+          0,
+          0
+        ],
+        "seconds_with_cleanup_mean": 52.13030640000943,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": -6.242394144762664,
+      "eta_regression": false,
+      "mixed_regression": false
+    },
+    {
+      "id": "suyu_korea",
+      "label": "수유역 → 고려대학교",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 199567021026,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 605,
+        "destination_candidates": 625,
+        "origin_bicycle_candidates": 82,
+        "destination_bicycle_candidates": 113,
+        "complexity_score": 1.0,
+        "max_kakao_calls": 45,
+        "max_seconds": 150,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 39,
+      "baseline": {
+        "seconds_mean": 53.209210800006986,
+        "seconds_min": 51.30791600001976,
+        "seconds_max": 55.11050559999421,
+        "first_mean": 10.318383249992621,
+        "best_minutes": [
+          34.63036905129751,
+          34.63036905129751
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 9.874241449550027,
+        "cleanup_seconds_mean": 5.919240150004043,
+        "collected_objects": [
+          1225940,
+          1225940
+        ],
+        "seconds_with_cleanup_mean": 59.12845095001103,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 43.83874464999826,
+        "seconds_min": 35.45127839999623,
+        "seconds_max": 52.2262109000003,
+        "first_mean": 8.062582450002083,
+        "best_minutes": [
+          34.63036905129751,
+          34.63036905129751
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 8.646030800126027,
+        "cleanup_seconds_mean": 2.7529487000138033,
+        "collected_objects": [
+          0,
+          0
+        ],
+        "seconds_with_cleanup_mean": 46.591693350012065,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": 17.610609157930778,
+      "eta_regression": false,
+      "mixed_regression": false
+    },
+    {
+      "id": "seoul_yeouido",
+      "label": "서울역 → 여의도한강공원",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 151070160264,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 673,
+        "destination_candidates": 425,
+        "origin_bicycle_candidates": 145,
+        "destination_bicycle_candidates": 107,
+        "complexity_score": 1.0,
+        "max_kakao_calls": 45,
+        "max_seconds": 150,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 45,
+      "baseline": {
+        "seconds_mean": 57.96229124999081,
+        "seconds_min": 56.57491830000072,
+        "seconds_max": 59.34966419998091,
+        "first_mean": 13.111361600007513,
+        "best_minutes": [
+          29.580369051297506,
+          29.580369051297506
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 10.74363130099664,
+        "cleanup_seconds_mean": 6.622161299994332,
+        "collected_objects": [
+          1364618,
+          1364620
+        ],
+        "seconds_with_cleanup_mean": 64.58445254998514,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 52.1014378000109,
+        "seconds_min": 45.92623710000771,
+        "seconds_max": 58.27663850001409,
+        "first_mean": 12.382917800016003,
+        "best_minutes": [
+          29.580369051297506,
+          29.580369051297506
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 9.853502400030266,
+        "cleanup_seconds_mean": 2.726445650012465,
+        "collected_objects": [
+          0,
+          0
+        ],
+        "seconds_with_cleanup_mean": 54.827883450023364,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": 10.111493737716659,
+      "eta_regression": false,
+      "mixed_regression": false
+    },
+    {
+      "id": "naksan_namsan",
+      "label": "낙산공원 → 남산둘레길",
+      "budget": {
+        "policy": "workload_log_scale_v1",
+        "workload": 211931343621,
+        "transit_edges": 510432,
+        "facilities": 15568,
+        "origin_candidates": 667,
+        "destination_candidates": 602,
+        "origin_bicycle_candidates": 140,
+        "destination_bicycle_candidates": 146,
+        "complexity_score": 1.0,
+        "max_kakao_calls": 45,
+        "max_seconds": 150,
+        "daily_limit_unchanged": true,
+        "calibration_samples": 66
+      },
+      "preparation_calls": 30,
+      "baseline": {
+        "seconds_mean": 77.64441489998717,
+        "seconds_min": 74.88101299997652,
+        "seconds_max": 80.40781679999782,
+        "first_mean": 12.469328149993089,
+        "best_minutes": [
+          52.430369051297504,
+          52.430369051297504
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 11.071742249769159,
+        "cleanup_seconds_mean": 6.257125099989935,
+        "collected_objects": [
+          1400220,
+          1400191
+        ],
+        "seconds_with_cleanup_mean": 83.9015399999771,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "optimized": {
+        "seconds_mean": 66.97012889999314,
+        "seconds_min": 64.17388779998873,
+        "seconds_max": 69.76636999999755,
+        "first_mean": 13.099467749983887,
+        "best_minutes": [
+          52.430369051297504,
+          52.430369051297504
+        ],
+        "successful": 2,
+        "mixed_found": 2,
+        "mixed_minutes": [
+          null,
+          null
+        ],
+        "new_predictions": [
+          0,
+          0
+        ],
+        "cyclic_gc_seconds_mean": 11.330628000680008,
+        "cleanup_seconds_mean": 2.974633799996809,
+        "collected_objects": [
+          0,
+          0
+        ],
+        "seconds_with_cleanup_mean": 69.94476269998995,
+        "terminations": {
+          "max_expansions": 2
+        },
+        "new_api_calls": 0,
+        "blocked_http": 0
+      },
+      "time_reduction_pct": 13.747654630076667,
+      "eta_regression": false,
+      "mixed_regression": false
+    }
+  ],
+  "validation": {
+    "routes_checked": 72,
+    "transit_segments_checked": 349,
+    "errors": []
+  },
+  "summary_sha256": "fe42d2e028c79d2a985a99443db3c2bb7a9094362468c5083de1bc2956c62747",
+  "temporal_validation": {
+    "routes_checked": 72,
+    "errors": []
+  },
+  "aggregate_time_reduction_pct": 15.001310336519392,
+  "preparation_calls": 230,
+  "source_sha256": {
+    "baseline": {
+      "multimodal": "01462fabda7bc16ac1e8e18b9c903cdf124f9a3d86b6dae623c8f7e4ee530982",
+      "candidate_edges": "f48f34dcc94a54d317ec68fd55b1a9ecf014429218a899bf885901698b98fa3c",
+      "transit_seed": "c3b54dc025c0804c726bb0412acbe8ed7a2a9aa7e2a585494a9048fb8a26f2e0",
+      "hybrid_walking": "e5784725f4487b3da04ffd336c8df8e5d2888de4f14e51ffa51bc8cc80a90083"
+    },
+    "optimized": {
+      "multimodal": "fae7d4a3a737249d90384a9c62a4f5a387dd79e25ababae7e3929eea2d3a0f16",
+      "candidate_edges": "a8e6e77c089ed4de7c4fe86b2a516440585c00993336190a86c570ebb439ada2",
+      "transit_seed": "c6fd8358ed8baa272e55a2a175101a1015cf07a3bdb8e270f477f538007e6813",
+      "hybrid_walking": "2cef908d8565a7e9ab1e28373c6d2b6d9640835cda520bbb023a028e9ca252ac"
+    }
+  }
+}

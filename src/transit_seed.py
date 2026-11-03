@@ -33,6 +33,9 @@ def timetable_seed(
     off, aboard, expanded_walks = {}, {}, {}
     expired = False
     examined = 0
+    skipped_unreachable = 0
+    reachable = set()
+    best_target = None
     counter = itertools.count()
 
     def iso(when):
@@ -53,8 +56,14 @@ def timetable_seed(
         queue = []
 
         def improve(key, value, expand=True):
+            nonlocal best_target
             if value[0] <= end and (key not in off or rank(value) < rank(off[key])):
                 off[key] = value
+                reachable.add(key[0])
+                if key[0] == destination and key[1] and (
+                    best_target is None or rank(value) < rank(best_target)
+                ):
+                    best_target = value
             if (
                 expand
                 and value[0] <= end
@@ -123,21 +132,11 @@ def timetable_seed(
 
     walk_closure(origin, required_mode is None, (start, 0, 0.0, None, None, False))
     # rides values are already sorted by departure in Router's shared index.
-    events = heapq.merge(*rides.values(), key=lambda row: row[0])
+    # Timsort merges the already sorted stop lists in C. Stable ordering keeps
+    # tied departures in the same order as the original heap merge.
+    events = sorted((row for rows in rides.values() for row in rows), key=lambda row: row[0])
     for departure, arrival, edge in events:
-        target = min(
-            (
-                off[k]
-                for k in (
-                    (destination, True, 0),
-                    (destination, True, 1),
-                    (destination, True, 2),
-                )
-                if k in off
-            ),
-            key=rank,
-            default=None,
-        )
+        target = best_target
         # All remaining services depart no earlier than an already feasible
         # arrival. Positive movement times cannot improve that seed.
         if target is not None and departure >= target[0]:
@@ -148,6 +147,11 @@ def timetable_seed(
             break
         if expired:
             break
+        # Unreached origins cannot be boarded yet. On-board-only stops are
+        # marked too, so no-dropoff/through services remain available.
+        if edge['from'] not in reachable:
+            skipped_unreachable += 1
+            continue
         for used in (False, True):
             candidates = []
             through = aboard.get((edge["from"], edge["trip_id"], used))
@@ -184,6 +188,7 @@ def timetable_seed(
             key = (edge["to"], edge["trip_id"], now_used)
             if key not in aboard or rank(label) < rank(aboard[key]):
                 aboard[key] = label
+                reachable.add(edge['to'])
             if edge.get("dropoff_allowed", True):
                 alight = dict(
                     mode="alight",
@@ -237,6 +242,8 @@ def timetable_seed(
     return route, dict(
         seconds=time.monotonic() - begun,
         events=examined,
+        skipped_unreachable_events=skipped_unreachable,
+        algorithm='connection_scan_reachable_events',
         complete=not expired,
         found=route is not None,
     )
