@@ -51,3 +51,24 @@ def test_platform_transfer_advantage_is_not_mistaken_for_an_equivalent_state():
     result = Router(network, None, Config(top_k=1, horizon_minutes=5, max_seconds=3)
                     ).search('O', 'Z', START)
     assert abs(result['routes'][0]['total_minutes'] - .7) < 1e-6
+
+
+def test_terminal_transit_detour_after_reaching_destination_area_is_not_mixed():
+    network = Network(
+        nodes={
+            "O": {"latitude": 37.60, "longitude": 127.00},
+            "B0": {"latitude": 37.6000, "longitude": 127.0000},
+            "B1": {"latitude": 37.6020, "longitude": 127.0000},
+            "Z": {"latitude": 37.6006, "longitude": 127.0000},
+        },
+        walks=[walk("O", "B0", 1), walk("B1", "Z", 3)],
+        bikes=[{"from": "O", "to": "B0", "test_minutes": 1}],
+        transit=[ride("B0", "B1", 2, 3, "detour")],
+    )
+    result = Router(
+        network,
+        lambda *_: {"minutes": 1.0, "p_empty": 0.0},
+        Config(top_k=2, mixed_top_k=1, horizon_minutes=10, max_seconds=3),
+    ).search("O", "Z", START)
+    assert result["mixed_routes"] == []
+    assert result["skipped_redundant_terminal_transit"] >= 1

@@ -25,6 +25,56 @@ def timestamp(value):
     return value.timestamp()
 
 
+def _node_distance_m(a, b):
+    """Straight-line distance for small terminal-transfer sanity checks."""
+    if not a or not b or any(k not in a or k not in b for k in ("latitude", "longitude")):
+        return None
+    try:
+        lat = math.radians((float(a["latitude"]) + float(b["latitude"])) / 2)
+        dy = (float(a["latitude"]) - float(b["latitude"])) * 111320.0
+        dx = (float(a["longitude"]) - float(b["longitude"])) * 111320.0 * math.cos(lat)
+        value = math.hypot(dx, dy)
+        return value if math.isfinite(value) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _redundant_terminal_transit(route, nodes, destination_id="destination"):
+    """Reject a transit leg added after reaching the destination area.
+
+    A mixed-route requirement must not turn a nearby endpoint into a transit
+    detour. This only applies to a final bus/subway leg whose boarding stop is
+    within 300 m of the destination, whose alighting stop is farther away, and
+    whose transit-plus-egress time is no better than a direct walk estimate.
+    Other transfers, platform changes, and longer access legs remain eligible.
+    """
+    legs = route.get("legs", [])
+    transit_positions = [
+        i for i, leg in enumerate(legs) if leg.get("mode") in ("bus", "subway")
+    ]
+    if not transit_positions:
+        return False
+    index = transit_positions[-1]
+    leg = legs[index]
+    if any(item.get("mode") in ("bus", "subway") for item in legs[index + 1 :]):
+        return False
+    destination = nodes.get(destination_id) or nodes.get("destination")
+    origin_distance = _node_distance_m(nodes.get(leg.get("from")), destination)
+    target_distance = _node_distance_m(nodes.get(leg.get("to")), destination)
+    if origin_distance is None or target_distance is None:
+        return False
+    if origin_distance > 300.0 or target_distance <= origin_distance + 50.0:
+        return False
+    trailing_walk = sum(
+        float(item.get("minutes", 0.0))
+        for item in legs[index + 1 :]
+        if item.get("mode") == "walk"
+    )
+    transit_time = float(leg.get("minutes", 0.0)) + float(leg.get("wait_minutes", 0.0) or 0.0)
+    direct_walk_estimate = origin_distance / 80.0
+    return transit_time + trailing_walk >= direct_walk_estimate * 0.9
+
+
 def _time_parser():
     """Reuse exact timestamp strings only within one validation/index build."""
     values = {}
@@ -1055,6 +1105,14 @@ class Router:
                     if boards
                     else "walk"
                 )
+                if route["route_kind"] == "mixed" and _redundant_terminal_transit(
+                    route, self.network.nodes, destination
+                ):
+                    self.network.metadata["skipped_redundant_terminal_transit"] = (
+                        self.network.metadata.get("skipped_redundant_terminal_transit", 0)
+                        + 1
+                    )
+                    continue
                 keep_route(results, route, c.top_k)
                 if retain_mixed and route["route_kind"] == "mixed":
                     keep_route(mixed_results, route, c.mixed_top_k)
@@ -1341,6 +1399,9 @@ class Router:
             expired_bicycle_waits=expired_bicycle_waits,
             skipped_dead_end_predictions=skipped_dead_end_predictions,
             unroutable_waits=unroutable_waits,
+            skipped_redundant_terminal_transit=self.network.metadata.get(
+                "skipped_redundant_terminal_transit", 0
+            ),
             expansion_policy="round_robin_connections",
             bike_expansion_batch_size=c.bike_expansion_batch_size,
             termination_reason=termination_reason,
