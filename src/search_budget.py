@@ -1,4 +1,4 @@
-"""Monotone workload-based budgets; no candidate pruning or external calls."""
+"""Fixed search budgets and historical workload diagnostics."""
 
 import json
 import math
@@ -39,15 +39,18 @@ def calibration():
     return json.loads(CALIBRATION.read_text(encoding='utf-8'))
 
 
-def select_budget(metrics, mode='integrated', *, call_ceiling=45, time_ceiling=150, reference=None):
-    reference = reference if reference is not None else calibration()
-    profile = reference['profiles'].get('transit' if mode == 'subway' else mode, reference['profiles']['all'])
-    low, high = map(float, (profile['low_workload'], profile['high_workload']))
-    score = min(1.0, max(0.0, (math.log1p(metrics['workload']) - math.log1p(low)) /
-                             max(1e-9, math.log1p(high) - math.log1p(low))))
-    calls = min(45, max(15, int(call_ceiling)))
-    seconds = min(150, max(30, float(time_ceiling if time_ceiling is not None else 150)))
-    return dict(policy='workload_log_scale_v1', **metrics, complexity_score=round(score, 4),
-                max_kakao_calls=15 + round((calls - 15) * score),
-                max_seconds=round(30 + (seconds - 30) * score),
-                daily_limit_unchanged=True, calibration_samples=profile['samples'])
+def select_budget(metrics=None, mode='integrated', *, call_ceiling=30, time_ceiling=100, reference=None):
+    """Fixed ceilings, independent of candidate density and legacy calibration.
+
+    Smaller explicit limits are respected. Legacy adaptive arguments remain
+    accepted so saved notebooks cannot silently restore the old policy.
+    """
+    mode_calls, mode_seconds = {"transit": (20, 50), "subway": (20, 50),
+                                "bicycle": (10, 30)}.get(mode, (30, 100))
+    calls = min(mode_calls, int(call_ceiling))
+    seconds = float(time_ceiling if time_ceiling is not None else mode_seconds)
+    if calls <= 0 or not math.isfinite(seconds) or seconds <= 0:
+        raise ValueError('탐색 한도는 양수여야 합니다.')
+    seconds = min(float(mode_seconds), seconds)
+    return dict(policy='fixed_limits_v1', max_kakao_calls=calls,
+                max_seconds=seconds, daily_limit_unchanged=True)

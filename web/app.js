@@ -875,7 +875,7 @@ function showRoutes(base, { reveal = true } = {}) {
     `새 도보 API 호출: ${result.api_usage?.new_api_calls ?? 0}회`,
   ];
   if (result.search_budget)
-    lines.push(`이번 탐색 한도: ${result.search_budget.max_seconds}초 · 새 도보 조회 ${result.search_budget.max_kakao_calls}회 (후보 규모에 따라 자동 설정)`);
+    lines.push(`이번 탐색 한도: ${result.search_budget.max_seconds}초 · 새 도보 조회 ${result.search_budget.max_kakao_calls}회 (고정 한도)`);
   for (const text of [...lines, ...(result.data_gaps || [])])
     diagnostics.append(node('p', '', text));
   if (routes[selected] && routeDisplayKey(routes[selected]) !== state.displayedRouteKey)

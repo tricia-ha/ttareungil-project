@@ -19,7 +19,7 @@ with ProjectService() as service:
 
 `mode`는 `integrated`, `transit`, `bicycle`입니다. `transit`은 버스와 지하철 모두 허용하고 따릉이를 제외합니다. 출발시각은 `auto` 또는 시간대가 포함된 시각입니다. 웹의 지금 출발은 검색 버튼을 누른 시각을 사용합니다. `auto` 요청은 서버 접수 시각을 사용하며, 준비·대기 중에도 출발시각을 유지합니다.
 
-선택 인자는 `profile_id`, `top_k`(기본 3), `max_seconds`(자동 한도의 최대값, 기본 150초), `max_kakao_calls`(자동 한도의 최대값, 기본 45), `use_kma`, `use_inventory`, `refresh_inventory`, `adaptive_connections`(기본 참), `max_access_walk_minutes`(후보 범위 산정용, 기본 30분)입니다. 기본 `adaptive_budgets=true`에서는 후보 규모에 따라 30~150초·15~45회 범위로 정하며 모델·자료 준비시간은 탐색시간과 별도입니다. 고정 한도로 비교 실험할 때만 `adaptive_budgets=false`를 사용합니다. 대중교통 전용에서는 날씨·재고 옵션을 사용하지 않습니다. 같은 `ProjectService` 안에서 반복 실행하면 따릉이 모델을 재사용합니다.
+선택 인자는 `profile_id`, `top_k`(기본 3), `max_seconds`(최대 100초), `max_kakao_calls`(최대 30회), `use_kma`, `use_inventory`, `refresh_inventory`, `adaptive_connections`(기본 참), `max_access_walk_minutes`(후보 범위 산정용, 기본 30분)입니다. 모드별 상한은 통합 30회·100초, 대중교통 20회·50초, 따릉이 10회·30초입니다. 후보 규모에 따른 한도 자동 조정은 사용하지 않습니다. 예전 `adaptive_budgets=true` 설정도 고정 한도를 적용합니다. 모델·자료 준비시간은 탐색시간과 별도입니다. 대중교통 전용에서는 날씨·재고 옵션을 사용하지 않습니다. 같은 `ProjectService` 안에서 반복 실행하면 따릉이 모델을 재사용합니다.
 
 ## 도보 조회와 호출 한도
 

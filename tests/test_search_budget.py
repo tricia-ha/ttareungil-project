@@ -1,40 +1,39 @@
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from search_budget import workload, select_budget, calibration
+from search_budget import select_budget
+import pytest
 
 
-REFERENCE = {'profiles': {'all': {'samples': 10, 'low_workload': 100, 'high_workload': 10000}}}
+def test_fixed_budget_depends_on_mode_but_not_density():
+    for mode, calls, seconds in [('integrated', 30, 100), ('transit', 20, 50),
+                                 ('subway', 20, 50), ('bicycle', 10, 30)]:
+        for workload in (1, 10**6, 10**15):
+            plan = select_budget({'workload': workload}, mode)
+            assert plan['policy'] == 'fixed_limits_v1'
+            assert plan['max_kakao_calls'] == calls
+            assert plan['max_seconds'] == seconds
+            assert plan['daily_limit_unchanged'] is True
 
 
-def test_bounds_and_monotonicity():
-    plans = [select_budget({'workload': n}, reference=REFERENCE)
-             for n in (1, 100, 200, 1000, 5000, 10000, 10**15)]
-    assert (plans[0]['max_kakao_calls'], plans[0]['max_seconds']) == (15, 30)
-    assert (plans[-1]['max_kakao_calls'], plans[-1]['max_seconds']) == (45, 150)
-    assert [p['max_seconds'] for p in plans] == sorted(p['max_seconds'] for p in plans)
-    assert [p['max_kakao_calls'] for p in plans] == sorted(p['max_kakao_calls'] for p in plans)
-    assert all(15 <= p['max_kakao_calls'] <= 45 and 30 <= p['max_seconds'] <= 150 for p in plans)
+def test_old_settings_cannot_restore_larger_or_unlimited_budgets():
+    for seconds in (None, 150, 600):
+        plan = select_budget(call_ceiling=45, time_ceiling=seconds)
+        assert (plan['max_kakao_calls'], plan['max_seconds']) == (30, 100)
 
 
-def test_more_timetable_events_or_candidates_raise_workload():
-    origin = dict(latitude=37.5, longitude=127.0)
-    destination = dict(latitude=37.51, longitude=127.01)
-    nodes = {'A': origin, 'B': destination}
-    stations = [origin, destination]
-    small = workload(nodes, stations, origin, destination, 10, 900, 'integrated')
-    more_events = workload(nodes, stations, origin, destination, 100, 900, 'integrated')
-    more_access = workload(dict(nodes, C=origin, D=destination), stations, origin, destination, 10, 900, 'integrated')
-    assert more_events['workload'] > small['workload']
-    assert more_access['workload'] > small['workload']
-    assert workload(nodes, stations, origin, destination, 10, 900, 'transit')['origin_bicycle_candidates'] == 0
+def test_smaller_explicit_limits_are_respected():
+    plan = select_budget(call_ceiling=5, time_ceiling=10)
+    assert (plan['max_kakao_calls'], plan['max_seconds']) == (5, 10)
 
 
-def test_explicit_ceiling_and_shipped_profiles():
-    p = select_budget({'workload': 10**15}, call_ceiling=20, time_ceiling=90, reference=REFERENCE)
-    assert p['max_kakao_calls'] == 20 and p['max_seconds'] == 90
-    p = select_budget({'workload': 10**15}, call_ceiling=100, time_ceiling=None, reference=REFERENCE)
-    assert p['max_kakao_calls'] == 45 and p['max_seconds'] == 150
-    assert calibration()['profiles']['all']['samples'] > 0
-    assert select_budget({'workload': 1}, mode='subway')['max_seconds'] == 30
+@pytest.mark.parametrize('kwargs', [{'call_ceiling': 0}, {'time_ceiling': 0}, {'time_ceiling': float('nan')}])
+def test_invalid_limits_are_rejected(kwargs):
+    with pytest.raises(ValueError):
+        select_budget(**kwargs)
+
+
+@pytest.mark.parametrize('mode,calls,seconds', [('integrated', 30, 100),
+    ('transit', 20, 50), ('subway', 20, 50), ('bicycle', 10, 30)])
+def test_legacy_ceilings_cannot_exceed_mode_limits(mode, calls, seconds):
+    plan = select_budget(mode=mode, call_ceiling=45, time_ceiling=None)
+    assert (plan['max_kakao_calls'], plan['max_seconds']) == (calls, seconds)
+    smaller = select_budget(mode=mode, call_ceiling=5, time_ceiling=10)
+    assert (smaller['max_kakao_calls'], smaller['max_seconds']) == (5, 10)

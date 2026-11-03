@@ -129,7 +129,7 @@ class RouteInput(Input):
     use_kma: StrictBool = True
     use_inventory: StrictBool = True
     personalize: StrictBool = True
-    max_seconds: float | None = Field(150, gt=0, le=150)
+    max_seconds: float | None = Field(100, gt=0, le=100)
 
 
 class LoginInput(Input):
@@ -773,7 +773,7 @@ def create_app(service_factory=None, *, testing=False):
                 max_seconds=q.max_seconds,
                 cancel_check=cancel_event.is_set,
                 max_kakao_calls=min(
-                    45, max(15, int(os.getenv("WEB_MAX_KAKAO_CALLS", "45")))
+                    30, max(1, int(os.getenv("WEB_MAX_KAKAO_CALLS", "30")))
                 ),
                 on_routes=lambda value: on_update(compact_routes(value)),
                 on_progress=lambda stage: on_update({'progress_stage': stage}),

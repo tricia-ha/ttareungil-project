@@ -359,7 +359,7 @@ class Router:
 
         # state: location, time, current vehicle trip. alighting is explicit.
         counter = itertools.count()
-        heap, completion_heap, progress_heap = [], [], []
+        heap, completion_heap, progress_heap, goal_heap = [], [], [], []
         best, records, required_used, bicycle_paths = {}, {}, {}, {}
         expanded_record_ids = set()
         platform_ready = {}
@@ -437,7 +437,17 @@ class Router:
                 and earlier
                 and earlier[1] < t - 1e-6
                 and not earlier[4]
-                and platform_ready.get(earlier[0], 0) == ready
+                and (
+                    platform_ready.get(earlier[0], 0) == ready
+                    or (
+                        platform_ready.get(earlier[0], 0) in (0, 1)
+                        and ready in (0, 1)
+                        # Readiness 0/1 has identical boarding behaviour.
+                        # It differs only on explicit platform-transfer walks;
+                        # retain that advantage at interchange stations.
+                        and not any(e.get("platform_transfer") for e in walks[node])
+                    )
+                )
             ):
                 # Preserve this EXACT later action time, including inventory
                 # changes between minute-grid waits, without the pointless ride.
@@ -501,6 +511,13 @@ class Router:
             heapq.heappush(
                 heap, (priority, boardings, idx, node, t, trip, penalty, after_bike)
             )
+            if node == destination and trip is None:
+                # A finished path needs no further API/model work. Publish it
+                # before pursuing incomplete mixed-mode states or detours.
+                heapq.heappush(
+                    goal_heap,
+                    (priority, boardings, idx, node, t, trip, penalty, after_bike),
+                )
             bicycle_progress = single_bicycle_graph and path is not None
             mixed_progress = (
                 retain_mixed
@@ -904,7 +921,7 @@ class Router:
                 ),
             )
 
-        while heap or work or progress_work or completion_heap or progress_heap:
+        while heap or work or progress_work or completion_heap or progress_heap or goal_heap:
             # New confirmed transfer walks can complete a timetable journey even
             # if time-expanded states have not reached its far end. Reserve a
             # bounded final scan, without buying walks or pruning mixed paths.
@@ -962,7 +979,7 @@ class Router:
             if (
                 (work or progress_work)
                 and (work_turn or not heap)
-                and not completion_heap
+                and not goal_heap
             ):
                 use_progress = bool(progress_work) and (progress_turn or not work)
                 queue = progress_work if use_progress else work
@@ -980,7 +997,9 @@ class Router:
                 work_turn = False
                 continue
             work_turn = True
-            if completion_heap:
+            if goal_heap:
+                item = heapq.heappop(goal_heap)
+            elif completion_heap:
                 item = heapq.heappop(completion_heap)
                 mixed_completion_priority_pops += 1
             elif progress_heap and (progress_turn or not heap):

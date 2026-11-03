@@ -43,8 +43,8 @@ from project_paths import (
 class ScheduledConfig:
     horizon_minutes: int = 180
     top_k: int = 3
-    max_seconds: float | None = 150
-    adaptive_budgets: bool = True
+    max_seconds: float | None = 100
+    adaptive_budgets: bool = False
     cancel_check: object = None
     step_seconds: int = 60
     max_expansions: int = 100000
@@ -64,7 +64,7 @@ class ScheduledConfig:
     max_bike_distance_m: float = 7000
     adaptive_connections: bool = True
     max_access_walk_minutes: float = 30
-    max_kakao_calls: int = 45
+    max_kakao_calls: int = 30
     kakao_daily_limit: int = 1000
     require_known_inventory: bool = True
     max_empty_probability: float | None = 0.1
@@ -1050,17 +1050,12 @@ def _run_scheduled_optimization(
             "inventory_filter_applied": False,
         }
 
-    budget = None
-    if c.adaptive_budgets:
-        from search_budget import workload, select_budget
+    from search_budget import select_budget
 
-        budget = select_budget(workload(
-            timetable.nodes, stations, origin, destination, len(timetable.transit),
-            max(c.max_connector_distance_m, c.max_access_walk_minutes * 80)
-            if c.adaptive_connections else c.max_connector_distance_m,
-            c.search_mode,
-        ), c.search_mode, call_ceiling=c.max_kakao_calls, time_ceiling=c.max_seconds)
-        c = replace(c, max_seconds=budget['max_seconds'], max_kakao_calls=budget['max_kakao_calls'])
+    budget = select_budget({}, c.search_mode, call_ceiling=c.max_kakao_calls,
+                           time_ceiling=c.max_seconds)
+    c = replace(c, max_seconds=budget['max_seconds'],
+                max_kakao_calls=budget['max_kakao_calls'], adaptive_budgets=False)
     client = KakaoClient(
         RUNTIME_CACHE_DIR / "scheduled_kakao_walk.sqlite",
         api_key,
