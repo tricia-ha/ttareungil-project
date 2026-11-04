@@ -4,8 +4,8 @@ const state = {
   mode: 'integrated',
   session: {},
   points: {
-    origin: { name: '홍익대학교 서울캠퍼스', latitude: 37.550874837441, longitude: 126.925554591431 },
-    destination: { name: '건국대학교 서울캠퍼스', latitude: 37.543536094587516, longitude: 127.07741635877292 },
+    origin: null,
+    destination: null,
   },
   markers: {},
   picking: null,
@@ -126,7 +126,7 @@ function initMap() {
     $('mapCaption').textContent = '지도를 불러오지 못했습니다. 네트워크를 확인해 주세요.';
     return;
   }
-  map = L.map('map', { zoomControl: innerWidth > 800 }).setView([37.552, 126.955], 12);
+  map = L.map('map', { zoomControl: true }).setView([37.552, 126.955], 12);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors',
@@ -141,14 +141,13 @@ function initMap() {
     });
     state.picking = null;
     $('mapWrap').classList.remove('picking');
+    showPickBanner(false);
     $('pickHint').textContent = '선택한 핀을 끌어서 위치를 조정할 수 있습니다.';
     setSheet('mid');
   });
   renderMarkers();
-  map.fitBounds(
-    Object.values(state.points).map((p) => [p.latitude, p.longitude]),
-    { padding: [32, 32], maxZoom: 12 },
-  );
+  const initial = Object.values(state.points).filter(Boolean).map((p) => [p.latitude, p.longitude]);
+  if (initial.length) map.fitBounds(initial, { padding: [32, 32], maxZoom: 12 });
 }
 function renderMarkers() {
   if (!map) return;
@@ -169,6 +168,51 @@ function renderMarkers() {
       setPoint(key, { latitude: v.lat, longitude: v.lng, name: '지도에서 조정한 위치' });
     });
     state.markers[key] = marker;
+  }
+}
+function showPickBanner(on) {
+  const banner = $('pickBanner');
+  if (!banner) return;
+  banner.hidden = !on;
+  if (on) $('pickBannerText').textContent = (state.picking === 'origin' ? '출발' : '도착') + ' 위치를 지도에서 눌러 주세요';
+}
+function cancelPick() {
+  state.picking = null;
+  $('mapWrap').classList.remove('picking');
+  showPickBanner(false);
+  $('pickHint').textContent = '이름을 입력해 검색하거나, 핀 버튼으로 지도에서 직접 고르세요.';
+  if (innerWidth <= 800) setSheet('mid');
+}
+/* 최근 장소 */
+const RECENT_KEY = 'ttareungil.recentPlaces';
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+}
+function saveRecent(point) {
+  if (!point || !point.name || point.name === '지도에서 선택한 위치' || point.name === '지도에서 조정한 위치') return;
+  const list = loadRecent().filter((p) => p.name !== point.name);
+  list.unshift({ name: point.name, latitude: point.latitude, longitude: point.longitude });
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 6))); } catch {}
+  renderRecent();
+}
+function renderRecent() {
+  const box = $('recentPlaces');
+  if (!box) return;
+  const list = loadRecent();
+  box.hidden = !list.length;
+  box.replaceChildren();
+  if (!list.length) return;
+  box.append(node('span', 'recent-label', '최근'));
+  for (const p of list) {
+    const b = node('button', 'chip recent-chip', p.name);
+    b.type = 'button';
+    b.title = p.name;
+    b.onclick = () => {
+      const key = !state.points.origin ? 'origin' : 'destination';
+      setPoint(key, p);
+      fitMap();
+    };
+    box.append(b);
   }
 }
 function setPoint(key, p) {
@@ -229,7 +273,7 @@ async function searchPlace(key, { silent = false, focusResults = false } = {}) {
     box.hidden = true;
     return;
   }
-  placeFeedback(key);
+  placeFeedback(key, '검색 중…');
   if (!silent) {
     box.replaceChildren(node('li', '', '검색 중…'));
     box.hidden = false;
@@ -241,6 +285,7 @@ async function searchPlace(key, { silent = false, focusResults = false } = {}) {
     box.hidden = false;
     $(key).setAttribute('aria-expanded', 'true');
     box.replaceChildren();
+    placeFeedback(key);
     if (!values.length) {
       box.append(node('li', 'hint', '검색 결과가 없습니다. 지도에서 선택해 주세요.'));
       placeFeedback(key, '검색 결과가 없습니다. 검색어를 바꾸거나 지도에서 선택해 주세요.', true);
@@ -265,7 +310,7 @@ async function searchPlace(key, { silent = false, focusResults = false } = {}) {
   } catch (e) {
     if (seq !== placeSeq[key]) return;
     box.hidden = true;
-    if (!silent) placeFeedback(key, e.message, true);
+    placeFeedback(key, silent ? '' : e.message, !silent);
   }
 }
 function setMode(mode) {
@@ -485,6 +530,8 @@ $('routeForm').onsubmit = async (e) => {
       use_inventory: true,
       personalize: $('usePersonal').checked,
     };
+    saveRecent(state.points.origin);
+    saveRecent(state.points.destination);
     const result = await runJob(
       '/api/routes',
       jsonRequest('POST', { ...state.lastQuery, mode }),
@@ -814,8 +861,15 @@ function showRoutes(base, { reveal = true } = {}) {
     const legs = displayLegs(route);
     for (const leg of legs.filter((l) => l.mode !== 'wait'))
       strip.append(node('span', 'transport-tag ' + leg.mode, names[leg.mode] || leg.mode));
+    const rideLegs = legs.filter((l) => ['bus', 'subway', 'bicycle'].includes(l.mode));
+    const transfers = Math.max(0, legs.filter((l) => ['bus', 'subway'].includes(l.mode)).length - 1);
+    const walkMin = Math.round(legs.filter((l) => l.mode === 'walk').reduce((s, l) => s + (+l.minutes || 0), 0));
+    const facts = node('div', 'route-facts');
+    facts.append(node('span', '', '환승 ' + transfers + '회'), node('span', '', '도보 ' + walkMin + '분'));
+    if (rideLegs.some((l) => l.mode === 'bicycle')) facts.append(node('span', '', '따릉이 포함'));
     button.append(
       strip,
+      facts,
       node(
         'p',
         'hint',
@@ -1475,6 +1529,7 @@ document.querySelectorAll('[data-pick]').forEach(
     (b.onclick = () => {
       state.picking = b.dataset.pick;
       $('mapWrap').classList.add('picking');
+      showPickBanner(true);
       $('pickHint').textContent =
         (state.picking === 'origin' ? '출발' : '도착') + ' 위치를 지도에서 눌러 주세요.';
       setSheet('peek');
@@ -1676,7 +1731,7 @@ function createRider(pos) {
   rider.marker = L.marker(pos, {
     icon: L.divIcon({
       className: 'rider-icon',
-      html: '<div class="rider-shadow"></div><div class="rider-badge"><img src="/assets/head.webp" alt="" /></div>',
+      html: '<div class="rider-shadow"></div><div class="rider-badge"><img src="/assets/rider.png" alt="" /></div>',
       iconSize: [56, 68],
       iconAnchor: [28, 68],
     }),
@@ -1708,6 +1763,7 @@ function setFollow(on) {
   rider.follow = on;
   $('guideFollow').setAttribute('aria-pressed', String(on));
   $('guideFollow').classList.toggle('on', on);
+  $('guideFollow').textContent = on ? '따라가는 중' : '자유 이동';
   if (on && rider.shown) map.panTo(rider.shown, { animate: true });
 }
 function onFix(c) {
@@ -1836,6 +1892,7 @@ function startGuide() {
   map.on('dragstart', onUserDrag);
   $('goBar').hidden = true;
   $('guideCard').hidden = false;
+  $('guideCard').classList.remove('folded');
   $('guideReroute').hidden = true;
   $('guideTitle').textContent = '안내 중';
   $('guideSub').textContent = '내 위치를 찾는 중…';
@@ -1864,6 +1921,14 @@ function startGuide() {
 }
 $('startGuide').onclick = startGuide;
 $('guideStop').onclick = stopGuide;
+$('guideToggle').onclick = () => {
+  const card = $('guideCard');
+  const folded = card.classList.toggle('folded');
+  $('guideToggle').setAttribute('aria-expanded', String(!folded));
+  $('guideToggle').setAttribute('aria-label', folded ? '안내 펼치기' : '안내 접기');
+};
+$('pickCancel').onclick = cancelPick;
+renderRecent();
 $('guideFollow').onclick = () => setFollow(!rider.follow);
 $('guideReroute').onclick = () => {
   const c = rider.last;

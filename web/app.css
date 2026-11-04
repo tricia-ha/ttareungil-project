@@ -170,7 +170,7 @@ aside {
 }
 .leg-list .leg-time {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .leg-list strong {
   font-weight: 750;
@@ -306,7 +306,7 @@ summary {
 }
 .file-label span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 6px;
 }
@@ -384,7 +384,7 @@ summary {
   gap: 8px;
 }
 .history-item button {
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 6px;
 }
 .danger-text {
@@ -406,7 +406,7 @@ summary {
   z-index: 500;
   display: flex;
   gap: 12px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .map-legend span:before {
   content: '';
@@ -534,17 +534,17 @@ button {
     max-width: 72%;
   }
   .floating small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .topbar .secondary {
-    font-size: 11px;
+    font-size: 12px;
     padding: 8px 10px;
   }
   .map-legend {
     bottom: auto;
     top: calc(84px + env(safe-area-inset-top));
     right: 12px;
-    font-size: 10px;
+    font-size: 12px;
     padding: 7px 10px;
     gap: 8px;
   }
@@ -552,7 +552,7 @@ button {
     font-size: 12px;
   }
   .modes .mode small {
-    font-size: 10px;
+    font-size: 12px;
   }
   .map {
     min-height: 0;
@@ -584,7 +584,7 @@ button {
   z-index: 500;
   background: #ffffffed;
   color: #4a6146;
-  font-size: 9px;
+  font-size: 12px;
   padding: 3px 5px;
   border-radius: 4px;
 }
@@ -669,73 +669,6 @@ button {
   font-size: 13px;
   line-height: 1.7;
 }
-
-
-/* Readable place fields retain the original text actions. */
-.location-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 18px 0 8px;
-  font-size: 13px;
-}
-.location-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 3px var(--light);
-}
-.destination-label .location-dot {
-  background: var(--ink);
-  box-shadow: 0 0 0 3px #edf1e9;
-}
-.fieldrow { gap: 7px; }
-.input-wrap {
-  position: relative;
-  display: flex;
-  flex: 1;
-  min-width: 0;
-}
-.input-wrap input {
-  width: 100%;
-  min-width: 0;
-  min-height: 48px;
-  padding: 13px 36px 13px 13px;
-  border-radius: 14px;
-  background: #fcfef9;
-}
-.input-wrap:focus-within input {
-  border-color: var(--green);
-}
-.clear-btn {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 10px;
-  color: var(--muted);
-  background: transparent;
-  font-size: 22px;
-  line-height: 1;
-}
-.clear-btn:hover { background: var(--soft); }
-.input-wrap input:placeholder-shown + .clear-btn { display: none; }
-.iconbtn {
-  min-width: 46px;
-  min-height: 48px;
-  padding: 0 10px;
-  border-radius: 14px;
-  box-shadow: 0 2px 6px #213c1010;
-}
-.iconbtn:hover { background: var(--light); border-color: var(--green); }
 .route-tools {
   display: flex;
   justify-content: space-between;
@@ -754,7 +687,7 @@ button {
   border-radius: 999px;
   background: #f4f8ec;
   color: var(--dark);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 .chip:hover { background: var(--soft); }
@@ -788,7 +721,7 @@ button {
   font-weight: 800;
 }
 .filter-chip small {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 750;
   opacity: 0.85;
 }
@@ -1025,8 +958,219 @@ button {
 h1.title { font-size: 27px; line-height: 1.45; }
 @media (max-width: 800px) {
   h1.title { font-size: 24px; }
-  .input-wrap input { padding-left: 11px; font-size: 16px; }
-  .iconbtn { min-width: 44px; padding: 0 9px; }
   .hero { gap: 12px; }
   .route-tools { margin-top: 10px; }
+}
+
+/* ===== web_update: 출발·도착 한 박스 UI ===== */
+/* ===== 출발·도착 통합 입력 (카카오맵/네이버지도 스타일) ===== */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px !important;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.route-box {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 4px 8px 4px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  background: #fcfff7;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.route-box:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px #4cc40a22;
+}
+.route-fields {
+  flex: 1;
+  min-width: 0;
+}
+.route-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding-left: 24px;
+}
+/* 출발(초록) / 도착(검정) 점 — 지도 핀 색과 같게 */
+.route-field::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--green);
+}
+.route-field.is-to::before {
+  border-color: var(--ink);
+}
+/* 두 점을 잇는 점선 */
+.route-field::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  border-left: 2px dotted #b9d98f;
+}
+.route-field.is-from::after {
+  top: calc(50% + 10px);
+  bottom: 0;
+}
+.route-field.is-to::after {
+  top: 0;
+  bottom: calc(50% + 10px);
+}
+/* 두 입력칸 사이 구분선 */
+.route-field.is-to {
+  background: linear-gradient(var(--line), var(--line)) 24px 0 / calc(100% - 24px) 1px no-repeat;
+}
+.route-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 14px 4px;
+  font-weight: 600;
+}
+.route-field input::placeholder {
+  font-weight: 500;
+  color: #9db296;
+}
+.route-field input:focus-visible {
+  outline: none;
+}
+.field-btn {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+.field-btn:hover {
+  background: var(--soft);
+  color: var(--dark);
+}
+.field-btn[data-pick] {
+  color: var(--dark);
+}
+/* 입력값이 없으면 지우기(×) 버튼 숨김 */
+.route-field input:placeholder-shown ~ .clear-btn {
+  display: none;
+}
+.swap-btn {
+  align-self: flex-start;
+  margin-top: 33px; /* 출발·도착 두 줄 사이에 고정 (검색 목록이 열려도 안 밀림) */
+  flex: none;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--dark);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px #1d3d0f14;
+}
+.swap-btn:hover {
+  background: var(--light);
+}
+.swap-btn:active {
+  transform: scale(0.94);
+}
+.route-fields .sugg {
+  margin: 0 0 6px 24px;
+}
+
+.route-field input[aria-invalid='true'] { border-color: #d64545; }
+.route-fields .field-feedback { margin: 0 0 6px 24px; }
+
+/* ===== UX 개선 (2026-11) ===== */
+/* 1. 검색 버튼 하단 고정 · 상세 설정 접기 */
+#searchButton {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  width: 100%;
+  margin-top: 14px;
+  box-shadow: 0 -10px 14px 6px #fff, 0 5px 16px #78ae292b;
+}
+.adv { margin-top: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fafcf6; padding: 0 12px; }
+.adv summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-weight: 800; font-size: 14px; color: var(--dark); cursor: pointer; list-style: none; }
+.adv summary::-webkit-details-marker { display: none; }
+.adv summary::after { content: '＋'; font-weight: 700; color: var(--muted); }
+.adv[open] summary::after { content: '－'; }
+.adv summary small { margin-left: auto; margin-right: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.adv[open] { padding-bottom: 12px; }
+.adv .options { margin-top: 10px; }
+/* 2. 최근 장소 · 지도 선택 안내 · 오류 표시 */
+.recent-places { display: flex; align-items: center; gap: 6px; margin-top: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.recent-places::-webkit-scrollbar { display: none; }
+.recent-label { flex: none; font-size: 12px; font-weight: 800; color: var(--muted); }
+.recent-chip { flex: none; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field-feedback.error::before { content: '⚠ '; }
+.pick-banner { position: absolute; left: 50%; top: calc(70px + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 700; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; background: #17301a; color: #fff; border-radius: 999px; font-size: 14px; font-weight: 700; box-shadow: 0 6px 20px #0003; white-space: nowrap; }
+.pick-banner[hidden] { display: none; }
+.pick-banner button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--lime); color: var(--onlime); font-weight: 800; }
+/* 3. 이동 방법 탭 */
+.mode { min-height: 52px; }
+.mode small { font-size: 12px; }
+.mode[aria-selected='true'] { background: var(--lime); color: var(--onlime); box-shadow: 0 3px 12px #78ae2940; }
+/* 4. 결과 카드 */
+.route-time { font-size: 30px; }
+.route-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.route-facts span { padding: 4px 10px; border-radius: 999px; background: var(--light); color: var(--dark); font-size: 13px; font-weight: 800; }
+.route-card.selected { border-width: 2.5px; }
+/* 5. 주행 안내 */
+.guide-text strong { font-size: 18px; }
+.guide-text small { font-size: 14px; }
+.guide-toggle { flex: none; order: 5; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--light); color: var(--dark); display: grid; place-items: center; }
+.guide-card.folded .guide-actions, .guide-card.folded .guide-text small { display: none; }
+.guide-card.folded .guide-toggle svg { transform: rotate(180deg); }
+.guide-card.folded { padding: 8px 10px; }
+#guideFollow:not(.on) { background: #fff; color: var(--muted); }
+/* 6. 터치 영역 44px · 줌 버튼 */
+.chip, .secondary, .textbtn, .main-tabs button, .pillbtn { min-height: 44px; }
+.field-btn, .clear-btn { width: 40px; height: 44px; min-height: 44px; border-radius: 12px; }
+.swap-btn { width: 44px; height: 44px; min-height: 44px; margin-top: 27px; }
+.guide-actions .secondary { min-height: 44px; }
+.leaflet-control-zoom a { width: 40px !important; height: 40px !important; line-height: 40px !important; }
+@media (max-width: 800px) {
+  .leaflet-control-zoom { display: block !important; }
+  .leaflet-top.leaflet-right { top: 130px; }
+  .hero img { width: 52px; }
+  .hero p { font-size: 13px; }
+  .pick-banner { max-width: calc(100% - 24px); font-size: 13px; }
+}
+
+/* 이동 방법 탭: 한 줄 유지 (PC 사이드바 폭에서 줄바꿈 방지) */
+.mode { white-space: nowrap; padding-left: 4px; padding-right: 4px; word-break: keep-all; }
+.mode small { white-space: nowrap; font-size: 12px; letter-spacing: -0.3px; }
+@media (min-width: 801px) {
+  .modes { gap: 4px; }
+  .mode { font-size: 14px; }
+  .mode small { font-size: 12px; letter-spacing: -0.5px; }
 }

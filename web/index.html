@@ -10,16 +10,16 @@
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin="" /><link rel="stylesheet" href="/base.css" /><link
+      crossorigin="" /><link rel="stylesheet" href="/base.css?v=20261103" /><link
       rel="stylesheet"
-      href="/app.css" />
+      href="/app.css?v=20261103" />
     <script
       defer
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script
-    ><script defer src="/app.js"></script
+    ><script defer src="/app.js?v=20261103"></script
   ></head>
   <body
     ><div class="app"
@@ -55,33 +55,33 @@
             <button class="mode" type="button" role="tab" aria-selected="false" data-mode="bicycle">따릉이<small>도보 + 자전거</small></button>
           </div>
           <form id="routeForm">
-            <label class="location-label origin-label" for="origin"><span class="location-dot" aria-hidden="true"></span>출발지</label>
-            <div class="fieldrow">
-              <div class="input-wrap">
-                <input id="origin" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="originSuggestions" aria-expanded="false" aria-describedby="originFeedback" placeholder="어디서 출발하시나요?" value="홍익대학교 서울캠퍼스" required />
-                <button class="clear-btn" type="button" data-clear="origin" aria-label="출발지 지우기"><span aria-hidden="true">×</span></button>
+            <div class="route-box">
+              <div class="route-fields">
+                <div class="route-field is-from">
+                  <label class="sr-only" for="origin">출발지</label>
+                  <input id="origin" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="originSuggestions" aria-expanded="false" aria-describedby="originFeedback" placeholder="어디서 출발하시나요?" value="" required />
+                  <button class="field-btn clear-btn" type="button" data-clear="origin" aria-label="출발지 지우기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  <button class="field-btn" type="button" data-pick="origin" aria-label="지도에서 출발지 선택" title="지도에서 선택"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></button>
+                </div>
+                <ul class="sugg" id="originSuggestions" role="listbox" aria-label="출발지 검색 결과" hidden></ul>
+                <p class="field-feedback" id="originFeedback" aria-live="polite"></p>
+                <div class="route-field is-to">
+                  <label class="sr-only" for="destination">도착지</label>
+                  <input id="destination" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="destinationSuggestions" aria-expanded="false" aria-describedby="destinationFeedback" placeholder="어디로 가시나요?" value="" required />
+                  <button class="field-btn clear-btn" type="button" data-clear="destination" aria-label="도착지 지우기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  <button class="field-btn" type="button" data-pick="destination" aria-label="지도에서 도착지 선택" title="지도에서 선택"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></button>
+                </div>
+                <ul class="sugg" id="destinationSuggestions" role="listbox" aria-label="도착지 검색 결과" hidden></ul>
+                <p class="field-feedback" id="destinationFeedback" aria-live="polite"></p>
               </div>
-              <button class="iconbtn" type="button" data-search="origin" aria-label="출발지 검색">검색</button>
-              <button class="iconbtn" type="button" data-pick="origin" aria-label="지도에서 출발지 선택">지도</button>
+              <button id="swap" class="swap-btn" type="button" aria-label="출발·도착 바꾸기" title="출발·도착 바꾸기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4v16M8 4 4.5 7.5M8 4l3.5 3.5M16 20V4M16 20l-3.5-3.5M16 20l3.5-3.5"/></svg></button>
             </div>
-            <ul class="sugg" id="originSuggestions" role="listbox" aria-label="출발지 검색 결과" hidden></ul>
-            <p class="field-feedback" id="originFeedback" aria-live="polite"></p>
             <div class="route-tools">
-              <button id="locate" type="button" class="chip">◎ 현재 위치</button>
-              <button id="swap" type="button" class="chip">출발·도착 바꾸기 <span aria-hidden="true">⇅</span></button>
+              <button id="locate" type="button" class="chip"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg> 현재 위치를 출발지로</button>
             </div>
-            <label class="location-label destination-label" for="destination"><span class="location-dot" aria-hidden="true"></span>도착지</label>
-            <div class="fieldrow">
-              <div class="input-wrap">
-                <input id="destination" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="destinationSuggestions" aria-expanded="false" aria-describedby="destinationFeedback" placeholder="어디로 가시나요?" value="건국대학교 서울캠퍼스" required />
-                <button class="clear-btn" type="button" data-clear="destination" aria-label="도착지 지우기"><span aria-hidden="true">×</span></button>
-              </div>
-              <button class="iconbtn" type="button" data-search="destination" aria-label="도착지 검색">검색</button>
-              <button class="iconbtn" type="button" data-pick="destination" aria-label="지도에서 도착지 선택">지도</button>
-            </div>
-            <ul class="sugg" id="destinationSuggestions" role="listbox" aria-label="도착지 검색 결과" hidden></ul>
-            <p class="field-feedback" id="destinationFeedback" aria-live="polite"></p>
-            <p class="hint" id="pickHint">장소를 검색하거나 지도 버튼으로 위치를 선택하세요.</p>
+            <div class="recent-places" id="recentPlaces" aria-label="최근 장소" hidden></div>
+            <p class="hint" id="pickHint">이름을 입력해 검색하거나, 핀 버튼으로 지도에서 직접 고르세요.</p>
+            <details class="adv"><summary>상세 설정<small>출발 시각 · 날씨 반영</small></summary>
             <label for="departure">출발 시각 · 한국시간</label
             ><select id="departureMode"
               ><option value="auto">지금 출발 · 검색 시각 기준</option
@@ -93,6 +93,7 @@
                 ><input id="usePersonal" type="checkbox" checked /> 내 주행 기록 반영</label
               ></div
             >
+            </details>
             <button class="primary" id="searchButton" type="submit"
               >통합 경로 찾기 ↗</button
             ></form
@@ -114,7 +115,7 @@
             ><details id="searchDetails"
               ><summary>탐색·모델 정보</summary><div id="diagnostics" class="hint"></div></details
           ><div class="go-bar" id="goBar"
-            ><button class="primary" id="startGuide" type="button">선택한 경로로 출발</button></div
+            ><button class="primary" id="startGuide" type="button">이 경로로 출발하기</button></div
           ></section>
           <p class="credit">지도 © OpenStreetMap contributors · Leaflet</p></section
         >
@@ -168,7 +169,7 @@
           >
           <div id="signedIn" hidden
             ><div class="profile-summary"
-              ><img src="/assets/head.webp" alt="" /><div
+              ><img src="/assets/rider.png" alt="" /><div
                 ><span class="pill">내 기록에 맞춘 예상시간</span
                 ><h2 id="factorText">기본 주행 수준</h2><p class="hint" id="profileStats"></p></div
             ></div>
@@ -330,16 +331,17 @@
           target="_blank"
           rel="noopener"
           >© OpenStreetMap contributors</a
+        ><div class="pick-banner" id="pickBanner" role="status" hidden><span id="pickBannerText"></span><button type="button" id="pickCancel">취소</button></div
         ><div class="map-legend"
           ><span class="legend-bike">따릉이</span><span class="legend-bus">버스</span
           ><span class="legend-subway">지하철</span><span class="legend-walk">도보</span></div
         ><div class="guide-card" id="guideCard" role="region" aria-label="이동 안내" hidden
-          ><img class="guide-avatar" src="/assets/head.webp" alt="" />
+          ><img class="guide-avatar" src="/assets/rider.png" alt="" /><button class="guide-toggle" id="guideToggle" type="button" aria-expanded="true" aria-label="안내 접기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="guide-text" aria-live="polite"
             ><strong id="guideTitle">안내 중</strong><small id="guideSub">내 위치를 찾는 중…</small></div
           ><div class="guide-actions"
             ><button class="secondary" id="guideReroute" type="button" hidden>여기서 다시 찾기</button
-            ><button class="secondary" id="guideFollow" type="button" aria-pressed="true">위치 따라가기</button
+            ><button class="secondary" id="guideFollow" type="button" aria-pressed="true">따라가는 중</button
             ><button class="secondary" id="guideStop" type="button">종료</button></div
         ></div
         ></main
